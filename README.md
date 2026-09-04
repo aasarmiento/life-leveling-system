@@ -1,0 +1,1 @@
+A gamified browser dashboard that turns real daily effort (work, learning, health) into XP and a visible level/rank, so progress that's normally invisible (hours worked, tasks done, workouts logged) becomes something you can actually see move.
