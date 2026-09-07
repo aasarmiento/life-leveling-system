@@ -1,71 +1,152 @@
+HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Required meta tags -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Questify — Make your effort visible</title>
 
-    <!-- Title Page -->
-    <title>Questify</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Fontfaces / External CSS -->
-    <link rel="stylesheet" href="style.css">
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <!-- Header Section -->
-    <header>
-        <h1>Questify - Conquer Yourself</h1>
+<nav>
+  <div class="nav-logo">QUESTIFY</div>
+  <div class="nav-links">
+    <a href="pages/dashboard.html" class="nav-signin">Dashboard</a>
+    <a href="pages/tasks.html" class="nav-signin">Tasks</a>
+    <a href="pages/profile.html" class="nav-signin">Profile</a>
+    <a href="pages/about.html" class="nav-signin">About</a>
+    <a href="pages/signin.html" class="nav-signup">Sign In</a>
+  </div>
+</nav>
 
-        <!-- Navigation Section -->
-        <nav>
-            <ul>
-                <li><a href="pages/signin.html">Sign In</a></li>
-                <li><a href="pages/dashboard.html">Dashboard</a></li>
-                <li><a href="pages/profile.html">Profile</a></li>
-                <li><a href="pages/tasks.html">Tasks</a></li>
-                <li><a href="pages/about.html">About</a></li>
-            </ul>
-        </nav>
-    </header>
+<!-- HERO WITH VIDEO -->
+<header class="hero">
+  <video class="hero-video" autoplay muted loop playsinline preload="auto">
+    <source src="assets/videos/questify-hero.mp4" type="video/mp4">
+    <source src="assets/videos/questify-hero.mp4" type="video/webm">
+    Your browser does not support the video tag.
+  </video>
 
-    <!-- Main Section -->
-    <main>
-        <!-- Hero / Welcome Section -->
-        <section class="hero-section">
-            <h2><marquee>Welcome, Traveler.</marquee></h2>
-            <h3>Level up your life!</h3>
-            <a href="#">Click here to start your journey</a>
-        </section>
+  <div class="hero-overlay"></div>
 
-        <!-- Primary Content Section -->
-        <section class="main-content">
-            <h2>Dashboard Preview</h2>
-            <p>Main content for the current page goes here.</p>
-        </section>
+  <div class="hero-content">
+    <p class="hero-eyebrow">START YOUR</p>
+    <h1 class="hero-title">
+      Questing
+      <span>Adventure</span>
+    </h1>
+    <p class="hero-sub">
+      A gamified dashboard that turns your real daily effort — work, learning, and health — into XP and a level you can actually see.
+    </p>
+    <a href="pages/signin.html" class="hero-cta">Get started</a>
+  </div>
+</header>
 
-        <!-- Aside Section -->
-        <aside>
-            <h3>Quick Stats</h3>
-            <p>Sidebar content, notifications, or quick navigation widgets.</p>
-        </aside>
-    </main>
+<section id="how">
+  <div class="section-head">
+    <h2 class="section-title">Make invisible effort visible</h2>
+    <p class="section-sub">Hours worked, tasks finished, and workouts done usually disappear. Questify turns them into progress you can watch move.</p>
+  </div>
 
-    <!-- Footer Section -->
-    <footer>
-        <p><strong>Subject:</strong> Web Systems and Technology</p>
-        <p><strong>Group Members:</strong></p>
-        <ul>
-            <li>Abigail Ann Sarmiento</li>
-            <li>Christian Allen Soriano</li>
-            <li>Jeremiah Alzona</li>
-            <li>Rowel Jepsani</li>
-            <li>Sire Manalo</li>
-        </ul>
-    </footer>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Log your effort</h3>
+      <p>Record the real work you already do — deep work sessions, study blocks, or workouts.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Earn XP</h3>
+      <p>Every logged activity converts into experience points based on time and category.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Level up</h3>
+      <p>Watch your rank climb as consistent effort stacks into a visible level.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <h3>See the proof</h3>
+      <p>Your history becomes clear evidence of progress that used to stay invisible.</p>
+    </div>
+  </div>
+</section>
 
-    <!-- JavaScript -->
-    <script src="index.js"></script>
+<section class="categories">
+  <div class="section-head">
+    <h2 class="section-title">Built for real life</h2>
+    <p class="section-sub">Three universal categories that fit any routine — not just students.</p>
+  </div>
+
+  <div class="cat-grid">
+    <div class="cat-card cat-work">
+      <span class="cat-tag">CATEGORY</span>
+      <h3>WORK</h3>
+      <p>Deep work, meetings, admin, and deadlines — the effort that usually vanishes at the end of the day.</p>
+    </div>
+    <div class="cat-card cat-growth">
+      <span class="cat-tag">CATEGORY</span>
+      <h3>LEARNING</h3>
+      <p>Courses, reading, practice, and side projects — growth that compounds but is hard to feel day to day.</p>
+    </div>
+    <div class="cat-card cat-health">
+      <span class="cat-tag">CATEGORY</span>
+      <h3>HEALTH</h3>
+      <p>Workouts, walks, sleep, and recovery — habits that matter most when they stay consistent.</p>
+    </div>
+  </div>
+</section>
+
+<section class="progress-section">
+  <div class="level-card">
+    <div class="level-top">
+      <div>
+        <div class="level-num">LEVEL 12</div>
+        <div class="level-label">Quest Master</div>
+      </div>
+      <div class="xp-pill">1,450 XP</div>
+    </div>
+    <div class="xp-track">
+      <div class="xp-fill"></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-val">47</div>
+        <div class="stat-lab">Quests Done</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">82%</div>
+        <div class="stat-lab">Completion</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">9</div>
+        <div class="stat-lab">Day Streak</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta" id="signup">
+  <h2>Ready to make your effort visible?</h2>
+  <a href="pages/signin.html" class="btn-primary">Create Free Account</a>
+</section>
+
+<footer>
+  <div class="footer-logo">QUESTIFY</div>
+  <div class="footer-info">
+    <p><strong>Web Systems and Technology</strong></p>
+    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
+  </div>
+  <div>© 2026 Questify</div>
+</footer>
+
+<script src="js/index.js"></script>
 </body>
 </html>
