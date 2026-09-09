@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Questify — Tasks</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="nav-logo">QUESTIFY</div>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a class="active" href="tasks.html">Tasks</a>
+      <a href="profile.html">Profile</a>
+      <a href="about.html">About</a>
+      <a class="nav-signup" href="signin.html">Alex</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div>
+      <h1 class="pixel board-title">Quest Board</h1>
+      <p class="page-kicker">Work, growth, and health — named so they can move.</p>
+    </div>
+    <a class="btn-gold" href="tasks-modal.html">Add quest</a>
+  </div>
+
+  <div class="filters">
+    <span class="chip on">All</span>
+    <span class="chip">Work</span>
+    <span class="chip">Growth</span>
+    <span class="chip">Health</span>
+  </div>
+
+  <div class="board" style="margin-top:14px">
+    <section>
+      <div class="col-h"><span>To Do <span class="count">6</span></span></div>
+      <div class="col-scroll">
+        <article class="qcard">
+          <strong>Send client proposal</strong>
+          <p class="cap">Attach the PDF and hit send before noon.</p>
+          <div class="meta">
+            <span class="chip chip-work">Work</span>
+            <span class="chip chip-hi">High</span>
+            <span class="xp">+25 XP</span>
+            <span class="due">Sep 12</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-gold" type="button">Start</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Inbox zero</strong>
+          <p class="cap">Leave the work inbox at zero before you log off.</p>
+          <div class="meta">
+            <span class="chip chip-work">Work</span>
+            <span class="xp">+10 XP</span>
+            <span class="due">Sep 08</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-gold" type="button">Start</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Draft weekly report</strong>
+          <p class="cap">One page. What moved. What is next.</p>
+          <div class="meta">
+            <span class="chip chip-work">Work</span>
+            <span class="xp">+15 XP</span>
+            <span class="due">Sep 10</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-gold" type="button">Start</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Outline lecture notes</strong>
+          <p class="cap">Headings only — the full write-up can wait.</p>
+          <div class="meta">
+            <span class="chip chip-growth">Growth</span>
+            <span class="xp">+15 XP</span>
+            <span class="due">Sep 11</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-gold" type="button">Start</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Pack gym bag</strong>
+          <p class="cap">Shoes, bottle, headphones. Night-before so morning is easy.</p>
+          <div class="meta">
+            <span class="chip chip-health">Health</span>
+            <span class="xp">+10 XP</span>
+            <span class="due">Sep 08</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-gold" type="button">Start</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Call the supplier</strong>
+          <p class="cap">Confirm the Friday delivery window.</p>
+          <div class="meta">
+            <span class="chip chip-work">Work</span>
+            <span class="chip chip-hi">High</span>
+            <span class="xp">+20 XP</span>
+            <span class="due">Sep 13</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-gold" type="button">Start</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="col-h"><span>Doing <span class="count">4</span></span></div>
+      <div class="col-scroll">
+        <article class="qcard">
+          <strong>Read 20 pages</strong>
+          <p class="cap">Stay in the same book. Twenty real pages.</p>
+          <div class="meta">
+            <span class="chip chip-growth">Growth</span>
+            <span class="xp">+15 XP</span>
+            <span class="due">Sep 08</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-lime" type="button">Done</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Refactor login form</strong>
+          <p class="cap">Labels, errors, and the gold / lime buttons.</p>
+          <div class="meta">
+            <span class="chip chip-work">Work</span>
+            <span class="xp">+25 XP</span>
+            <span class="due">Sep 09</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-lime" type="button">Done</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>30-min walk</strong>
+          <p class="cap">Outside. Phone stays in a pocket.</p>
+          <div class="meta">
+            <span class="chip chip-health">Health</span>
+            <span class="xp">+15 XP</span>
+            <span class="due">Sep 08</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-lime" type="button">Done</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Watch one course module</strong>
+          <p class="cap">One module, notes in the same sitting.</p>
+          <div class="meta">
+            <span class="chip chip-growth">Growth</span>
+            <span class="xp">+20 XP</span>
+            <span class="due">Sep 09</span>
+          </div>
+          <div class="qactions">
+            <button class="btn-lime" type="button">Done</button>
+            <button class="btn-ghost" type="button">Edit</button>
+            <button class="btn-ghost" type="button">Delete</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="col-h"><span>Done <span class="count">5</span></span></div>
+      <div class="col-scroll">
+        <article class="qcard">
+          <strong>45-min run</strong>
+          <p class="cap">Easy pace. It counted.</p>
+          <div class="meta">
+            <span class="chip chip-health">Health</span>
+            <span class="xp">+20 XP</span>
+            <span class="due">Sep 07</span>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Morning stretch</strong>
+          <p class="cap">Ten minutes before the first meeting.</p>
+          <div class="meta">
+            <span class="chip chip-health">Health</span>
+            <span class="xp">+10 XP</span>
+            <span class="due">Sep 07</span>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Ship slide deck</strong>
+          <p class="cap">Sent. Not perfect. Sent.</p>
+          <div class="meta">
+            <span class="chip chip-work">Work</span>
+            <span class="xp">+25 XP</span>
+            <span class="due">Sep 06</span>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Journal half a page</strong>
+          <p class="cap">What actually happened today.</p>
+          <div class="meta">
+            <span class="chip chip-growth">Growth</span>
+            <span class="xp">+10 XP</span>
+            <span class="due">Sep 06</span>
+          </div>
+        </article>
+
+        <article class="qcard">
+          <strong>Water plants / walk</strong>
+          <p class="cap">Two minutes. Then a loop around the block.</p>
+          <div class="meta">
+            <span class="chip chip-health">Health</span>
+            <span class="xp">+10 XP</span>
+            <span class="due">Sep 05</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">QUESTIFY</div>
+  <div class="names">Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</div>
+  <div>© 2026 Questify</div>
+</footer>
+
+</body>
+</html>

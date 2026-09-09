@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Questify — Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="nav-logo">QUESTIFY</div>
+    <div class="nav-links">
+      <a href="../index.html">Home</a>
+      <a class="active" href="dashboard.html">Dashboard</a>
+      <a href="tasks.html">Tasks</a>
+      <a href="profile.html">Profile</a>
+      <a href="about.html">About</a>
+      <a class="nav-signup" href="signin.html">Alex</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="top-split">
+    <section class="card identity">
+      <div>
+        <div class="name">Alex Rivera</div>
+        <div class="lvl">LEVEL 12</div>
+        <div class="page-kicker" style="margin:0">Quest Master</div>
+        <p class="page-kicker" style="margin:8px 0">Today is a good day to make effort visible.</p>
+        <div class="xp-track"><div class="xp-fill"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-top:6px">
+          <span>1,450 XP</span><span>next level 2,000</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card week-card">
+      <div>
+        <h2 class="pixel">This week</h2>
+        <p class="page-kicker">A thin slice of the week so today is not the only number you see.</p>
+        <div class="week-grid">
+          <div><b>6</b><span>quests</span></div>
+          <div><b>240</b><span>XP</span></div>
+          <div><b>3</b><span>days</span></div>
+        </div>
+        <div class="dots">
+          <button class="dot on early" type="button" aria-label="Mon"></button>
+          <button class="dot on early" type="button" aria-label="Tue"></button>
+          <button class="dot on early" type="button" aria-label="Wed"></button>
+          <button class="dot" type="button" aria-label="Thu"></button>
+          <button class="dot" type="button" aria-label="Fri"></button>
+          <button class="dot" type="button" aria-label="Sat"></button>
+          <button class="dot" type="button" aria-label="Sun"></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="stat-row">
+    <div class="card stat-card">
+      <div>
+        <div class="val">1,450</div>
+        <div class="lab">Total XP</div>
+      </div>
+    </div>
+    <div class="card stat-card">
+      <div>
+        <div class="val">47</div>
+        <div class="lab">Quests done</div>
+      </div>
+    </div>
+    <div class="card stat-card">
+      <div>
+        <div class="val">82%</div>
+        <div class="lab">Completion</div>
+      </div>
+    </div>
+    <div class="card stat-card">
+      <div>
+        <div class="val">9</div>
+        <div class="lab">Day streak</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-kicker">Show today’s list by the life area you want to face.</p>
+  
+  <div class="filters">
+    <span class="chip on">All</span>
+    <span class="chip">Work</span>
+    <span class="chip">Growth</span>
+    <span class="chip">Health</span>
+  </div>
+
+  <div class="add-wrap">
+    <a class="btn-lime" href="tasks-modal.html">Add quest</a>
+  </div>
+
+  <div class="dash-grid">
+    <section class="card">
+      <h2 class="pixel">Today's Quests</h2>
+      <p class="page-kicker">What you promised yourself for this date — work, growth, and health.</p>
+      <div class="quest-list">
+        <div class="quest-row">
+          <span>Send client proposal</span>
+          <span class="chip chip-work">Work</span>
+          <span class="xp">+25 XP</span>
+          <a class="btn-gold" href="tasks.html">Start</a>
+        </div>
+        <div class="quest-row">
+          <span>Read 20 pages</span>
+          <span class="chip chip-growth">Growth</span>
+          <span class="xp">+15 XP</span>
+          <a class="btn-gold" href="tasks.html">Start</a>
+        </div>
+        <div class="quest-row">
+          <span>45-min run</span>
+          <span class="chip chip-health">Health</span>
+          <span class="xp">+20 XP</span>
+          <a class="btn-gold" href="tasks.html">Start</a>
+        </div>
+        <div class="quest-row">
+          <span>Inbox zero</span>
+          <span class="chip chip-work">Work</span>
+          <span class="xp">+10 XP</span>
+          <a class="btn-gold" href="tasks.html">Start</a>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h2 class="pixel">Today by category</h2>
+      <p class="page-kicker">Where today's XP is coming from.</p>
+      <div class="bar-row">
+        <span class="lab">Work</span>
+        <div class="track"><div class="fill" style="width:70%;background:#c9a227"></div></div>
+      </div>
+      <div class="bar-row">
+        <span class="lab">Growth</span>
+        <div class="track"><div class="fill" style="width:45%;background:#2d5a66"></div></div>
+      </div>
+      <div class="bar-row">
+        <span class="lab">Health</span>
+        <div class="track"><div class="fill" style="width:35%;background:#7a3d4a"></div></div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">QUESTIFY</div>
+  <div class="names">Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</div>
+  <div>© 2026 Questify</div>
+</footer>
+
+</body>
+</html>
