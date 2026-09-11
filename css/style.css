@@ -416,8 +416,19 @@ footer {
   .cat-grid { grid-template-columns: 1fr; }
 }
 
+.music-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: inherit;
+}
+
+
+
 @media (max-width: 560px) {
   footer { flex-direction: column; gap: 16px; text-align: center; }
   .steps { grid-template-columns: 1fr; }
   .nav-links { gap: 14px; font-size: 13px; }
-}mnop./
+}
