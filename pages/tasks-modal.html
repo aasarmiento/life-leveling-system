@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Questify — Add quest</title>
+<link rel="stylesheet" href="../css/style.css">
+</head><body>
+<header><nav>
+  <div class="nav-logo">QUESTIFY</div>
+  <div class="nav-links">
+    <a href="dashboard.html">Dashboard</a>
+    <a class="active" href="tasks.html">Tasks</a>
+    <a href="profile.html">Profile</a>
+    <a href="about.html">About</a>
+    <a class="nav-signup" href="signin.html">Alex</a>
+  </div>
+</nav></header>
+<main>
+  <h1 class="pixel">Quest Board</h1>
+  <p class="page-kicker">Work, growth, and health — named so they can move.</p>
+</main>
+<div class="modal-back">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2>Add quest</h2>
+      <a href="tasks.html"><img class="icon" src="../00-shared/icon-close.png" alt="close"></a>
+    </div>
+    <label>Title</label>
+    <input placeholder="Name the quest">
+    <div class="err show">Name the quest first.</div>
+    <label>Caption</label>
+    <input placeholder="One short line">
+    <label>Category</label>
+    <select><option>Work</option><option>Growth</option><option>Health</option></select>
+    <label>Priority</label>
+    <select><option>Low</option><option>Medium</option><option selected>High</option></select>
+    <label>XP</label>
+    <select><option>10</option><option>20</option><option>30</option></select>
+    <label>Due date</label>
+    <div class="date-wrap">
+      <input type="date" value="2026-09-12">
+      <img src="../00-shared/icon-calendar.png" alt="">
+    </div>
+    <div class="modal-actions">
+      <a class="btn-ghost" href="tasks.html">Cancel</a>
+      <a class="btn-lime" href="tasks.html">Save quest</a>
+    </div>
+  </div>
+</div>
+</body></html>
