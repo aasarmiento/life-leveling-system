@@ -11,6 +11,7 @@
   --ink: #0a0e1a;
   --text-dim: #9ba3b5;
   --card: #121826;
+  --bg-card: #121826;
   --border: #1e2838;
 }
 
@@ -179,12 +180,12 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
 }
 
-.btn.teal {
+.btn-teal {
   background: var(--teal);
   color: var(--ink);
 }
 
-.btn.ghost {
+.btn-ghost {
   background: none;
   color: var(--text-dim);
 }
@@ -778,61 +779,86 @@ font-weight: 700;
 .toolbar { 
   display: flex; 
   justify-content: space-between; 
-  align-items: flex-start; 
-  gap: 12px; 
-  margin-bottom: 12px; 
+  align-items: center; 
+  margin-bottom: 14px; 
 }
 
 .board { 
   display: grid; 
   grid-template-columns: repeat(3, 1fr); 
-  gap: 32px; 
-  margin-top: 14px; 
+  gap: 16px; 
+  align-items: start;
 }
 
-.col-h { 
+.board-col {
+  padding : 0;
+  background: transparent;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.col-h {
+  font-family: var(--font-pixel);
+  font-size: 14px; 
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
   display: flex; 
   align-items: center; 
-  justify-content: space-between; 
-  margin-bottom: 8px; 
-  font-weight: 600; 
+}
+
+.col-h .count {
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-left: 6px;
 }
 
 .col-scroll { 
-  min-height: 420px; 
-  max-height: 560px; 
-  overflow-y: auto; 
-  padding-right: 4px; 
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 4px 12px 0;
+  max-height: 680px;
+  overflow-y: auto;
 }
 
 .qcard { 
-  background: var(--bg); 
+  background: var(--bg-card); 
   border: 1px solid var(--border); 
-  border-radius: 12px; 
-  padding: 18px; 
-  margin-bottom: 14px; 
+  padding: 12px; 
+  border-radius: 6px;
+}
+
+.qcard strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
 }
 
 .qcard .cap { 
   color: var(--text-dim); 
   font-size: 13px; 
-  margin: 4px 0 8px; 
-  line-height: 1.4; 
+  margin-bottom: 10px;
 }
 
 .qcard .meta { 
   display: flex; 
   gap: 8px; 
-  align-items: center; 
-  margin: 8px 0; 
+  align-items: center;  
   flex-wrap: wrap; 
+  font-size: 12px;
 }
 
 .qactions { 
   display: flex; 
   gap: 6px; 
-  flex-wrap: wrap; 
-  margin-top: 10px; 
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
 /* activity chart */
@@ -993,11 +1019,13 @@ font-weight: 700;
   text-align: center; 
 }
 
-/*others*/
+/* breakpoints */
 
 @media (max-width: 900px) {
   .steps { grid-template-columns: 1fr 1fr; }
   .cat-grid { grid-template-columns: 1fr; }
+  .board { grid-template-columns: 1fr; }
+  .top-split, .dash-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {

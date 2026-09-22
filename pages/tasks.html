@@ -12,34 +12,60 @@
   <nav>
     <div class="nav-logo">QUESTIFY</div>
     <div class="nav-links">
-      <a href="../index.html">Home</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a class="active" href="tasks.html">Tasks</a>
-      <a href="profile.html">Profile</a>
-      <a href="about.html">About</a>
-      <a class="nav-signup" href="signin.html">Alex</a>
+      <a href="dashboard.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-home.png" alt=""> Dashboard
+      </a>
+      <a class="active" href="tasks.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-tasks.png" alt=""> Tasks
+      </a>
+      <a href="profile.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-profile.png" alt=""> Profile
+      </a>
+      <a href="about.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-about.png" alt=""> About
+      </a>
+      <a class="nav-signup" href="signin.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-user.png" alt=""> Alex
+      </a>
     </div>
   </nav>
 </header>
 
-<main>
+<main class = "container">
+  <!-- board header toolbar-->
   <div class="toolbar">
     <div>
-      <h1 class="pixel board-title">Quest Board</h1>
+      <h1 class="pixel board-title">
+      <img class="icon" src="../assets/icons/04-tasks/icon-board.png" alt="">Quest Board
+      </h1>
       <p class="page-kicker">Work, growth, and health — named so they can move.</p>
     </div>
-    <a class="btn-gold" href="tasks-modal.html">Add quest</a>
+    <a class="btn-gold" href="tasks-modal.html">
+    <img class="icon" src="../assets/icons/00-shared/icon-plus.png" alt="">Add quest
+    </a>
   </div>
 
+  <!-- filter chips -->
   <div class="filters">
-    <span class="chip on">All</span>
-    <span class="chip">Work</span>
-    <span class="chip">Growth</span>
-    <span class="chip">Health</span>
+    <span class="chip on">
+    <img class="icon" src="../assets/icons/03-dashboard/icon-filter-all.png" alt=""> All
+    </span>
+    <span class="chip">
+    <img class="icon" src="../assets/icons/00-shared/icon-work.png" alt=""> Work
+    </span>
+    <span class="chip">
+    <img class="icon" src="../assets/icons/00-shared/icon-growth.png" alt=""> Growth
+    </span>
+    <span class="chip">
+    <img class="icon" src="../assets/icons/00-shared/icon-health.png" alt=""> Health
+    </span>
   </div>
 
+  <!--quest board -->
   <div class="board" style="margin-top:14px">
-    <section>
+
+    <!-- To Do Column -->
+     <div class="board-col">
       <div class="col-h"><span>To Do <span class="count">6</span></span></div>
       <div class="col-scroll">
         <article class="qcard">
@@ -49,12 +75,20 @@
             <span class="chip chip-work">Work</span>
             <span class="chip chip-hi">High</span>
             <span class="xp">+25 XP</span>
-            <span class="due">Sep 12</span>
+            <span class="due">
+            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt=""> Sep 12
+          </span>
           </div>
           <div class="qactions">
-            <button class="btn-gold" type="button">Start</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -64,12 +98,20 @@
           <div class="meta">
             <span class="chip chip-work">Work</span>
             <span class="xp">+10 XP</span>
-            <span class="due">Sep 08</span>
+            <span class="due">
+            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
+          </span>
           </div>
           <div class="qactions">
-            <button class="btn-gold" type="button">Start</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -79,12 +121,19 @@
           <div class="meta">
             <span class="chip chip-work">Work</span>
             <span class="xp">+15 XP</span>
-            <span class="due">Sep 10</span>
+            <span class="due">
+            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 10</span>
           </div>
           <div class="qactions">
-            <button class="btn-gold" type="button">Start</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -94,12 +143,20 @@
           <div class="meta">
             <span class="chip chip-growth">Growth</span>
             <span class="xp">+15 XP</span>
-            <span class="due">Sep 11</span>
+            <span class="due">
+            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 11
+            </span>
           </div>
           <div class="qactions">
-            <button class="btn-gold" type="button">Start</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -109,12 +166,20 @@
           <div class="meta">
             <span class="chip chip-health">Health</span>
             <span class="xp">+10 XP</span>
-            <span class="due">Sep 08</span>
+            <span class="due">
+            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
+          </span>
           </div>
           <div class="qactions">
-            <button class="btn-gold" type="button">Start</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -125,18 +190,27 @@
             <span class="chip chip-work">Work</span>
             <span class="chip chip-hi">High</span>
             <span class="xp">+20 XP</span>
-            <span class="due">Sep 13</span>
+            <span class="due">
+            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 13
+            </span>
           </div>
           <div class="qactions">
-            <button class="btn-gold" type="button">Start</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
       </div>
-    </section>
+     </div>
 
-    <section>
+    <!-- Doing Column -->
+    <div class="board-col">
       <div class="col-h"><span>Doing <span class="count">4</span></span></div>
       <div class="col-scroll">
         <article class="qcard">
@@ -145,12 +219,20 @@
           <div class="meta">
             <span class="chip chip-growth">Growth</span>
             <span class="xp">+15 XP</span>
-            <span class="due">Sep 08</span>
+            <span class="due">
+            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
+          </span>
           </div>
           <div class="qactions">
-            <button class="btn-lime" type="button">Done</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-lime" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-done.png" alt=""> Done
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -160,12 +242,20 @@
           <div class="meta">
             <span class="chip chip-work">Work</span>
             <span class="xp">+25 XP</span>
-            <span class="due">Sep 09</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 09
+            </span>
           </div>
           <div class="qactions">
-            <button class="btn-lime" type="button">Done</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-lime" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-done.png" alt=""> Done
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -175,12 +265,20 @@
           <div class="meta">
             <span class="chip chip-health">Health</span>
             <span class="xp">+15 XP</span>
-            <span class="due">Sep 08</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
+            </span>
           </div>
           <div class="qactions">
-            <button class="btn-lime" type="button">Done</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
 
@@ -190,18 +288,27 @@
           <div class="meta">
             <span class="chip chip-growth">Growth</span>
             <span class="xp">+20 XP</span>
-            <span class="due">Sep 09</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 09
+            </span>
           </div>
           <div class="qactions">
-            <button class="btn-lime" type="button">Done</button>
-            <button class="btn-ghost" type="button">Edit</button>
-            <button class="btn-ghost" type="button">Delete</button>
+            <button class="btn-gold" type="button">
+              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
+            </button>
+            <button class="btn-ghost" type="button">
+              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
+            </button>
           </div>
         </article>
       </div>
-    </section>
+    </div>
 
-    <section>
+<!-- Done Column -->
+    <div class="board-col">
       <div class="col-h"><span>Done <span class="count">5</span></span></div>
       <div class="col-scroll">
         <article class="qcard">
@@ -210,7 +317,9 @@
           <div class="meta">
             <span class="chip chip-health">Health</span>
             <span class="xp">+20 XP</span>
-            <span class="due">Sep 07</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 07
+            </span>
           </div>
         </article>
 
@@ -220,7 +329,9 @@
           <div class="meta">
             <span class="chip chip-health">Health</span>
             <span class="xp">+10 XP</span>
-            <span class="due">Sep 07</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 07
+            </span>
           </div>
         </article>
 
@@ -230,7 +341,9 @@
           <div class="meta">
             <span class="chip chip-work">Work</span>
             <span class="xp">+25 XP</span>
-            <span class="due">Sep 06</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 06
+            </span>
           </div>
         </article>
 
@@ -240,7 +353,9 @@
           <div class="meta">
             <span class="chip chip-growth">Growth</span>
             <span class="xp">+10 XP</span>
-            <span class="due">Sep 06</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 06
+            </span>
           </div>
         </article>
 
@@ -250,11 +365,13 @@
           <div class="meta">
             <span class="chip chip-health">Health</span>
             <span class="xp">+10 XP</span>
-            <span class="due">Sep 05</span>
+            <span class="due">
+              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 05
+            </span>
           </div>
         </article>
       </div>
-    </section>
+    </div>
   </div>
 </main>
 
