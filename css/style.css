@@ -2,17 +2,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
+/*themes*/
   --bg: #0a0e1a;
-  --bg-deep: #060910;
-  --green: #c6ef2e;
-  --gold: #f0b429;
-  --teal: #6fe3d9;
-  --cream: #f0ece3;
-  --ink: #0a0e1a;
-  --text-dim: #9ba3b5;
-  --card: #121826;
-  --bg-card: #121826;
-  --border: #1e2838;
+  --bg-deep: #080a12;;
+  --green: #D7FF4A;
+  --pink: #FF206E;
+  --gold: #FF976F;
+  --teal: #498BBF;
+  --orchid: #EC94D7;
+  --cream: #f4f2f7;
+  --ink: #0d111b;
+  --text-dim: #9aa3be;
+  --card: #1C1F2E;
+  --bg-card: #1C1F2E;
+  --border: #2a3147;
 }
 
 /*base styles*/
@@ -62,7 +65,7 @@ main.container, .container {
   border-radius: 8px; 
 }
 *::-webkit-scrollbar-thumb:hover { background:
-  var(--gold);
+  var(--pink);
 }
  * { scrollbar-width: thin;
   scrollbar-color: 
@@ -230,8 +233,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .chip-health {
-  background: #7a3d4a;
-  color: #ffd0d8;
+  background: var(--orchid);
+  color: var(--ink);
   border: 0;
 }
 
@@ -338,7 +341,7 @@ padding: 0;
 }
 
 .dot.on.early { 
-background: linear-gradient(180deg, #9af0d8, #6fe3d9); 
+background: linear-gradient(180deg, var(--orchid), var(--teal)); 
 border-color: transparent; 
 }
 .dot.on.mid {
@@ -615,7 +618,11 @@ section {
 
 .cat-work   { background: linear-gradient(145deg, #7a5525, #4a3315); }
 .cat-growth { background: linear-gradient(145deg, #2d5a66, #1e3d45); }
-.cat-health { background: linear-gradient(145deg, #7a3d4a, #5a2a35); }
+
+.cat-health { 
+background: linear-gradient(145deg, var(--orchid), #854376);
+color: var(--ink);
+}
 
 .cat-tag {
   font-size: 11px;
