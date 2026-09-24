@@ -330,7 +330,7 @@ if (bgMusic && musicToggle) {
 })();
 
 
-// Feedback stars
+
 (function () {
   const stars = document.querySelectorAll('#stars .star');
   const form = document.getElementById('feedbackForm');
@@ -359,7 +359,7 @@ if (bgMusic && musicToggle) {
 })();
 
 
-// FAQ – only one open at a time
+
 (function () {
   const items = document.querySelectorAll('.faq-list details');
   items.forEach(d => {
