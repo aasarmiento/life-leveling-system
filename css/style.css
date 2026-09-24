@@ -1209,7 +1209,7 @@ section {
   animation-delay: -4s;
 }
 
-/* Keep the shooting star very subtle */
+
 .shooting-star {
   position: absolute;
   top: 12%;
@@ -1611,7 +1611,7 @@ section {
   text-align: center;
 }
 
-/* Dashboard bits (kept for completeness) */
+
 .top-split {
   display: grid;
   grid-template-columns: 1.4fr 0.9fr;
