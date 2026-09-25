@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,210 +7,218 @@
   <title>Questify — Profile</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="profile-page">
 
-<header>
-  <nav>
-    <div class="nav-logo">
-      <a href="../index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
-    </div>
-    <div class="nav-links">
-      <a href="dashboard.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-home.png" alt=""> Dashboard
-      </a>
-      <a href="tasks.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-tasks.png" alt=""> Tasks
-      </a>
-      <a class="active" href="profile.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-profile.png" alt=""> Profile
-      </a>
-      <a href="about.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-about.png" alt=""> About
-      </a>
-      <a class="nav-signup" href="signin.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-user.png" alt=""> Alex
-      </a>
-    </div>
-  </nav>
+<!-- ============ NAV ============ -->
+<header class="site-header">
+  <nav id="main-nav" class="nav">
+  <a class="nav-logo pixel" href="../index.html">QUESTIFY</a>
+
+  <div class="nav-links">
+    <a href="tasks.html">Tasks</a>
+    <a class="active" href="profile.html" aria-current="page">Profile</a>
+    <a href="about.html">About</a>
+
+    <a class="xp-pill" href="profile.html" aria-label="Level 12, 1,450 XP">
+      <span class="xp-pill-fill" style="width:72.5%">Level 12 · 1,450</span>
+    </a>
+    <a class="nav-avatar" href="signin.html">Alex</a>
+  </div>
+</nav>
 </header>
 
 <main class="container">
-  <!-- Profile Header -->
+
+  <!-- ============ PROFILE HEADER ============ -->
   <div class="p-head">
-    <img class="mascot" src="../assets/icons/00-shared/mascot-transparent.png" alt="Mascot">
+    <div class="avatar-box" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="28" height="28">
+        <path d="M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0c0-5-7-13-7-13z" fill="currentColor"/>
+      </svg>
+    </div>
     <div>
       <h1 class="pixel board-title">Alex Rivera</h1>
-      <div class="lvl">
-        <img class="icon" src="../assets/icons/03-dashboard/icon-level.png" alt=""> LEVEL 12 · Quest Master
-      </div>
-      <p class="page-kicker" style="margin:6px 0 0">Your proof over time.</p>
+      <div class="lvl">Level 12 · Veteran</div>
+      <p class="page-kicker">Your proof over time.</p>
     </div>
   </div>
 
-  <!-- Level Progress -->
-  <section class="card">
-    <h2 class="pixel">
-      <img class="icon" src="../assets/icons/00-shared/icon-xp-coin.png" alt=""> XP into Level 13
-    </h2>
+  <!-- ============ XP INTO NEXT LEVEL ============ -->
+  <section class="card xp-card">
+    <h2>XP into Level 13</h2>
     <p class="page-kicker">XP only moves when a quest is marked done.</p>
-    <div class="xp-track fat"><div class="xp-fill"></div></div>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:13px">
-      <span>1,450 XP</span><span>2,000 XP</span>
+    <div class="xp-track fat" role="progressbar" aria-valuemin="0" aria-valuemax="2000" aria-valuenow="1450" aria-label="XP into Level 13">
+      <div class="xp-fill" style="width:72.5%"></div>
     </div>
     <div class="xp-facts">
-      <span><b>550</b> XP to go</span>
-      <span><b>47</b> quests fed this bar</span>
-      <span>next title stays <b>Quest Master</b></span>
+      <span>1,450 XP</span>
+      <span>47 quests fed this bar</span>
+      <span>550 XP to Level 13</span>
     </div>
   </section>
 
-  <!-- Statistics Row -->
-  <div class="stat-row" style="margin-top:14px">
+  <!-- ============ STAT CARDS ============ -->
+  <div class="stat-row">
     <div class="card stat-card">
-      <img class="icon-lg" src="../assets/icons/03-dashboard/icon-quests-done.png" alt="">
-      <div>
-        <div class="val">47</div>
-        <div class="lab">Quests done</div>
-      </div>
+      <span class="stat-ico lime" aria-hidden="true">✓</span>
+      <div class="val">47</div>
+      <div class="lab">Quests done</div>
     </div>
     <div class="card stat-card">
-      <img class="icon-lg" src="../assets/icons/03-dashboard/icon-completion.png" alt="">
-      <div>
-        <div class="val">82%</div>
-        <div class="lab">Completion</div>
-      </div>
+      <span class="stat-ico blue" aria-hidden="true">%</span>
+      <div class="val">82%</div>
+      <div class="lab">Completion</div>
     </div>
     <div class="card stat-card">
-      <img class="icon-lg" src="../assets/icons/00-shared/icon-streak.png" alt="">
-      <div>
-        <div class="val">9</div>
-        <div class="lab">Day streak</div>
-      </div>
+      <span class="stat-ico gold" aria-hidden="true">▲</span>
+      <div class="val">9 days</div>
+      <div class="lab">Day streak</div>
     </div>
     <div class="card stat-card">
-      <img class="icon-lg" src="../assets/icons/05-profile/icon-week.png" alt="">
-      <div>
-        <div class="val">6</div>
-        <div class="lab">This week</div>
-      </div>
+      <span class="stat-ico rose" aria-hidden="true">●</span>
+      <div class="val">6</div>
+      <div class="lab">Quests this week</div>
     </div>
   </div>
 
-  <!-- Breakdown & Activity Split -->
+  <!-- ============ CATEGORIES + RECENT ACTIVITY ============ -->
   <div class="extra-grid">
     <section class="card">
-      <h2 class="pixel">
-        <img class="icon" src="../assets/icons/05-profile/icon-chart.png" alt=""> Quests by category
-      </h2>
-      <p class="page-kicker">Where the 47 completed quests actually lived.</p>
-      
+      <h2>Quests by category</h2>
+      <p class="page-kicker">Where your 47 completed quests went.</p>
+
       <div class="bar-row">
-        <img class="icon" src="../assets/icons/00-shared/icon-work.png" alt="">
-        <span class="lab">Work 22</span>
-        <div class="track"><div class="fill" style="width:60%; background:#c9a227"></div></div>
+        <div class="bar-head"><span>Work</span><span>20</span></div>
+        <div class="track"><div class="fill work" style="width:100%"></div></div>
       </div>
       <div class="bar-row">
-        <img class="icon" src="../assets/icons/00-shared/icon-growth.png" alt="">
-        <span class="lab">Growth 15</span>
-        <div class="track"><div class="fill" style="width:50%; background:#2d5a66"></div></div>
+        <div class="bar-head"><span>Learning</span><span>15</span></div>
+        <div class="track"><div class="fill learning" style="width:75%"></div></div>
       </div>
       <div class="bar-row">
-        <img class="icon" src="../assets/icons/00-shared/icon-health.png" alt="">
-        <span class="lab">Health 10</span>
-        <div class="track"><div class="fill" style="width:40%; background:#7a3d4a"></div></div>
+        <div class="bar-head"><span>Health</span><span>12</span></div>
+        <div class="track"><div class="fill health" style="width:60%"></div></div>
       </div>
+      <p class="bar-sum">20 + 15 + 12 = 47 quests</p>
     </section>
 
     <section class="card">
-      <h2 class="pixel">
-        <img class="icon" src="../assets/icons/05-profile/icon-history.png" alt=""> Recent activity
-      </h2>
+      <h2>Recent activity</h2>
       <p class="page-kicker">A log, not a feed. Newest first.</p>
-      
-      <div class="activity">
-        <img class="icon" src="../assets/icons/00-shared/icon-work.png" alt="">
-        <span class="when">Sep 07</span>
-        <span>Send client proposal</span>
-        <span class="xp">+25 XP</span>
-      </div>
-      <div class="activity">
-        <img class="icon" src="../assets/icons/00-shared/icon-growth.png" alt="">
-        <span class="when">Sep 07</span>
-        <span>Read 20 pages</span>
-        <span class="xp">+15 XP</span>
-      </div>
-      <div class="activity">
-        <img class="icon" src="../assets/icons/00-shared/icon-health.png" alt="">
-        <span class="when">Sep 06</span>
-        <span>45-min run</span>
-        <span class="xp">+20 XP</span>
-      </div>
-      <div class="activity">
-        <img class="icon" src="../assets/icons/00-shared/icon-work.png" alt="">
-        <span class="when">Sep 06</span>
-        <span>Inbox zero</span>
-        <span class="xp">+10 XP</span>
+
+      <div class="activity-list">
+        <div class="activity"><span class="when">Sep 07</span><span class="what">Send client proposal</span><span class="xp">+25 XP</span></div>
+        <div class="activity"><span class="when">Sep 07</span><span class="what">Read 20 pages</span><span class="xp">+15 XP</span></div>
+        <div class="activity"><span class="when">Sep 06</span><span class="what">45-min run</span><span class="xp">+20 XP</span></div>
+        <div class="activity"><span class="when">Sep 06</span><span class="what">Inbox zero</span><span class="xp">+10 XP</span></div>
+        <div class="activity"><span class="when">Sep 05</span><span class="what">Morning stretch</span><span class="xp">+10 XP</span></div>
       </div>
     </section>
   </div>
 
-  <!-- Weekly Activity Chart -->
-  <section class="card" style="margin-top:14px">
-    <h2 class="pixel">
-      <img class="icon" src="../assets/icons/05-profile/icon-chart.png" alt=""> Week XP
-    </h2>
-    <p class="week-meaning">240 XP earned this week · Friday was the peak.</p>
-    <p class="page-kicker">Seven days of XP. Quiet days stay short on purpose.</p>
-    
+  <!-- ============ XP THIS WEEK ============ -->
+  <section class="card week-card">
+    <div class="week-head">
+      <div>
+        <h2>XP this week</h2>
+        <p class="page-kicker">245 XP earned. Friday was the peak.</p>
+      </div>
+      <div class="chips" role="group" aria-label="Chart range">
+        <button type="button" class="chip active" aria-pressed="true">7 days</button>
+        <button type="button" class="chip" aria-pressed="false">30 days</button>
+        <button type="button" class="chip" aria-pressed="false">All time</button>
+      </div>
+    </div>
+
     <div class="week-chart">
-      <div class="col"><div class="bar" style="height:28%"></div><span>Mon 20</span></div>
-      <div class="col"><div class="bar" style="height:55%"></div><span>Tue 40</span></div>
-      <div class="col"><div class="bar" style="height:16%"></div><span>Wed 10</span></div>
-      <div class="col"><div class="bar" style="height:72%"></div><span>Thu 55</span></div>
-      <div class="col"><div class="bar" style="height:92%"></div><span>Fri 70</span></div>
-      <div class="col"><div class="bar" style="height:40%"></div><span>Sat 30</span></div>
-      <div class="col"><div class="bar" style="height:20%"></div><span>Sun 15</span></div>
+      <div class="col" role="img" aria-label="Monday, 25 XP"><div class="bar" style="height:36%"><span class="num">25</span></div><span class="day">Mon</span></div>
+      <div class="col" role="img" aria-label="Tuesday, 40 XP"><div class="bar" style="height:57%"><span class="num">40</span></div><span class="day">Tue</span></div>
+      <div class="col" role="img" aria-label="Wednesday, 10 XP"><div class="bar" style="height:14%"><span class="num">10</span></div><span class="day">Wed</span></div>
+      <div class="col" role="img" aria-label="Thursday, 55 XP"><div class="bar" style="height:79%"><span class="num">55</span></div><span class="day">Thu</span></div>
+      <div class="col peak" role="img" aria-label="Friday, 70 XP"><div class="bar" style="height:100%"><span class="num">70</span></div><span class="day">Fri</span></div>
+      <div class="col" role="img" aria-label="Saturday, 30 XP"><div class="bar" style="height:43%"><span class="num">30</span></div><span class="day">Sat</span></div>
+      <div class="col" role="img" aria-label="Sunday, 15 XP"><div class="bar" style="height:21%"><span class="num">15</span></div><span class="day">Sun</span></div>
+    </div>
+
+    <p class="chart-note">Screen reader table: each bar has a label like "Friday, 70 XP".</p>
+  </section>
+
+  <!-- ============ RANKS + BADGES ============ -->
+  <div class="rank-badge-grid">
+    <section class="card">
+      <h2>Ranks</h2>
+      <p class="page-kicker">Your current rank is highlighted.</p>
+
+      <ol class="rank-list">
+        <li class="rank"><span>Master</span><span>1,500 XP</span></li>
+        <li class="rank current" aria-current="true"><span>Veteran</span><span>700 XP</span></li>
+        <li class="rank"><span>Adventurer</span><span>300 XP</span></li>
+        <li class="rank"><span>Apprentice</span><span>100 XP</span></li>
+        <li class="rank"><span>Novice</span><span>0 XP</span></li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Badges</h2>
+      <p class="page-kicker">Earned badges glow. Locked ones show how close you are.</p>
+
+      <div class="badges">
+        <div class="badge earned">
+          <div class="badge-top"><span class="b-ico" aria-hidden="true">★</span><span class="b-name">Level 10</span></div>
+          <span class="b-status">Earned</span>
+        </div>
+        <div class="badge earned">
+          <div class="badge-top"><span class="b-ico" aria-hidden="true">★</span><span class="b-name">9-day streak</span></div>
+          <span class="b-status">Earned</span>
+        </div>
+        <div class="badge earned">
+          <div class="badge-top"><span class="b-ico" aria-hidden="true">★</span><span class="b-name">Deep week</span></div>
+          <span class="b-status">Earned</span>
+        </div>
+        <div class="badge locked">
+          <div class="badge-top"><span class="b-ico" aria-hidden="true">🔒</span><span class="b-name">Early bird</span></div>
+          <div class="mini-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-label="Early bird progress">
+            <div class="mini-fill" style="width:60%"></div>
+          </div>
+          <span class="b-progress">3 of 5 morning quests</span>
+        </div>
+        <div class="badge locked">
+          <div class="badge-top"><span class="b-ico" aria-hidden="true">🔒</span><span class="b-name">Century</span></div>
+          <div class="mini-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="47" aria-label="Century progress">
+            <div class="mini-fill" style="width:47%"></div>
+          </div>
+          <span class="b-progress">47 of 100 quests</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ YOUR DATA ============ -->
+  <section class="card data-card">
+    <h2>Your data</h2>
+    <p class="page-kicker">Everything is stored in this browser. Save a copy so you can restore it later.</p>
+
+    <div class="data-actions">
+      <button type="button" class="btn btn-primary">Export my data</button>
+      <button type="button" class="btn btn-outline">Import data</button>
+      <div class="data-msg">
+        <p class="msg-error" role="alert">Error example: That file isn't a Questify backup. Nothing was changed.</p>
+        <p class="msg-hint">Import checks the file before it replaces anything.</p>
+      </div>
     </div>
   </section>
 
-  <!-- Badges Earned -->
-  <section class="card" style="margin-top:14px">
-    <h2 class="pixel">
-      <img class="icon" src="../assets/icons/05-profile/icon-badge-master.png" alt=""> Badges
-    </h2>
-    <p class="page-kicker">Badges you already earned. No shop. No paywall.</p>
-    
-    <div class="badges">
-      <div class="badge">
-        <img class="icon" src="../assets/icons/03-dashboard/icon-level.png" alt="">Quest Master
-      </div>
-      <div class="badge">
-        <img class="icon" src="../assets/icons/00-shared/icon-streak.png" alt="">9-day heat
-      </div>
-      <div class="badge">
-        <img class="icon" src="../assets/icons/00-shared/icon-work.png" alt="">Deep week (Work-heavy)
-      </div>
-    </div>
-  </section>
-
-  <!-- Longest Streak -->
-  <section class="card" style="margin-top:14px">
-    <h2 class="pixel">
-      <img class="icon" src="../assets/icons/00-shared/icon-streak.png" alt=""> Longest streak
-    </h2>
-    <p class="page-kicker">Best run so far — a number to protect, not a punishment.</p>
-    <div class="pixel" style="font-size:18px; color:var(--gold)">14 days</div>
-  </section>
+  <!-- ============ EMPTY STATE (new account) ============ -->
+  <div class="empty-state">
+    <p class="empty-label">Empty state, shown for a new account</p>
+    <p class="empty-title">Complete your first quest to start your profile.</p>
+  </div>
 </main>
 
-<footer>
-  <div class="footer-logo">
-    <a href="index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
-  </div>
-  <div class="footer-info">
-    <span>Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</span>
-    <span>© 2026 Questify</span>
-  </div>
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
+  <p>Your data stays in your browser. © 2026 Questify</p>
 </footer>
 
 </body>
