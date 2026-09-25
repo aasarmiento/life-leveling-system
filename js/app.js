@@ -372,3 +372,20 @@ if (bgMusic && musicToggle) {
     });
   });
 })();
+
+function updateNav() {
+  const nav = document.getElementById('main-nav');
+  if (!nav) return;
+
+  // Change this to match how you store login state
+  const isLoggedIn = localStorage.getItem('user') || localStorage.getItem('token');
+
+  if (isLoggedIn) {
+    nav.classList.remove('hidden');   // show nav
+  } else {
+    nav.classList.add('hidden');      // hide nav
+  }
+}
+
+// Run on page load
+updateNav();
