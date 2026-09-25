@@ -23,26 +23,56 @@
       <h2>Add quest</h2>
       <a href="tasks.html"><img class="icon" src="../00-shared/icon-close.png" alt="close"></a>
     </div>
-    <label>Title</label>
-    <input placeholder="Name the quest">
-    <div class="err show">Name the quest first.</div>
-    <label>Caption</label>
-    <input placeholder="One short line">
-    <label>Category</label>
-    <select><option>Work</option><option>Growth</option><option>Health</option></select>
-    <label>Priority</label>
-    <select><option>Low</option><option>Medium</option><option selected>High</option></select>
-    <label>XP</label>
-    <select><option>10</option><option>20</option><option>30</option></select>
-    <label>Due date</label>
-    <div class="date-wrap">
-      <input type="date" value="2026-09-12">
-      <img src="../00-shared/icon-calendar.png" alt="">
+    <!-- Title -->
+    <label for="questTitle">Title</label>
+    <input id="questTitle" placeholder="Name the quest">
+    <div id="questError" class="err" style="display: none; color: var(--pink); font-size: 12px; margin-top: 4px;">
+      Name the quest first.
     </div>
-    <div class="modal-actions">
+
+    <!-- Caption -->
+    <label for="questCaption">Caption</label>
+    <input id="questCaption" placeholder="One short line">
+
+    <!-- Category -->
+    <label for="questCategory">Category</label>
+    <select id="questCategory">
+      <option value="Work">Work</option>
+      <option value="Growth">Growth</option>
+      <option value="Health">Health</option>
+    </select>
+
+    <!-- Priority -->
+    <label for="questPriority">Priority</label>
+    <select id="questPriority">
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High" selected>High</option>
+    </select>
+
+    <!-- XP -->
+    <label for="questXp">XP</label>
+    <select id="questXp">
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="30">30</option>
+    </select>
+
+    <!-- Due Date -->
+    <label for="questDue">Due date</label>
+    <div class="date-wrap">
+      <input id="questDue" type="date" value="2026-09-12">
+      <img src="../assets/icons/00-shared/icon-calendar.png" alt="">
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
       <a class="btn-ghost" href="tasks.html">Cancel</a>
-      <a class="btn-lime" href="tasks.html">Save quest</a>
+      <button id="saveQuestBtn" class="btn-lime" type="button">Save quest</button>
     </div>
   </div>
 </div>
-</body></html>
+
+<script src="../js/app.js"></script>
+</body>
+</html>
