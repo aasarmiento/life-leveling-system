@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,65 +9,196 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
-  <script src="../js/nav.js"></script>
+
+
+<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-<!-- Visitors see Home / About / Sign In; after signing in, the full header (js/nav.js) -->
-<nav>
-  <div class="nav-logo">
-    <a href="../index.html">QUESTIFY</a>
-  </div>
-  <div class="nav-links">
-    <a href="../index.html" class="guest-only">Home</a>
-    <a href="dashboard.html" class="member-only">Dashboard</a>
-    <a href="tasks.html" class="member-only">Tasks</a>
-    <a href="profile.html" class="member-only">Profile</a>
-    <a href="about.html" class="active" aria-current="page">About</a>
-    <div class="level-pill member-only" id="levelPill">
-      <span><b id="levelNum">Level 12</b> <span class="lp-sep">·</span> <span id="levelXp">1,450 XP</span></span>
-      <span class="level-track" aria-hidden="true"><span class="level-fill" id="levelFill" style="width:60%"></span></span>
+<header>
+  <nav>
+    <a href="../index.html" class="nav-logo">QUESTIFY</a>
+    <div class="nav-links">
+      <a href="dashboard.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-home.png" alt=""> Dashboard
+      </a>
+      <a href="tasks.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-tasks.png" alt=""> Tasks
+      </a>
+      <a href="profile.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-profile.png" alt=""> Profile
+      </a>
+      <a class="active" href="about.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-about.png" alt=""> About
+      </a>
+      <!-- Example XP badge — dummy data (Level 1, 100/2000 XP). Swap for real values once
+           quest/XP state is wired up (e.g. from localStorage or your app state). -->
+      <span class="nav-xp" style="--xp-pct: 5%">
+        LV 1 · 100 XP
+        <span class="xp-track"><span class="xp-fill"></span></span>
+      </span>
+      <a class="nav-signup" href="signin.html">
+        <img class="icon" src="../assets/icons/00-shared/icon-user.png" alt=""> Alex
+      </a>
     </div>
-    <a href="signin.html" class="nav-signup guest-only">Sign In</a>
-    <a href="signin.html" class="nav-signup member-only">Alex</a>
-  </div>
-</nav>
+  </nav>
+</header>
+
+
 
 <main class="container">
-  <div class="about-hero center">
-    <img class="mascot" src="../assets/icons/00-shared/mascot-transparent.png" alt="" style="width:72px;height:92px">
-    <h1>Conquering yourself,<br>one quest at a time.</h1>
-    <p class="page-kicker">Questify turns work, growth, and health into quests.<br>You do the thing in real life. The page keeps score.</p>
-  </div>
+  
 
-  <section class="section center">
-    <h2 class="pixel"><img class="icon" src="../assets/icons/06-about/icon-why.png" alt=""> Why Questify</h2>
-    <p class="page-kicker" style="max-width:640px;margin:8px auto 0">Most effort disappears at the end of the day. Meetings, pages, walks — they happened, then they vanished. This site names the work you already do so you can see it add up.</p>
+  <!-- ===== Hero ===== -->
+  <div class="about-hero center">
+    <div class="mascot-fx-wrap" id="mascotFxWrap">
+      <video
+        id="mascotVideo"
+        src="../assets/videos/mascot-fight-loop-alpha.webm"
+        autoplay muted loop playsinline
+      ></video>
+    </div>
+    <img
+      class="mascot mascot-fallback-img"
+      src="../assets/icons/00-shared/mascot-transparent.png"
+      alt=""
+    >
+
+    <h1 class="hero-title" style="margin-top:12px">
+      Conquering yourself,<br>
+      <span>one quest at a time.</span>
+    </h1>
+    <p class="hero-sub" style="max-width:480px;margin:12px auto 0">
+      Questify turns work, learning, and health into quests.<br>
+      You do the thing in real life. The page keeps score.
+    </p>
+ 
+<img
+  class="mascot mascot-fallback-img"
+  src="../assets/icons/00-shared/mascot-transparent.png"
+  alt=""
+>
+
+  <!-- ===== Team (data-driven cards + click-to-open profile modal) ===== -->
+  <section class="team2-section">
+    
+    <div class="team2-intro">
+  <h2 class="section-title">Meet the team</h2>
+  <p>Sample bios below. Replace them with each member's own words before submitting.</p>
+</div>
+
+    <div class="team2-grid" id="team2-grid"></div>
   </section>
 
-  <div class="cat-grid">
-    <article class="cat-card cat-work">
-      <img class="icon-lg" src="../assets/icons/00-shared/icon-work.png" alt="">
-      <div class="cat-tag">CATEGORY</div>
-      <h3>WORK</h3>
-      <p>Deep work, meetings, admin, deadlines — the effort that usually vanishes at 6 p.m. Log it here so a workday still counts after you close the laptop.</p>
-    </article>
-    <article class="cat-card cat-growth">
-      <img class="icon-lg" src="../assets/icons/00-shared/icon-growth.png" alt="">
-      <div class="cat-tag">CATEGORY</div>
-      <h3>GROWTH</h3>
-      <p>Courses, reading, practice, side projects — growth that compounds but is hard to feel day to day. Name the page or the module so the bar can move.</p>
-    </article>
-    <article class="cat-card cat-health">
-      <img class="icon-lg" src="../assets/icons/00-shared/icon-health.png" alt="">
-      <div class="cat-tag">CATEGORY</div>
-      <h3>HEALTH</h3>
-      <p>Workouts, walks, sleep, recovery — habits that matter most when they stay consistent. A short walk is still a quest if you mark it done.</p>
-    </article>
-  </div>
+  <!-- Profile modal (content filled in by JS) -->
+  <div class="team2-overlay" id="team2-overlay">
+    <div class="team2-modal" role="dialog" aria-modal="true" aria-labelledby="team2-modal-name">
+      <button class="team2-modal-close" type="button" onclick="closeTeamModal()" aria-label="Close">&times;</button>
+      <img class="team2-modal-bust" id="team2-modal-bust" src="" alt="">
+      <div class="team2-modal-body">
+        <p class="team2-modal-name" id="team2-modal-name"></p>
+        <p class="team2-modal-role" id="team2-modal-role"></p>
 
-  <section class="section center">
-    <h2 class="pixel"><img class="icon" src="../assets/icons/06-about/icon-how.png" alt=""> How XP works</h2>
+        <h4>About</h4>
+        <p id="team2-modal-bio"></p>
+
+        <h4>Hobbies</h4>
+        <p id="team2-modal-hobbies"></p>
+
+        <h4>Favorite part</h4>
+        <p id="team2-modal-favorite"></p>
+
+        <h4>Favorite games</h4>
+        <p id="team2-modal-games"></p>
+
+        <h4>Favorite quote</h4>
+        <p class="team2-quote" id="team2-modal-quote" style="margin-bottom:16px"></p>
+
+        <div class="team2-modal-links">
+          <a id="team2-modal-github" href="#" target="_blank" rel="noopener">GitHub</a>
+          <a id="team2-modal-linkedin" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ===== end Team ===== -->
+
+  <!-- ===== Mentor credit (own section, separate from the team grid) ===== -->
+  <section class="mentor2-section">
+    <div class="mentor2-card">
+      <img class="mentor2-photo" src="../assets/icons/06-about/mentor-aldrin.png" alt="Sir Aldrin">
+      <div class="mentor2-body">
+        <p class="mentor2-name">Sir Aldrin</p>
+        <p class="mentor2-desc"><strong>Mentor.</strong> Guided the team through scope, structure, and every check-in along the way.</p>
+      </div>
+    </div>
+  </section>
+  <!-- ===== end Mentor credit ===== -->
+
+    <!-- Why Questify -->
+<section class="section center">
+  <h2 class="section-title">Why Questify</h2>
+  <p class="page-kicker" style="max-width:640px;margin:8px auto 0">
+    Most effort disappears at the end of the day. Meetings, pages, walks — they happened, then they vanished. This site names the work you already do so you can see it add up.
+  </p>
+</section>
+
+  <section class="categories">
+    <div class="cat-grid">
+      <!-- WORK -->
+      <article class="cat-card cat-work">
+        <div class="cat-video-wrap">
+          <video 
+            class="cat-video" 
+            autoplay muted loop playsinline
+            poster="../assets/images/work-poster.jpg"
+          >
+            <source src="../assets/videos/work.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="cat-body">
+          <span class="cat-tag">CATEGORY</span>
+          <h3>WORK</h3>
+          <p>Focus time, meetings, and the admin that never makes it onto a to-do list. Log it and it counts.</p>
+        </div>
+      </article>
+
+      <!-- LEARNING -->
+      <article class="cat-card cat-growth">
+        <div class="cat-video-wrap">
+          <video 
+            class="cat-video" 
+            autoplay muted loop playsinline
+            poster="../assets/images/learn-poster.jpg"
+          >
+            <source src="../assets/videos/learn.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="cat-body">
+          <span class="cat-tag">CATEGORY</span>
+          <h3>LEARNING</h3>
+          <p>Classes, reading, practice, and side projects. Progress here is slow, so it helps to watch it add up.</p>
+        </div>
+      </article>
+
+      <!-- HEALTH -->
+      <article class="cat-card cat-health">
+        <div class="cat-video-wrap">
+          <video 
+            class="cat-video" 
+            autoplay muted loop playsinline
+            poster="../assets/images/health-poster.jpg"
+          >
+            <source src="../assets/videos/health.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="cat-body">
+          <span class="cat-tag">CATEGORY</span>
+          <h3>HEALTH</h3>
+          <p>Workouts, walks, sleep, and rest. Small habits matter most when you keep them up.</p>
+        </div>
+      </article>
+    </div>
   </section>
 
   <div class="steps">
@@ -74,7 +206,7 @@
       <div class="step-num">01</div>
       <img class="icon" src="../assets/icons/00-shared/icon-plus.png" alt="">
       <strong> Add a quest</strong>
-      <p class="page-kicker" style="margin-top:8px">Name it. Pick Work, Growth, or Health. Give it XP.</p>
+      <p class="page-kicker" style="margin-top:8px">Name it. Pick Work, Growth, or Health. Give it XP — say, 100 XP for a solid workday.</p>
     </article>
     <article class="step">
       <div class="step-num">02</div>
@@ -96,7 +228,11 @@
     </article>
   </div>
 
-  <section class="section center"><h2 class="pixel">What we left out</h2></section>
+  <!-- What we left out -->
+<section class="section center">
+  <h2 class="section-title">What we left out</h2>
+</section>
+  
 
   <div class="left-out">
     <article class="card">
@@ -113,33 +249,46 @@
     </article>
   </div>
 
-  <section class="section center">
-    <h2 class="pixel">What XP is not</h2>
-    <p class="page-kicker">Not a grade. Not a salary. Not a public score. Just a count of work you already did.</p>
-  </section>
+  <!-- What XP is not -->
+<section class="section center">
+  <h2 class="section-title">What XP is not</h2>
+  <p class="page-kicker">Lorem ipsum dolor sit amet consectetur adipisicing elit. Error facere illo id maxime sunt atque. Autem et quidem debitis tempora quas maiores expedita veritatis molestiae, explicabo, sapiente perspiciatis, iusto quia.</p>
+</section>
 
-  <section class="section center">
-    <h2 class="pixel"><img class="icon" src="../assets/icons/06-about/icon-team.png" alt=""> Team</h2>
-    <p class="page-kicker">Five people. One site. No extra mascots.</p>
-  </section>
 
-  <div class="team">
-    <div class="team-card"><img class="bust" src="../assets/icons/06-about/team-abigail.png" alt=""><b>Abigail Ann Sarmiento</b>UI</div>
-    <div class="team-card"><img class="bust" src="../assets/icons/06-about/team-christian.png" alt=""><b>Christian Allen Soriano</b>PM</div>
-    <div class="team-card"><img class="bust" src="../assets/icons/06-about/team-jeremiah.png" alt=""><b>Jeremiah Alzona</b>Docs</div>
-    <div class="team-card"><img class="bust" src="../assets/icons/06-about/team-rowel.png" alt=""><b>Rowel Jepsani</b>Docs</div>
-    <div class="team-card"><img class="bust" src="../assets/icons/06-about/team-sire.png" alt=""><b>Sire Manalo</b>GitHub</div>
-  </div>
+
+<section class="section center" style="max-width:720px;margin:40px auto 48px">
+  <h2 class="section-title">How Questify started</h2>
+  …
+</section>
+
+  <!-- ===== Built for / tech stack strip ===== -->
+  <section class="techstrip2">
+    <div class="techstrip2-text">
+      <p class="techstrip2-title">Built for Web Systems and Technology</p>
+      <p class="techstrip2-sub">Plain HTML, CSS and JavaScript. No backend. Your data stays in your browser.</p>
+    </div>
+    <div class="techstrip2-badges">
+      <span class="techstrip2-badge">HTML</span>
+      <span class="techstrip2-badge">CSS</span>
+      <span class="techstrip2-badge">JavaScript</span>
+    </div>
+  </section>
+  <!-- ===== end tech strip ===== -->
 </main>
 
 <footer>
   <a class="footer-logo" href="../index.html">QUESTIFY</a>
-  <div class="footer-info">
-    <p><strong>Web Systems and Technology</strong></p>
-    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
-  </div>
+  <div class="names">Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</div>
   <div>© 2026 Questify</div>
 </footer>
+
+
+
+
+
+  <script src="../js/app.js"></script>
+
 
 </body>
 </html>

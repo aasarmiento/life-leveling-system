@@ -344,7 +344,7 @@ if (bgMusic && musicToggle) {
     input.value = '';
   });
 
-  // Initial paint
+  
   levelEl.textContent = 'Level ' + shown.level;
   rankEl.textContent = shown.rank;
   setFill(shown.pct, false);
@@ -416,5 +416,167 @@ if (bgMusic && musicToggle) {
         });
       }
     });
+  });
+})();
+
+(function () {
+  const wrap = document.getElementById('mascotFxWrap');
+  const video = document.getElementById('mascotVideo');
+  if (!wrap || !video) return;
+
+  video.addEventListener('error', () => wrap.classList.add('is-fallback'));
+  video.play().catch(() => wrap.classList.add('is-fallback'));
+})();
+
+/*
+   ABOUT THE TEAM on the about pages */
+(function initAboutTeam() {
+  const grid = document.getElementById('team2-grid');
+  if (!grid) return; // not on the about page
+
+  const TEAM_MEMBERS = [
+    {
+      id: 'abigail',
+      name: 'Abigail Ann Sarmiento',
+      role: 'UI/UX design',
+      image: '../assets/icons/06-about/gail.jpg',
+      desc: 'Designs how Questify looks and keeps every page consistent. Turns messy ideas into clean layouts. (sample)',
+      workedShort: 'Landing page, style guide',
+      bio: 'Started in graphic design and moved into web layouts this term. Keeps a running style guide so every page matches. (sample)',
+      hobbies: 'Lifting weights, baking, calisthenics, hiking, travelling, composing music. (sample)',
+      favorite: 'The level-up moment. (sample)',
+      games: 'Genshin Impact, Stardew Valley, Valorant. (sample)',
+      quote: 'Design is invisible until it’s missing. (sample)',
+      github: '#',
+      linkedin: '#'
+    },
+    {
+      id: 'christian',
+      name: 'Christian Allen Soriano',
+      role: 'Project manager',
+      image: '../assets/icons/06-about/team-christian.png',
+      desc: 'Keeps the schedule and the scope honest. Runs weekly check-ins and decides what gets cut. (sample)',
+      workedShort: 'Scope plan, task breakdown',
+      bio: 'Runs the weekly check-ins and keeps the scope from creeping. (sample)',
+      hobbies: 'Basketball, watching anime, thrifting, road trips. (sample)',
+      favorite: 'Seeing a milestone actually close on time. (sample)',
+      games: 'Mobile Legends, FIFA, Minecraft. (sample)',
+      quote: 'A plan is only real once someone owns a deadline. (sample)',
+      github: '#',
+      linkedin: '#'
+    },
+    {
+      id: 'jeremiah',
+      name: 'Jeremiah Alzona',
+      role: 'Documentation',
+      image: '../assets/icons/06-about/team-jeremiah.png',
+      desc: 'Writes down what we decide and why, so the worksheet is never a last-minute scramble. (sample)',
+      workedShort: 'Workflow worksheet, About copy',
+      bio: 'Keeps the workflow worksheet current and writes most of the About copy. (sample)',
+      hobbies: 'Reading manga, journaling, cycling, coffee brewing. (sample)',
+      favorite: 'Finally getting the About page to make sense. (sample)',
+      games: 'Persona 5, Chess.com, Among Us. (sample)',
+      quote: 'If it is not written down, it did not happen. (sample)',
+      github: '#',
+      linkedin: '#'
+    },
+    {
+      id: 'rowel',
+      name: 'Rowel Jepsani',
+      role: 'Documentation',
+      image: '../assets/icons/06-about/team-rowel.png',
+      desc: 'Collects design references and asset research, and keeps the About and asset notes current. (sample)',
+      workedShort: 'Asset research, icon set',
+      bio: 'Gathers reference material and keeps the icon set organized. (sample)',
+      hobbies: 'Photography, sketching, board games, swimming. (sample)',
+      favorite: 'Finding the right icon on the first try. (sample)',
+      games: 'Animal Crossing, Overwatch 2, Tetris. (sample)',
+      quote: 'Good references save more time than good ideas. (sample)',
+      github: '#',
+      linkedin: '#'
+    },
+    {
+      id: 'sire',
+      name: 'Sire Manalo',
+      role: 'GitHub lead',
+      image: '../assets/icons/06-about/team-sire.png',
+      desc: 'Owns the repo, reviews merges, and keeps the main branch working. (sample)',
+      workedShort: 'Repository, merge reviews',
+      bio: 'Reviews every merge and keeps the main branch green. (sample)',
+      hobbies: 'Building PCs, running, badminton, video editing. (sample)',
+      favorite: 'A clean merge with zero conflicts. (sample)',
+      games: 'League of Legends, Counter-Strike 2, Rocket League. (sample)',
+      quote: 'Commit small, commit often. (sample)',
+      github: '#',
+      linkedin: '#'
+    }
+  ];
+
+  function teamCardHTML(m) {
+    return `
+      <div class="team2-bust-wrap">
+        <img class="team2-bust" src="${m.image}" alt="">
+      </div>
+      <div class="team2-body">
+        <p class="team2-name">${m.name}</p>
+        <p class="team2-role">${m.role}</p>
+        <p class="team2-desc">${m.desc}</p>
+        <p class="team2-worked">Worked on: ${m.workedShort}</p>
+        <button class="team2-view-btn" type="button" tabindex="-1">View profile</button>
+      </div>
+    `;
+  }
+
+  function openTeamModal(id) {
+    const m = TEAM_MEMBERS.find(x => x.id === id);
+    if (!m) return;
+
+    document.getElementById('team2-modal-bust').src = m.image;
+    document.getElementById('team2-modal-name').textContent = m.name;
+    document.getElementById('team2-modal-role').textContent = m.role;
+    document.getElementById('team2-modal-bio').textContent = m.bio;
+    document.getElementById('team2-modal-hobbies').textContent = m.hobbies;
+    document.getElementById('team2-modal-favorite').textContent = m.favorite;
+    document.getElementById('team2-modal-games').textContent = m.games;
+    document.getElementById('team2-modal-quote').textContent = m.quote;
+    document.getElementById('team2-modal-github').href = m.github;
+    document.getElementById('team2-modal-linkedin').href = m.linkedin;
+
+    document.getElementById('team2-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeTeamModal() {
+    document.getElementById('team2-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // render cards
+  TEAM_MEMBERS.forEach((m) => {
+    const card = document.createElement('article');
+    card.className = 'team2-card';
+    card.innerHTML = teamCardHTML(m);
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.addEventListener('click', () => openTeamModal(m.id));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openTeamModal(m.id);
+      }
+    });
+    grid.appendChild(card);
+  });
+
+  // close handlers
+  const closeBtn = document.getElementById('team2-modal-close');
+  if (closeBtn) closeBtn.addEventListener('click', closeTeamModal);
+
+  document.getElementById('team2-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'team2-overlay') closeTeamModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeTeamModal();
   });
 })();
