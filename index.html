@@ -23,7 +23,7 @@
     <a href="index.html">QUESTIFY</a>
   </div>
   <div class="nav-links">
-    <a href="index.html" class="active">Home</a>
+    <a href="index.html" class="active" aria-current="page">Home</a>
     <a href="pages/about.html">About</a>
     <a href="pages/signin.html" class="nav-signup">Sign In</a>
   </div>
@@ -44,7 +44,8 @@
       <p class="hero-sub">
         A gamified dashboard that turns your real daily effort — work, learning, and health — into XP and a level you can actually see.
       </p>
-      <a href="pages/signin.html" class="hero-cta">Get started</a>
+      <!-- Papunta sa Create account kasi para sa bagong user yung button na 'to -->
+      <a href="pages/create-account.html" class="hero-cta">Start your journey <span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </header>
 
@@ -100,30 +101,70 @@
       </div>
     </section>
 
-    <section class="categories">
-      <div class="section-head">
-        <h2 class="section-title">Made for how you spend your day</h2>
-        <p class="section-sub">Student, full-time employee, or a bit of both, there's a category for what you already do.</p>
-      </div>
+   <section class="categories">
+  <div class="section-head">
+    <h2 class="section-title">Made for how you spend your day</h2>
+    <p class="section-sub">
+      Student, full-time employee, or a bit of both, there’s a category for what you already do.
+    </p>
+  </div>
 
-      <div class="cat-grid">
-        <div class="cat-card cat-work">
-          <span class="cat-tag">CATEGORY</span>
-          <h3>WORK</h3>
-          <p>Focus time, meetings, and the admin that never makes it onto a to-do list. Log it and it counts.</p>
-        </div>
-        <div class="cat-card cat-growth">
-          <span class="cat-tag">CATEGORY</span>
-          <h3>LEARNING</h3>
-          <p>Classes, reading, practice, and side projects. Progress here is slow, so it helps to watch it add up.</p>
-        </div>
-        <div class="cat-card cat-health">
-          <span class="cat-tag">CATEGORY</span>
-          <h3>HEALTH</h3>
-          <p>Workouts, walks, sleep, and rest. Small habits matter most when you keep them up.</p>
-        </div>
+  <div class="cat-grid">
+    <!-- WORK -->
+    <article class="cat-card">
+      <div class="cat-video-wrap">
+        <video 
+          class="cat-video" 
+          autoplay muted loop playsinline
+          poster="assets/images/work-poster.jpg"
+        >
+          <source src="assets/videos/work.mp4" type="video/mp4">
+        </video>
       </div>
-    </section>
+      <div class="cat-body">
+        <span class="cat-tag">CATEGORY</span>
+        <h3>WORK</h3>
+        <p>Focus time, meetings, and the admin that never makes it onto a to-do list. Log it and it counts.</p>
+      </div>
+    </article>
+
+    <!-- LEARNING -->
+    <article class="cat-card">
+      <div class="cat-video-wrap">
+        <video 
+          class="cat-video" 
+          autoplay muted loop playsinline
+          poster="assets/images/learn-poster.jpg"
+        >
+          <source src="assets/videos/learn.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="cat-body">
+        <span class="cat-tag">CATEGORY</span>
+        <h3>LEARNING</h3>
+        <p>Classes, reading, practice, and side projects. Progress here is slow, so it helps to watch it add up.</p>
+      </div>
+    </article>
+
+    <!-- HEALTH -->
+    <article class="cat-card">
+      <div class="cat-video-wrap">
+        <video 
+          class="cat-video" 
+          autoplay muted loop playsinline
+          poster="assets/images/health-poster.jpg"
+        >
+          <source src="assets/videos/health.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="cat-body">
+        <span class="cat-tag">CATEGORY</span>
+        <h3>HEALTH</h3>
+        <p>Workouts, walks, sleep, and rest. Small habits matter most when you keep them up.</p>
+      </div>
+    </article>
+  </div>
+</section>
 
     <section class="progress-section">
       <div class="levelup-layout">
@@ -218,8 +259,8 @@
 
       <div class="demo-card">
         <div class="demo-tasks" id="demoTasks">
-          <label class="demo-task done">
-            <input type="checkbox" checked> <span>Read chapter 4</span>
+          <label class="demo-task">
+            <input type="checkbox"> <span>Read chapter 4</span>
           </label>
           <label class="demo-task">
             <input type="checkbox"> <span>Push the README to GitHub</span>
@@ -235,19 +276,21 @@
         </div>
 
         <!-- ids used by app.js -->
+        <!-- Pareho ang numbers sa Tasks page (Level 12, 1,450 XP). Pang-demo lang,
+             walang sine-save. -->
         <div class="demo-level" id="demoLevelBox">
-          <div class="demo-level-badge pixel" id="demoLevel">Level 3</div>
-          <div class="demo-rank" id="demoRank">Adventurer</div>
+          <div class="demo-level-badge pixel" id="demoLevel">Level 12</div>
+          <div class="demo-rank" id="demoRank">Veteran</div>
 
           <div class="demo-bar-wrap">
             <div class="demo-bar"><div class="demo-fill" id="demoFill"></div></div>
           </div>
 
-          <div class="demo-xp" id="demoXp">240 / 300 XP</div>
+          <div class="demo-xp" id="demoXp">1,450 XP · 50 XP to Level 13</div>
 
           <div class="demo-gain" aria-live="polite">
-            <span class="demo-pill" id="demoPill">+20 XP</span>
-            <small id="demoFor">for Read chapter 4</small>
+            <span class="demo-pill" id="demoPill" hidden>+20 XP</span>
+            <small id="demoFor">Tick a task to earn +20 XP</small>
           </div>
         </div>
       </div>
@@ -425,12 +468,12 @@
   <div class="cta-footer">
     <section class="final-cta" id="signup">
       <h2>Ready to make<br>your effort visible?</h2>
-      <a href="pages/signin.html" class="btn-primary">Create free account</a>
+      <a href="pages/create-account.html" class="btn-primary">Create free account</a>
       <p class="cta-note">Your first step is one log away.</p>
     </section>
 
     <footer>
-      <div class="footer-logo"><img src="assets/images/footer-logo.png" alt="Questify" height="28"></div>
+      <a class="footer-logo" href="index.html">QUESTIFY</a>
       <div class="footer-info">
         <p><strong>Web Systems and Technology</strong></p>
         <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
@@ -442,7 +485,12 @@
   <audio id="bg-music" loop preload="auto">
     <source src="assets/audio/bg-music.mp3" type="audio/mpeg">
   </audio>
-  <button id="music-toggle" class="music-btn" aria-label="Toggle music">🔇</button>
+  <!-- Sound button: naka-fixed sa kanang taas (sumusunod pag nag-scroll).
+       Yung icon (mute / may tunog) ay pinapalitan ng app.js gamit aria-pressed. -->
+  <button type="button" id="music-toggle" class="music-btn" aria-label="Background music" aria-pressed="false" title="Play music">
+    <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+    <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+  </button>
 
   <script src="js/app.js"></script>
 </body>
