@@ -5,27 +5,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Questify — Profile</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/nav.js"></script>
 </head>
 <body class="profile-page">
 
-<!-- ============ NAV ============ -->
-<header class="site-header">
-  <nav id="main-nav" class="nav">
-  <a class="nav-logo pixel" href="../index.html">QUESTIFY</a>
-
+<nav>
+  <div class="nav-logo">
+    <a href="../index.html">QUESTIFY</a>
+  </div>
   <div class="nav-links">
+    <a href="dashboard.html">Dashboard</a>
     <a href="tasks.html">Tasks</a>
-    <a class="active" href="profile.html" aria-current="page">Profile</a>
+    <a href="profile.html" class="active" aria-current="page">Profile</a>
     <a href="about.html">About</a>
-
-    <a class="xp-pill" href="profile.html" aria-label="Level 12, 1,450 XP">
-      <span class="xp-pill-fill" style="width:72.5%">Level 12 · 1,450</span>
-    </a>
-    <a class="nav-avatar" href="signin.html">Alex</a>
+    <div class="level-pill" id="levelPill">
+      <span><b id="levelNum">Level 12</b> <span class="lp-sep">·</span> <span id="levelXp">1,450 XP</span></span>
+      <span class="level-track" aria-hidden="true"><span class="level-fill" id="levelFill" style="width:60%"></span></span>
+    </div>
+    <a href="signin.html" class="nav-signup">Alex</a>
   </div>
 </nav>
-</header>
 
 <main class="container">
 
@@ -215,10 +218,13 @@
   </div>
 </main>
 
-<!-- ============ FOOTER ============ -->
-<footer class="site-footer">
-  <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
-  <p>Your data stays in your browser. © 2026 Questify</p>
+<footer>
+  <a class="footer-logo" href="../index.html">QUESTIFY</a>
+  <div class="footer-info">
+    <p><strong>Web Systems and Technology</strong></p>
+    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
+  </div>
+  <div>© 2026 Questify</div>
 </footer>
 
 </body>
