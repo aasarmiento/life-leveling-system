@@ -4,383 +4,229 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Questify — Tasks</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-<header>
-  <nav>
-    <div class="nav-logo"><a href="../index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a></div>
-    <div class="nav-links">
-      <a href="dashboard.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-home.png" alt=""> Dashboard
-      </a>
-      <a class="active" href="tasks.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-tasks.png" alt=""> Tasks
-      </a>
-      <a href="profile.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-profile.png" alt=""> Profile
-      </a>
-      <a href="about.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-about.png" alt=""> About
-      </a>
-      <a class="nav-signup" href="signin.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-user.png" alt=""> Alex
-      </a>
+<!-- Shared header: pareho sa Dashboard, Profile, About. Yung Level pill dito
+     ay pinapagalaw ng js/tasks.js (count-up, +XP / -XP). -->
+<nav>
+  <div class="nav-logo">
+    <a href="../index.html">QUESTIFY</a>
+  </div>
+  <div class="nav-links">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="tasks.html" class="active" aria-current="page">Tasks</a>
+    <a href="profile.html">Profile</a>
+    <a href="about.html">About</a>
+    <div class="level-pill" id="levelPill">
+      <span><b id="levelNum">Level 12</b> <span class="lp-sep">·</span> <span id="levelXp">1,450 XP</span></span>
+      <span class="level-track" aria-hidden="true"><span class="level-fill" id="levelFill"></span></span>
     </div>
-  </nav>
-</header>
+    <a href="signin.html" class="nav-signup">Alex</a>
+  </div>
+</nav>
 
-<main class = "container">
-  <!-- board header toolbar-->
+main class="container board-page">
+  <!-- Paalala: lahat ng id at data-* dito ay ginagamit ng js/tasks.js.
+       Kung papalitan, palitan din sa JS para hindi masira. -->
+  <div class="board-head">
+    <h1 class="pixel board-title">Quest Board</h1>
+    <p class="page-kicker">Work, learning, and health, <sorted so they can move.</p>
+  </div>
+
+  <!-- Toolbar: search, category chips, Sort, at "+ Add quest" -->
   <div class="toolbar">
-    <div>
-      <h1 class="pixel board-title">
-      <img class="icon" src="../assets/icons/04-tasks/icon-board.png" alt="">Quest Board
-      </h1>
-      <p class="page-kicker">Work, growth, and health — named so they can move.</p>
-    </div>
-    <a class="btn-gold" href="tasks-modal.html">
-    <img class="icon" src="../assets/icons/00-shared/icon-plus.png" alt="">Add quest
-    </a>
-  </div>
-
-  <!-- filter chips -->
-  <div class="filters">
-    <span class="chip on">
-    <img class="icon" src="../assets/icons/03-dashboard/icon-filter-all.png" alt=""> All
-    </span>
-    <span class="chip">
-    <img class="icon" src="../assets/icons/00-shared/icon-work.png" alt=""> Work
-    </span>
-    <span class="chip">
-    <img class="icon" src="../assets/icons/00-shared/icon-growth.png" alt=""> Growth
-    </span>
-    <span class="chip">
-    <img class="icon" src="../assets/icons/00-shared/icon-health.png" alt=""> Health
-    </span>
-  </div>
-
-  <!--quest board -->
-  <div class="board" style="margin-top:14px">
-
-    <!-- To Do Column -->
-     <div class="board-col">
-      <div class="col-h"><span>To Do <span class="count" id="todoCount">6</span></span></div>
-      <div class="col-scroll" id = "todoList">
-        <article class="qcard">
-          <strong>Send client proposal</strong>
-          <p class="cap">Attach the PDF and hit send before noon.</p>
-          <div class="meta">
-            <span class="chip chip-work">Work</span>
-            <span class="chip chip-hi">High</span>
-            <span class="xp">+25 XP</span>
-            <span class="due">
-            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt=""> Sep 12
-          </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Inbox zero</strong>
-          <p class="cap">Leave the work inbox at zero before you log off.</p>
-          <div class="meta">
-            <span class="chip chip-work">Work</span>
-            <span class="xp">+10 XP</span>
-            <span class="due">
-            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
-          </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Draft weekly report</strong>
-          <p class="cap">One page. What moved. What is next.</p>
-          <div class="meta">
-            <span class="chip chip-work">Work</span>
-            <span class="xp">+15 XP</span>
-            <span class="due">
-            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 10</span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Outline lecture notes</strong>
-          <p class="cap">Headings only — the full write-up can wait.</p>
-          <div class="meta">
-            <span class="chip chip-growth">Growth</span>
-            <span class="xp">+15 XP</span>
-            <span class="due">
-            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 11
-            </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Pack gym bag</strong>
-          <p class="cap">Shoes, bottle, headphones. Night-before so morning is easy.</p>
-          <div class="meta">
-            <span class="chip chip-health">Health</span>
-            <span class="xp">+10 XP</span>
-            <span class="due">
-            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
-          </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Call the supplier</strong>
-          <p class="cap">Confirm the Friday delivery window.</p>
-          <div class="meta">
-            <span class="chip chip-work">Work</span>
-            <span class="chip chip-hi">High</span>
-            <span class="xp">+20 XP</span>
-            <span class="due">
-            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 13
-            </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-      </div>
-     </div>
-
-    <!-- Doing Column -->
-    <div class="board-col">
-      <div class="col-h"><span>Doing <span class="count" id="doingCount">4</span></span></div>
-      <div class="col-scroll" id = "doingList">
-        <article class="qcard">
-          <strong>Read 20 pages</strong>
-          <p class="cap">Stay in the same book. Twenty real pages.</p>
-          <div class="meta">
-            <span class="chip chip-growth">Growth</span>
-            <span class="xp">+15 XP</span>
-            <span class="due">
-            <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
-          </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-lime" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-done.png" alt=""> Done
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Refactor login form</strong>
-          <p class="cap">Labels, errors, and the gold / lime buttons.</p>
-          <div class="meta">
-            <span class="chip chip-work">Work</span>
-            <span class="xp">+25 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 09
-            </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-lime" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-done.png" alt=""> Done
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>30-min walk</strong>
-          <p class="cap">Outside. Phone stays in a pocket.</p>
-          <div class="meta">
-            <span class="chip chip-health">Health</span>
-            <span class="xp">+15 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 08
-            </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Watch one course module</strong>
-          <p class="cap">One module, notes in the same sitting.</p>
-          <div class="meta">
-            <span class="chip chip-growth">Growth</span>
-            <span class="xp">+20 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 09
-            </span>
-          </div>
-          <div class="qactions">
-            <button class="btn-gold" type="button">
-              <img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-edit.png" alt=""> Edit
-            </button>
-            <button class="btn-ghost" type="button">
-              <img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete
-            </button>
-          </div>
-        </article>
-      </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>
+      <label class="sr-only" for="questSearch">Search quests</label>
+      <input type="search" id="questSearch" placeholder="Search quests" autocomplete="off">
+      <button type="button" class="search-clear" id="searchClear" aria-label="Clear search" hidden>×</button>
     </div>
 
-<!-- Done Column -->
-    <div class="board-col">
-      <div class="col-h"><span>Done <span class="count" id="doneCount">5</span></span></div>
-      <div class="col-scroll">
-        <article class="qcard">
-          <strong>45-min run</strong>
-          <p class="cap">Easy pace. It counted.</p>
-          <div class="meta">
-            <span class="chip chip-health">Health</span>
-            <span class="xp">+20 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 07
-            </span>
-          </div>
-        </article>
+    <div class="filters" role="group" aria-label="Filter by category">
+      <button type="button" class="chip fx on" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" class="chip fx" data-filter="work" aria-pressed="false">Work</button>
+      <button type="button" class="chip fx" data-filter="growth" aria-pressed="false">Learning</button>
+      <button type="button" class="chip fx" data-filter="health" aria-pressed="false">Health</button>
+    </div>
 
-        <article class="qcard">
-          <strong>Morning stretch</strong>
-          <p class="cap">Ten minutes before the first meeting.</p>
-          <div class="meta">
-            <span class="chip chip-health">Health</span>
-            <span class="xp">+10 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 07
-            </span>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Ship slide deck</strong>
-          <p class="cap">Sent. Not perfect. Sent.</p>
-          <div class="meta">
-            <span class="chip chip-work">Work</span>
-            <span class="xp">+25 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 06
-            </span>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Journal half a page</strong>
-          <p class="cap">What actually happened today.</p>
-          <div class="meta">
-            <span class="chip chip-growth">Growth</span>
-            <span class="xp">+10 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 06
-            </span>
-          </div>
-        </article>
-
-        <article class="qcard">
-          <strong>Water plants / walk</strong>
-          <p class="cap">Two minutes. Then a loop around the block.</p>
-          <div class="meta">
-            <span class="chip chip-health">Health</span>
-            <span class="xp">+10 XP</span>
-            <span class="due">
-              <img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">Sep 05
-            </span>
-          </div>
-        </article>
+    <div class="sort">
+      <span class="sort-label" id="sortLabel">Sort</span>
+      <div class="sort-wrap">
+        <button type="button" class="sort-btn fx" id="sortBtn" aria-haspopup="menu" aria-expanded="false" aria-labelledby="sortLabel sortValue">
+          <span id="sortValue">Due date</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="sort-panel" id="sortPanel" role="menu" aria-label="Sort quests by" hidden>
+          <button type="button" role="menuitemradio" aria-checked="true" data-sort="due">Due date</button>
+          <button type="button" role="menuitemradio" aria-checked="false" data-sort="xp">XP value</button>
+          <button type="button" role="menuitemradio" aria-checked="false" data-sort="priority">Priority</button>
+          <button type="button" role="menuitemradio" aria-checked="false" data-sort="added">Date added</button>
+          <div class="sort-sep" role="separator"></div>
+          <button type="button" role="menuitemradio" aria-checked="false" data-sort="manual">Manual <small>drag to reorder</small></button>
+        </div>
       </div>
+      <button type="button" class="sort-dir fx" id="sortDir" aria-label="Ascending. Switch to descending">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+      </button>
+    </div>
+
+    <button type="button" class="btn-lime fx toolbar-end" id="addQuestBtn">+ Add quest</button>
+  </div>
+
+  <!-- Board: walang cards dito sa HTML. Si tasks.js (render) ang naglalagay
+       ng cards sa bawat .col-scroll gamit yung data-list="todo/doing/done". -->
+  <div class="board" id="board">
+    <section class="board-col" aria-labelledby="col-todo">
+      <h2 class="col-h" id="col-todo">To do <span class="count" data-count="todo">0</span></h2>
+      <div class="col-body">
+        <div class="col-scroll" data-list="todo"></div>
+      </div>
+      <div class="col-foot" hidden>
+        <button type="button" class="col-more" data-more="todo" aria-expanded="false">Show all</button>
+      </div>
+    </section>
+    <section class="board-col" aria-labelledby="col-doing">
+      <h2 class="col-h" id="col-doing">Doing <span class="count" data-count="doing">0</span></h2>
+      <div class="col-body">
+        <div class="col-scroll" data-list="doing"></div>
+      </div>
+      <div class="col-foot" hidden>
+        <button type="button" class="col-more" data-more="doing" aria-expanded="false">Show all</button>
+      </div>
+    </section>
+    <section class="board-col" aria-labelledby="col-done">
+      <h2 class="col-h" id="col-done">Done <span class="count" data-count="done">0</span></h2>
+      <div class="col-body">
+        <div class="col-scroll" data-list="done"></div>
+      </div>
+      <div class="col-foot" hidden>
+        <button type="button" class="col-more" data-more="done" aria-expanded="false">Show all</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Lalabas lang pag walang quest na tugma sa search/filter -->
+  <div class="board-empty" id="boardEmpty" hidden>
+    <h2 id="emptyTitle">No quests yet</h2>
+    <p id="emptyText">Add a quest to get started.</p>
+    <div class="actions">
+      <button type="button" class="btn-outline fx" id="emptyReset">Clear search</button>
+      <button type="button" class="btn-lime fx" id="emptyAdd">+ Add quest</button>
     </div>
   </div>
+
+  <!-- Para sa screen reader lang (hindi kita sa screen) -->
+  <p class="sr-only" id="dragHelp">Drag to reorder within this column, or press Alt with the up or down arrow.</p>
+  <p class="sr-only" id="announcer" aria-live="polite"></p>
 </main>
 
+<!-- Popups (modals): nakatago muna (hidden), binubuksan ni tasks.js -->
+<!-- Add / Edit quest -->
+<div class="modal-back" id="questModal" hidden>
+  <div class="modal quest-modal" role="dialog" aria-modal="true" aria-labelledby="questModalTitle">
+    <div class="modal-head">
+      <h2 class="pixel" id="questModalTitle">Add quest</h2>
+      <button type="button" class="modal-x" data-close aria-label="Close">×</button>
+    </div>
+    <form id="questForm" novalidate>
+      <label for="qTitle">Title</label>
+      <input id="qTitle" maxlength="60" placeholder="Name the quest" autocomplete="off" aria-describedby="qTitleErr">
+      <div class="err" id="qTitleErr">Name the quest first.</div>
+
+      <label for="qDesc">Description</label>
+      <input id="qDesc" maxlength="160" placeholder="One short line (optional)" autocomplete="off">
+
+      <div class="form-row">
+        <div>
+          <label for="qCat">Category</label>
+          <select id="qCat">
+            <option value="work">Work</option>
+            <option value="growth">Learning</option>
+            <option value="health">Health</option>
+          </select>
+        </div>
+        <div>
+          <label for="qPriority">Priority</label>
+          <select id="qPriority">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="qDue">Due date</label>
+      <input type="date" id="qDue">
+
+      <div class="xp-readout">
+        <span class="xp-pill" id="qXp" aria-live="polite">+20 XP</span>
+        <small id="qXpNote">Set by priority: Low 10 · Medium 20 · High 30</small>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-outline fx" data-close>Cancel</button>
+        <button type="submit" class="btn-lime fx" id="qSubmit">Add quest</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Details ng quest (basa lang) -->
+<div class="modal-back" id="detailModal" hidden>
+  <div class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <div class="modal-head">
+      <span class="detail-status" id="dStatus">To do</span>
+      <button type="button" class="modal-x" id="detailClose" data-close aria-label="Close">×</button>
+    </div>
+    <h2 class="detail-title" id="dTitle"></h2>
+    <p class="detail-desc" id="dDesc"></p>
+    <dl class="detail-grid">
+      <div><dt>Category</dt><dd id="dCat"></dd></div>
+      <div><dt>Priority</dt><dd id="dPriority"></dd></div>
+      <div><dt>XP</dt><dd id="dXp"></dd></div>
+      <div><dt>Due date</dt><dd id="dDue"></dd></div>
+      <div><dt>Added</dt><dd id="dAdded"></dd></div>
+      <div id="dCompletedRow"><dt>Completed</dt><dd id="dCompleted"></dd></div>
+    </dl>
+    <div class="modal-actions">
+      <button type="button" class="btn-outline fx" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm bago mag-delete -->
+<div class="modal-back" id="deleteModal" hidden>
+  <div class="modal confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="delTitle" aria-describedby="delText">
+    <h2 id="delTitle">Delete this quest?</h2>
+    <p id="delText"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn-outline fx" id="delCancel" data-close>Cancel</button>
+      <button type="button" class="btn-rose fx" id="delConfirm">Delete quest</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast: maliit na message sa baba (hal. "Marked done" + Undo) -->
+<div class="toast" id="toast" role="status" hidden>
+  <span id="toastText"></span>
+  <button type="button" class="toast-action" id="toastAction" hidden>Undo</button>
+</div>
+
 <footer>
-  <div class="footer-logo"><a href="../index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a></div>
-  <div class="names">Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</div>
+  <a class="footer-logo" href="../index.html">QUESTIFY</a>
+  <div class="footer-info">
+    <p><strong>Web Systems and Technology</strong></p>
+    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
+  </div>
   <div>© 2026 Questify</div>
 </footer>
 
-<script src="../js/app.js"></script>
+<!-- Nasa dulo yung script para naka-load na lahat ng HTML bago tumakbo -->
+<script src="../js/tasks.js"></script>
 </body>
 </html>
