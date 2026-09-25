@@ -4,34 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Questify — About</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/nav.js"></script>
 </head>
 <body>
 
-<header>
-  <nav>
-    <div class="nav-logo">
-      <a href="../index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
+<!-- Visitors see Home / About / Sign In; after signing in, the full header (js/nav.js) -->
+<nav>
+  <div class="nav-logo">
+    <a href="../index.html">QUESTIFY</a>
+  </div>
+  <div class="nav-links">
+    <a href="../index.html" class="guest-only">Home</a>
+    <a href="dashboard.html" class="member-only">Dashboard</a>
+    <a href="tasks.html" class="member-only">Tasks</a>
+    <a href="profile.html" class="member-only">Profile</a>
+    <a href="about.html" class="active" aria-current="page">About</a>
+    <div class="level-pill member-only" id="levelPill">
+      <span><b id="levelNum">Level 12</b> <span class="lp-sep">·</span> <span id="levelXp">1,450 XP</span></span>
+      <span class="level-track" aria-hidden="true"><span class="level-fill" id="levelFill" style="width:60%"></span></span>
     </div>
-    <div class="nav-links">
-      <a href="dashboard.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-home.png" alt=""> Dashboard
-      </a>
-      <a href="tasks.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-tasks.png" alt=""> Tasks
-      </a>
-      <a href="profile.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-profile.png" alt=""> Profile
-      </a>
-      <a class="active" href="about.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-about.png" alt=""> About
-      </a>
-      <a class="nav-signup" href="signin.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-user.png" alt=""> Alex
-      </a>
-    </div>
-  </nav>
-</header>
+    <a href="signin.html" class="nav-signup guest-only">Sign In</a>
+    <a href="signin.html" class="nav-signup member-only">Alex</a>
+  </div>
+</nav>
 
 <main class="container">
   <div class="about-hero center">
@@ -134,10 +133,11 @@
 </main>
 
 <footer>
-  <div class="footer-logo">
-    <a href="index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
+  <a class="footer-logo" href="../index.html">QUESTIFY</a>
+  <div class="footer-info">
+    <p><strong>Web Systems and Technology</strong></p>
+    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
   </div>
-  <div class="names">Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</div>
   <div>© 2026 Questify</div>
 </footer>
 

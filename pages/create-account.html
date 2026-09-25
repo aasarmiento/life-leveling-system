@@ -1,38 +1,75 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Questify — Create account</title>
-<link rel="stylesheet" href="../css/style.css">
-</head><body>
-<header><nav>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Questify — Create account</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/nav.js"></script>
+</head>
+<body>
+
+<nav>
   <div class="nav-logo">
-    <a href="../index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
+    <a href="../index.html">QUESTIFY</a>
   </div>
   <div class="nav-links">
-    <a href="dashboard.html"><img class="icon" src="../00-shared/icon-home.png" alt="">Dashboard</a>
-    <a href="tasks.html"><img class="icon" src="../00-shared/icon-tasks.png" alt="">Tasks</a>
-    <a href="profile.html"><img class="icon" src="../00-shared/icon-profile.png" alt="">Profile</a>
-    <a href="about.html"><img class="icon" src="../00-shared/icon-about.png" alt="">About</a>
-    <a class="nav-signup" href="signin.html"><img class="icon" src="../00-shared/icon-signin.png" alt="">Sign In</a>
+    <a href="../index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="signin.html" class="nav-signup">Sign In</a>
   </div>
-</nav></header>
-<div class="auth-wrap">
+</nav>
+
+<main class="auth-wrap">
   <form class="auth-card" action="dashboard.html">
-    <img class="mascot" src="../00-shared/mascot-transparent.png" alt="">
+    <img class="mascot" src="../assets/icons/00-shared/mascot-transparent.png" alt="">
     <h1>Start your quest</h1>
     <p class="page-kicker">Log your effort. Watch it turn into XP.</p>
-    <div class="tabs"><a href="signin.html">Sign in</a><a class="on" href="create-account.html">Create account</a></div>
-    <div class="field"><label>Display name</label><img src="../00-shared/icon-user.png" alt=""><input placeholder="Alex Rivera"></div>
-    <div class="field"><label>Email</label><img src="../02-signin/icon-email.png" alt=""><input type="email" placeholder="you@email.com"></div>
-    <div class="field"><label>Password</label><img src="../02-signin/icon-password.png" alt=""><input type="password" placeholder="At least 8 characters"><div class="err">Use at least 8 characters.</div></div>
-    <div class="field"><label>Confirm password</label><img src="../00-shared/icon-lock.png" alt=""><input type="password" placeholder="At least 8 characters"><div class="err">Those passwords do not match.</div></div>
-    <div style="margin-top:16px"><button class="btn-lime" type="submit" style="width:100%;justify-content:center">Create Free Account</button></div>
+
+    <div class="tabs">
+      <a href="signin.html">Sign in</a>
+      <a class="on" href="create-account.html" aria-current="page">Create account</a>
+    </div>
+
+    <div class="field">
+      <label for="name">Display name</label>
+      <input id="name" placeholder="Alex Rivera" required>
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@email.com" required>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="At least 8 characters" minlength="8" required>
+      <div class="err">Use at least 8 characters.</div>
+    </div>
+
+    <div class="field">
+      <label for="confirm">Confirm password</label>
+      <input type="password" id="confirm" placeholder="At least 8 characters" minlength="8" required>
+      <div class="err">Those passwords do not match.</div>
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="btn-lime" type="submit" style="width:100%;justify-content:center">Create Free Account</button>
+    </div>
   </form>
-</div>
+</main>
+
 <footer>
-  <div class="footer-logo">
-    <a href="../index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
+  <a class="footer-logo" href="../index.html">QUESTIFY</a>
+  <div class="footer-info">
+    <p><strong>Web Systems and Technology</strong></p>
+    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
   </div>
-  <div class="names">Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</div>
   <div>© 2026 Questify</div>
 </footer>
-</body></html>
+
+</body>
+</html>
