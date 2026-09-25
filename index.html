@@ -44,6 +44,7 @@
       <p class="hero-sub">
         A gamified dashboard that turns your real daily effort — work, learning, and health — into XP and a level you can actually see.
       </p>
+      <!-- Papunta sa Create account kasi para sa bagong user yung button na 'to -->
       <a href="pages/create-account.html" class="hero-cta">Start your journey <span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </header>
@@ -275,6 +276,8 @@
         </div>
 
         <!-- ids used by app.js -->
+        <!-- Pareho ang numbers sa Tasks page (Level 12, 1,450 XP). Pang-demo lang,
+             walang sine-save. -->
         <div class="demo-level" id="demoLevelBox">
           <div class="demo-level-badge pixel" id="demoLevel">Level 12</div>
           <div class="demo-rank" id="demoRank">Veteran</div>
@@ -482,6 +485,8 @@
   <audio id="bg-music" loop preload="auto">
     <source src="assets/audio/bg-music.mp3" type="audio/mpeg">
   </audio>
+  <!-- Sound button: naka-fixed sa kanang taas (sumusunod pag nag-scroll).
+       Yung icon (mute / may tunog) ay pinapalitan ng app.js gamit aria-pressed. -->
   <button type="button" id="music-toggle" class="music-btn" aria-label="Background music" aria-pressed="false" title="Play music">
     <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
     <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>

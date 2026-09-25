@@ -1,13 +1,26 @@
-// Shared header: the Level pill on Dashboard / Profile / About, and which
-// header About shows (visitor or signed in). Loaded in <head>, before the
-// page paints, so About never flashes the wrong header.
+// =====================================================================
+// SHARED HEADER (nav.js) — GUIDE PARA SA TEAM
+// ---------------------------------------------------------------------
+// Dalawa lang ginagawa nito:
+//   1. Level pill sa Dashboard / Profile / About: binabasa yung XP na
+//      sine-save ng Tasks page (tasks.js), para pareho lahat ng page.
+//   2. About page: kung hindi pa naka-sign in, Home / About / Sign In lang
+//      ang makikita. Pag naka-sign in na, buong header na.
+//
+// Nilalagay 'to sa <head> (hindi sa baba ng <body>) para tapos na siya bago
+// lumabas yung page. Kaya hindi "kumikislap" yung maling header sa About.
+//
+// Walang totoong login dito (walang backend pa). "Signed in" = may naka-save
+// na flag sa localStorage pagka-submit ng Sign in / Create account form.
+// =====================================================================
 (function () {
-  const BOARD_KEY = 'questify.board.v1'; // saved by the Quest Board (tasks.js)
+  const BOARD_KEY = 'questify.board.v1'; // dito nagsa-save yung Tasks page (tasks.js)
   const SIGNED_IN_KEY = 'questify.signedIn';
-  const STARTING_XP = 1450; // same numbers as tasks.js
+  const STARTING_XP = 1450; // dapat pareho sa tasks.js
   const XP_PER_LEVEL = 125;
 
-  // Storage can be blocked (private mode); then nothing is remembered.
+  // Pwedeng naka-block yung storage (hal. private mode). Kung ganun, walang natatandaan
+  // pero hindi rin mag-e-error.
   function read(key) {
     try {
       return localStorage.getItem(key);
@@ -21,12 +34,15 @@
       if (value === null) localStorage.removeItem(key);
       else localStorage.setItem(key, value);
     } catch (err) {
-      // nothing to do
+      // wala tayong magagawa, okay lang
     }
   }
 
+  // Kung naka-sign in: lagyan ng class na "is-member" yung <html>.
+  // Sa CSS, .member-only = lalabas lang pag naka-sign in; .guest-only = pag hindi pa.
   if (read(SIGNED_IN_KEY) === '1') document.documentElement.classList.add('is-member');
 
+  // Total XP = pinagsama-sama lahat ng XP sa ledger. Kung wala pang save, 1,450.
   function savedXp() {
     try {
       const total = JSON.parse(read(BOARD_KEY)).xp.reduce((sum, entry) => sum + entry.xp, 0);
@@ -36,7 +52,7 @@
     }
   }
 
-  // XP only changes on the Tasks page; here the pill just shows it.
+  // Sa Tasks page lang nagbabago yung XP. Dito, pinapakita lang (walang animation).
   function paintPill() {
     const pill = document.getElementById('levelPill');
     if (!pill) return;
@@ -50,8 +66,8 @@
     pill.title = `${XP_PER_LEVEL - (total % XP_PER_LEVEL)} XP to Level ${level + 1}`;
   }
 
-  // Sign in / Create account: opening the page signs you out,
-  // submitting the form signs you in.
+  // Sign in / Create account: pagbukas ng page = sign out,
+  // pag-submit ng form = sign in.
   function watchAuthForm() {
     const form = document.querySelector('form.auth-card');
     if (!form) return;
@@ -59,6 +75,7 @@
     form.addEventListener('submit', () => write(SIGNED_IN_KEY, '1'));
   }
 
+  // Hintayin munang ma-load yung HTML bago galawin yung pill at form.
   document.addEventListener('DOMContentLoaded', () => {
     paintPill();
     watchAuthForm();

@@ -11,6 +11,8 @@
 </head>
 <body>
 
+<!-- Shared header: pareho sa Dashboard, Profile, About. Yung Level pill dito
+     ay pinapagalaw ng js/tasks.js (count-up, +XP / -XP). -->
 <nav>
   <div class="nav-logo">
     <a href="../index.html">QUESTIFY</a>
@@ -29,11 +31,14 @@
 </nav>
 
 <main class="container board-page">
+  <!-- Paalala: lahat ng id at data-* dito ay ginagamit ng js/tasks.js.
+       Kung papalitan, palitan din sa JS para hindi masira. -->
   <div class="board-head">
     <h1 class="pixel board-title">Quest Board</h1>
     <p class="page-kicker">Work, learning, and health, sorted so they can move.</p>
   </div>
 
+  <!-- Toolbar: search, category chips, Sort, at "+ Add quest" -->
   <div class="toolbar">
     <div class="search">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>
@@ -73,6 +78,8 @@
     <button type="button" class="btn-lime fx toolbar-end" id="addQuestBtn">+ Add quest</button>
   </div>
 
+  <!-- Board: walang cards dito sa HTML. Si tasks.js (render) ang naglalagay
+       ng cards sa bawat .col-scroll gamit yung data-list="todo/doing/done". -->
   <div class="board" id="board">
     <section class="board-col" aria-labelledby="col-todo">
       <h2 class="col-h" id="col-todo">To do <span class="count" data-count="todo">0</span></h2>
@@ -103,6 +110,7 @@
     </section>
   </div>
 
+  <!-- Lalabas lang pag walang quest na tugma sa search/filter -->
   <div class="board-empty" id="boardEmpty" hidden>
     <h2 id="emptyTitle">No quests yet</h2>
     <p id="emptyText">Add a quest to get started.</p>
@@ -112,10 +120,13 @@
     </div>
   </div>
 
+  <!-- Para sa screen reader lang (hindi kita sa screen) -->
   <p class="sr-only" id="dragHelp">Drag to reorder within this column, or press Alt with the up or down arrow.</p>
   <p class="sr-only" id="announcer" aria-live="polite"></p>
 </main>
 
+<!-- Popups (modals): nakatago muna (hidden), binubuksan ni tasks.js -->
+<!-- Add / Edit quest -->
 <div class="modal-back" id="questModal" hidden>
   <div class="modal quest-modal" role="dialog" aria-modal="true" aria-labelledby="questModalTitle">
     <div class="modal-head">
@@ -165,6 +176,7 @@
   </div>
 </div>
 
+<!-- Details ng quest (basa lang) -->
 <div class="modal-back" id="detailModal" hidden>
   <div class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="dTitle">
     <div class="modal-head">
@@ -187,6 +199,7 @@
   </div>
 </div>
 
+<!-- Confirm bago mag-delete -->
 <div class="modal-back" id="deleteModal" hidden>
   <div class="modal confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="delTitle" aria-describedby="delText">
     <h2 id="delTitle">Delete this quest?</h2>
@@ -198,6 +211,7 @@
   </div>
 </div>
 
+<!-- Toast: maliit na message sa baba (hal. "Marked done" + Undo) -->
 <div class="toast" id="toast" role="status" hidden>
   <span id="toastText"></span>
   <button type="button" class="toast-action" id="toastAction" hidden>Undo</button>
@@ -212,6 +226,7 @@
   <div>© 2026 Questify</div>
 </footer>
 
+<!-- Nasa dulo yung script para naka-load na lahat ng HTML bago tumakbo -->
 <script src="../js/tasks.js"></script>
 </body>
 </html>

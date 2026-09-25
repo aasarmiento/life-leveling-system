@@ -1,4 +1,27 @@
-// Quest board. Saved in this browser (localStorage), so a reload keeps it.
+// =====================================================================
+// QUEST BOARD (pages/tasks.html) — GUIDE PARA SA TEAM
+// ---------------------------------------------------------------------
+// Ano ginagawa ng file na 'to?
+//   Lahat ng galaw sa Tasks page: add, edit, delete, Start, Mark done,
+//   Undo, search, filter, sort, drag, at yung Level pill sa taas.
+//
+// Paano umiikot (yung flow papuntang JS):
+//   1. DATA   - yung `quests` array ang "totoong listahan". Bawat quest ay
+//               object: { id, title, desc, cat, priority, status, due, ... }
+//   2. ACTION - may pinindot (hal. "Mark done") → may function na
+//               nagbabago ng data (hal. completeQuest).
+//   3. RENDER - tinatawag yung render(): binubura at dino-drawing ulit lahat
+//               ng card galing sa `quests`. Hindi natin ine-edit isa-isa
+//               yung HTML ng card.
+//   4. SAVE   - sa dulo ng render(), sine-save sa localStorage, kaya andun
+//               pa rin kahit i-refresh o i-restart ang Live Server.
+//
+// Kung magdadagdag ng feature, ganito lang din:
+//   baguhin yung data → render() → announce() (para sa screen reader).
+//
+// Yung mga id sa tasks.html (hal. id="addQuestBtn") ay "hawakan" ng JS.
+// Huwag palitan yung id nang hindi binabago dito, kasi masisira yung JS.
+// =====================================================================
 (function () {
   const XP_BY_PRIORITY = { low: 10, medium: 20, high: 30 };
   const PRIORITY_VALUE = { low: 1, medium: 2, high: 3 };
@@ -11,8 +34,8 @@
     doing: 'Nothing in progress.',
     done: 'Nothing finished yet.'
   };
-  // Each sort key starts in its most useful direction. Sorting applies to
-  // To do and Doing; Done is always newest first.
+  // Bawat sort may sariling default na direction (hal. Due date = pinakamalapit muna).
+  // Sa To do at Doing lang gumagana yung sort; ang Done ay laging pinakabago sa taas.
   const SORTS = {
     due: { label: 'Due date', dir: 'asc' },
     xp: { label: 'XP value', dir: 'desc' },
@@ -23,20 +46,21 @@
   const DRAG_THRESHOLD = 6;
   const LONG_PRESS_MS = 350;
   const UNDO_MS = 6000;
-  // A column shows this many cards until "Show all" is pressed.
+  // Ilang card lang ang pinapakita per column bago lumabas yung "Show all".
   const COLUMN_LIMIT = 10;
-  // js/nav.js reads the XP from the same key.
+  // Pangalan ng save sa localStorage. Binabasa rin 'to ng js/nav.js para sa Level
+  // pill ng Dashboard / Profile / About.
   const STORE_KEY = 'questify.board.v1';
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Same starting point as the Dashboard (Level 12, 1,450 XP): 1,450 / 125 → level 12.
+  // Panimulang XP (pareho sa Dashboard): 1,450 XP ÷ 125 per level = Level 12.
   const STARTING_XP = 1450;
   const XP_PER_LEVEL = 125;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  // ---------- dates ----------
+  // ---------- dates (pang-format ng petsa, hal. "Sep 27", "Done yesterday") ----------
 
   const pad = n => String(n).padStart(2, '0');
   const isoFor = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -71,12 +95,12 @@
 
   const isOverdue = q => q.status !== 'done' && !!q.due && q.due < todayIso();
 
-  // ---------- data ----------
+  // ---------- data (yung mga quest mismo) ----------
 
   let nextId = 1;
 
-  // Sample board for a first visit. Due dates are relative to today so
-  // there's always a realistic mix: a couple overdue, the rest coming up.
+  // Sample quests para sa first visit. Relative sa araw ngayon yung due dates,
+  // kaya laging may ilang overdue at ilang paparating pa lang.
   function sampleQuests() {
     nextId = 1;
     const seedStart = Date.now() - 12 * 86400000;
@@ -113,11 +137,11 @@
     ];
   }
 
-  // XP ledger. Deleting a quest never takes back what it earned; only the
-  // short Undo right after "Mark done" removes an entry.
+  // XP ledger = listahan ng lahat ng nakuhang XP. Pag nag-delete ng quest, hindi
+  // nababawas yung XP. Yung Undo lang pagkatapos ng "Mark done" ang nagbabawas.
   const startingXp = () => [{ id: null, xp: STARTING_XP }];
 
-  // ---------- saving ----------
+  // ---------- saving (localStorage = maliit na storage ng browser) ----------
 
   const isQuest = q => !!q &&
     typeof q.id === 'string' && typeof q.title === 'string' && typeof q.desc === 'string' &&
@@ -125,8 +149,8 @@
     typeof q.due === 'string' && typeof q.added === 'number' && typeof q.rank === 'number' &&
     (q.status !== 'done' || (typeof q.earned === 'number' && typeof q.completed === 'number'));
 
-  // Returns null when nothing is saved, the data is broken, or storage is
-  // blocked (private mode). The samples load instead.
+  // Babasahin yung naka-save. Kung wala, sira, o naka-block yung storage
+  // (hal. private mode), null ang babalik at sample quests ang lalabas.
   function loadBoard() {
     try {
       const data = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -144,10 +168,11 @@
         quests, xp: bankedXp, nextId, sort: state.sort, dir: state.dir
       }));
     } catch (err) {
-      // Storage blocked or full: the board still works, it just isn't kept.
+      // Naka-block o puno yung storage: gagana pa rin yung board, hindi lang ma-sa-save.
     }
   }
 
+  // Pagbukas ng page: kunin yung naka-save. Kung wala, sample quests.
   const saved = loadBoard();
   let quests = saved ? saved.quests : sampleQuests();
   let bankedXp = saved ? saved.xp : startingXp();
@@ -156,7 +181,7 @@
     nextId = Math.max(Number(saved.nextId) || 0, highest + 1);
   }
 
-  // Sort choice is remembered; search and category filter are not.
+  // Tinatandaan yung Sort. Hindi tinatandaan yung search at category filter.
   const state = { filter: 'all', query: '', sort: 'due', dir: 'asc' };
   if (saved && SORTS[saved.sort]) {
     state.sort = saved.sort;
@@ -221,7 +246,7 @@
   const delCancel = $('delCancel');
   const delConfirm = $('delConfirm');
 
-  // ---------- helpers ----------
+  // ---------- helpers (maliliit na tools na paulit-ulit gamitin) ----------
 
   const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
   const esc = s => String(s).replace(/[&<>"']/g, c => ESCAPES[c]);
@@ -238,7 +263,7 @@
     announcer.textContent = message;
   }
 
-  // ---------- toast ----------
+  // ---------- toast (yung maliit na message sa baba, may Undo minsan) ----------
 
   let toastTimer = null;
   let toastRun = null;
@@ -266,7 +291,7 @@
     if (run) run();
   });
 
-  // Ctrl/Cmd+Z runs a pending Undo, unless you're typing in a field.
+  // Ctrl+Z = Undo, basta hindi ka nagta-type sa isang input.
   document.addEventListener('keydown', e => {
     if (!toastRun || e.key.toLowerCase() !== 'z' || !(e.ctrlKey || e.metaKey) || e.shiftKey) return;
     if (e.target.closest('input, textarea, select')) return;
@@ -276,7 +301,7 @@
     run();
   });
 
-  // ---------- filtering + sorting ----------
+  // ---------- filtering + sorting (search, category chips, Sort) ----------
 
   function matches(q) {
     if (state.filter !== 'all' && q.cat !== state.filter) return false;
@@ -291,7 +316,7 @@
     const byDue = (a.due || '9999').localeCompare(b.due || '9999');
 
     if (state.sort === 'due') {
-      // Overdue quests float to the top in either direction, most overdue first.
+      // Overdue laging nasa taas kahit anong direction, pinaka-late muna.
       const ao = isOverdue(a);
       const bo = isOverdue(b);
       if (ao !== bo) return ao ? -1 : 1;
@@ -304,8 +329,8 @@
     return dir * (a.added - b.added) || byTitle;
   }
 
-  // Manual order lives in `rank`. Before the first manual move, copy whatever
-  // order is on screen into it so nothing jumps.
+  // Yung manual order (drag) ay naka-save sa `rank`. Bago yung unang drag,
+  // kinokopya muna yung order na nakikita mo para walang tatalon na card.
   function freezeOrder() {
     if (state.sort === 'manual') return;
     quests.slice().sort(compare).forEach((q, i) => { q.rank = i; });
@@ -315,7 +340,7 @@
     quests.slice().sort((a, b) => a.rank - b.rank).forEach((q, i) => { q.rank = i; });
   }
 
-  // `ids` is the visible order of one column after the move.
+  // `ids` = order ng isang column pagkatapos ilipat yung card.
   function placeManually(q, ids) {
     freezeOrder();
     const i = ids.indexOf(q.id);
@@ -333,7 +358,7 @@
     if (ranks.length) q.rank = Math.min(...ranks) - 1;
   }
 
-  // ---------- rendering ----------
+  // ---------- rendering (pag-drawing ng cards sa screen) ----------
 
   function dueText(q) {
     if (!q.due) return 'No date';
@@ -394,9 +419,10 @@
       </article>`;
   }
 
-  // `first` lets a caller hand over positions it measured itself (the drag
-  // code does this, because the dragged card is floating at drop time).
-  // Every change ends in a render, so this is also where the board is saved.
+  // render() = binubura at dino-drawing ulit lahat ng card galing sa `quests`.
+  // Lahat ng pagbabago dumadaan dito, kaya dito na rin tayo nagsa-save.
+  // `highlight` = id ng card na kakagalaw lang (para ma-highlight).
+  // `first` = positions na sinukat na ng drag code (lumulutang pa kasi yung card pag drop).
   function render({ animate = true, highlight = null, first = null } = {}) {
     closeMenu();
     let before = null;
@@ -409,7 +435,7 @@
         ? items.sort((a, b) => b.completed - a.completed)
         : items.sort(compare);
 
-      // A quest that was just added or moved past the limit opens its column.
+      // Kung yung kakagalaw na quest ay lampas card 10, bubuksan na yung column (Show all).
       if (highlight && items.findIndex(q => q.id === highlight) >= COLUMN_LIMIT) expanded[status] = true;
       const long = items.length > COLUMN_LIMIT;
       const shown = long && !expanded[status] ? items.slice(0, COLUMN_LIMIT) : items;
@@ -436,7 +462,7 @@
     if (before) play(before, highlight);
   }
 
-  // Scroll a column's own list (not the page) so a card that just landed is in view.
+  // I-scroll yung list ng column (hindi yung buong page) para kita yung card na kakalipat lang.
   function revealInList(id) {
     const el = board.querySelector(`[data-id="${id}"]`);
     if (!el) return;
@@ -448,7 +474,7 @@
     else if (er.bottom > lr.bottom) list.scrollTop += er.bottom - lr.bottom + 16;
   }
 
-  // Soft fade at the bottom of a list only while more cards are below.
+  // Yung fade sa baba ng column, lalabas lang kung may cards pa sa ilalim.
   function updateFade(list) {
     const more = list.scrollHeight - list.scrollTop - list.clientHeight > 4;
     list.parentElement.classList.toggle('has-more', more);
@@ -487,8 +513,8 @@
     }
   }
 
-  // FLIP: remember where every card was, re-render, then animate each card
-  // from its old spot to its new one.
+  // FLIP animation: tandaan kung nasaan bawat card, i-render ulit, tapos
+  // i-animate bawat card mula sa dati niyang pwesto papunta sa bago.
   function snapshot() {
     const rects = new Map();
     board.querySelectorAll('.qcard').forEach(el => rects.set(el.dataset.id, {
@@ -521,8 +547,8 @@
       ];
       const timing = { duration: travelling ? 560 : 320, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
 
-      // Columns scroll on their own, so a card changing columns would be
-      // clipped by its new list. A floating copy makes the trip instead.
+      // May sariling scroll bawat column, kaya pag lumipat ng column yung card,
+      // mapuputol yung animation. Kaya kopya ng card yung "lumilipad" papunta doon.
       if (before.list !== el.parentElement.dataset.list) {
         flyCopy(el, after, keyframes, timing, travelling);
         return;
@@ -558,7 +584,7 @@
       height: rect.height + 'px'
     });
     document.body.appendChild(copy);
-    // Opacity, not visibility, so the real card can still take focus.
+    // Opacity (hindi visibility) para ma-focus pa rin yung totoong card habang lumilipad yung kopya.
     el.style.opacity = '0';
 
     const anim = copy.animate(keyframes, timing);
@@ -581,7 +607,7 @@
     pick[target].focus();
   }
 
-  // ---------- level pill ----------
+  // ---------- level pill (Level at XP sa header) ----------
 
   const totalXp = () => bankedXp.reduce((sum, entry) => sum + entry.xp, 0);
   const xpLabel = n => n.toLocaleString('en-US') + ' XP';
@@ -599,7 +625,7 @@
     }
   }
 
-  // Rolls the XP number to its new value, like the demo on the Home page.
+  // Pinapatakbo yung numero ng XP (hal. 1,450 → 1,470), gaya ng demo sa Home.
   function countXp(to) {
     const from = pillXp;
     const start = performance.now();
@@ -612,8 +638,8 @@
     })(start);
   }
 
-  // `change` is the XP just gained (+) or taken back by Undo (−).
-  // Without it, the pill updates instantly (page load).
+  // `change` = XP na nadagdag (+) o binawi ng Undo (−).
+  // Kung walang `change` (hal. pagbukas ng page), diretso update lang, walang animation.
   function paintLevel(change = 0) {
     const total = totalXp();
     const level = Math.floor(total / XP_PER_LEVEL) + 1;
@@ -635,7 +661,7 @@
 
     countXp(total);
     if (level > prevLevel) {
-      // Fill the old bar to the end, then start the new level from zero.
+      // Level up: punuin muna hanggang dulo, tapos balik sa zero para sa bagong level.
       setFill(100);
       levelTimer = setTimeout(() => {
         setFill(0, false);
@@ -643,7 +669,7 @@
       }, 600);
       restartAnimation(levelNum, 'pop');
     } else if (level < prevLevel) {
-      // Undo back past a level: empty the bar, then show the old level's fill.
+      // Undo na nagpababa ng level: ubusin yung bar, tapos ipakita ulit yung laman ng dating level.
       setFill(0);
       levelTimer = setTimeout(() => {
         setFill(100, false);
@@ -659,8 +685,8 @@
     clearTimeout(glowTimer);
     glowTimer = setTimeout(() => levelFill.classList.remove('glow'), 700);
 
-    // "+20 XP" / "−20 XP" pops out at the end of the bar and drifts down
-    // (up would leave the top of the screen). Only the newest one shows.
+    // Yung "+20 XP" / "−20 XP" na lumalabas sa dulo ng bar tapos bumababa
+    // (pababa kasi kung pataas, lalabas na sa screen). Isa lang ang pinapakita.
     levelPill.querySelectorAll('.level-float').forEach(el => el.remove());
     const float = document.createElement('span');
     float.className = 'level-float' + (change < 0 ? ' neg' : '');
@@ -671,8 +697,9 @@
     float.addEventListener('animationend', () => float.remove());
   }
 
-  // ---------- quest actions ----------
+  // ---------- quest actions (Start, Mark done, Undo) ----------
 
+  // "Start": ililipat sa Doing, sa pinakataas.
   function startQuest(q) {
     moveToColumnTop(q, 'doing');
     render({ highlight: q.id });
@@ -680,6 +707,8 @@
     announce(`Started "${q.title}". It moved to Doing.`);
   }
 
+  // "Mark done": lipat sa Done + dagdag XP sa ledger + toast na may Undo.
+  // `rankBefore` = tinatandaan yung dating pwesto para maibalik kung mag-Undo.
   function completeQuest(q) {
     const levelBefore = Number(levelPill.dataset.level);
     const rankBefore = q.rank;
@@ -701,6 +730,7 @@
     announce(`Completed "${q.title}". Plus ${q.earned} XP.${levelUp} Undo is available for a few seconds, or press Control Z.`);
   }
 
+  // Undo: ibabalik sa Doing (sa dating pwesto) at babawiin yung XP.
   function undoComplete(q, rankBefore) {
     if (q.status !== 'done' || !quests.includes(q)) return;
     const i = bankedXp.findLastIndex(entry => entry.id === q.id);
@@ -715,7 +745,7 @@
     announce(`Undone. "${q.title}" is back in Doing.`);
   }
 
-  // ---------- overdue nudge ----------
+  // ---------- overdue nudge (paalala pag late na yung quest) ----------
 
   let knownOverdue = new Set(quests.filter(isOverdue).map(q => q.id));
 
@@ -726,7 +756,7 @@
       : `${list.length} quests are overdue. They're marked in red.`);
   }
 
-  // Catches quests that tip over at midnight, or get a past date on save.
+  // Chine-check kada minuto: hal. pag lumampas ng hatinggabi, o nag-save ka ng lumang petsa.
   function checkOverdue({ rerender = true } = {}) {
     const now = quests.filter(isOverdue);
     const fresh = now.filter(q => !knownOverdue.has(q.id));
@@ -739,7 +769,7 @@
 
   setInterval(checkOverdue, 60000);
 
-  // ---------- card menu ----------
+  // ---------- card menu (yung 3 dots: Edit / Delete) ----------
 
   let openMenu = null;
 
@@ -766,6 +796,8 @@
     if (returnFocus) kebab.focus();
   }
 
+  // Isang listener lang para sa lahat ng button sa cards. Bawat button may
+  // data-action (hal. data-action="done") kaya alam natin kung anong function.
   board.addEventListener('click', e => {
     if (justDragged) return;
     const btn = e.target.closest('[data-action]');
@@ -804,7 +836,7 @@
       return;
     }
 
-    // Alt + arrow on a focused card moves it within its column.
+    // Alt + arrow up/down: ilipat yung naka-focus na card (para sa keyboard users).
     if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       const card = e.target.closest('.qcard.can-drag');
       if (!card) return;
@@ -818,14 +850,14 @@
     if (!sortPanel.hidden && !e.target.closest('.sort-wrap')) closeSortPanel();
   });
 
-  // ---------- drag to reorder (whole card, same column only) ----------
-  // Mouse/pen: press and move a few pixels. Touch: press and hold, so a
-  // normal swipe still scrolls the page. A press without a move is a click
-  // and opens the detail view.
+  // ---------- drag to reorder (buong card, sa loob lang ng sariling column) ----------
+  // Mouse: pindutin at igalaw nang konti. Touch: pindutin nang matagal, para
+  // gumana pa rin yung normal na swipe/scroll. Pindot na walang galaw = click
+  // (bubukas yung details).
 
   let pending = null;
   let drag = null;
-  // The click that follows a drop must not open the card under the pointer.
+  // Para hindi mabuksan yung card pagkatapos mag-drop.
   let justDragged = false;
 
   function visibleIds(list, skip) {
@@ -834,7 +866,7 @@
       .map(el => (el.classList.contains('drag-placeholder') ? drag.q.id : el.dataset.id));
   }
 
-  // Midpoint of a card ignoring any FLIP transform still running on it.
+  // Gitna ng card (hindi kasama yung animation na tumatakbo pa).
   function layoutMid(el) {
     const r = el.getBoundingClientRect();
     const t = getComputedStyle(el).transform;
@@ -886,7 +918,7 @@
     });
     card.classList.add('is-dragging');
     document.body.classList.add('is-sorting');
-    try { card.setPointerCapture(pointerId); } catch (err) { /* pointer already released */ }
+    try { card.setPointerCapture(pointerId); } catch (err) { /* bitaw na yung pointer */ }
     if (navigator.vibrate) navigator.vibrate(8);
 
     drag = {
@@ -905,7 +937,7 @@
   function moveDrag() {
     const { card, list, placeholder, rect } = drag;
     const listRect = list.getBoundingClientRect();
-    // X is locked: a card can only travel up and down its own column.
+    // Naka-lock yung X: pataas/pababa lang sa sariling column.
     let top = rect.top + (drag.pointerY - drag.startY);
     top = Math.max(listRect.top - 12, Math.min(listRect.bottom - rect.height + 12, top));
     card.style.transform = `translateY(${top - rect.top}px)`;
@@ -927,15 +959,15 @@
     });
   }
 
-  // How far to scroll this frame when the pointer is within `zone` px of an edge.
+  // Gaano kabilis mag-scroll pag malapit na sa gilid yung pointer.
   function edgeStep(y, top, bottom, zone) {
     if (y < top + zone) return -Math.min(18, Math.ceil((top + zone - y) / 5));
     if (y > bottom - zone) return Math.min(18, Math.ceil((y - (bottom - zone)) / 5));
     return 0;
   }
 
-  // Keep scrolling while the pointer rests near an edge: the column's own
-  // list first, then the page.
+  // Tuloy-tuloy na scroll habang nasa gilid yung pointer:
+  // yung list ng column muna, tapos yung buong page.
   function autoScroll() {
     if (!drag) return;
     const { list } = drag;
@@ -951,7 +983,7 @@
 
     const pageStep = edgeStep(drag.pointerY, 30, window.innerHeight, 60);
     if (pageStep) {
-      // "instant": the page sets scroll-behavior: smooth, which would lag here
+      // "instant" kasi naka-smooth scroll yung page; magla-lag kung hindi.
       window.scrollBy({ top: pageStep, behavior: 'instant' });
       moved = true;
     }
@@ -980,7 +1012,7 @@
     }
   });
 
-  // Once a touch drag has started, stop the page from scrolling under it.
+  // Pag nagsimula na yung touch drag, huwag nang i-scroll yung page.
   document.addEventListener('touchmove', e => {
     if (drag) e.preventDefault();
   }, { passive: false });
@@ -1030,7 +1062,7 @@
     announce(`"${q.title}" is now ${to + 1} of ${ids.length} in ${STATUS_LABEL[q.status]}.`);
   }
 
-  // ---------- sort control ----------
+  // ---------- sort control (dropdown + arrow ng direction) ----------
 
   function setSort(key) {
     state.sort = key;
@@ -1102,7 +1134,7 @@
     announce(`${SORTS[state.sort].label}, ${state.dir === 'asc' ? 'ascending' : 'descending'}.`);
   });
 
-  // ---------- dialogs ----------
+  // ---------- dialogs (popups: Add/Edit, Details, Delete) ----------
 
   let activeModal = null;
   let returnFocusTo = null;
@@ -1155,7 +1187,7 @@
     }
   });
 
-  // Detail (read-only)
+  // Details (basa lang, walang edit)
 
   function openDetail(q, returnEl) {
     const overdue = isOverdue(q);
@@ -1183,7 +1215,7 @@
     openModal(detailModal, detailClose, returnEl);
   }
 
-  // Add / edit (To do and Doing only; a finished quest's XP is already banked)
+  // Add / Edit quest (To do at Doing lang; yung Done may XP na kaya hindi na ine-edit)
 
   let editing = null;
 
@@ -1245,7 +1277,7 @@
     editing = null;
     closeModal({ restoreFocus: false });
 
-    // Don't let a filter or search hide the quest that was just saved.
+    // Siguraduhing kita yung kaka-save na quest kahit may search o filter.
     if (!matches(q)) {
       state.filter = 'all';
       state.query = '';
@@ -1280,7 +1312,7 @@
     announce(`Deleted "${title}".`);
   });
 
-  // ---------- toolbar ----------
+  // ---------- toolbar (search, filter chips, Add quest) ----------
 
   function syncControls() {
     filterChips.forEach(chip => {
@@ -1324,7 +1356,7 @@
   addBtn.addEventListener('click', () => openQuestModal(null, addBtn));
   emptyAdd.addEventListener('click', () => openQuestModal(null, emptyAdd));
 
-  // ---------- start ----------
+  // ---------- start (unang takbo pagbukas ng page) ----------
 
   paintLevel();
   syncControls();

@@ -5,7 +5,8 @@ let musicPlaying = false;
 let hasInteracted = false;
 
 if (bgMusic && musicToggle) {
-  // The button shows a muted or playing speaker from aria-pressed (see .music-btn in the CSS)
+  // Yung icon ng sound button (naka-mute o tumutugtog) ay nakabase sa aria-pressed.
+  // Si CSS (.music-btn) na bahala kung aling speaker icon ang lalabas.
   const showMusicState = on => {
     musicToggle.setAttribute('aria-pressed', String(on));
     musicToggle.title = on ? 'Mute music' : 'Play music';
@@ -33,8 +34,8 @@ if (bgMusic && musicToggle) {
 
   musicToggle.addEventListener('click', async (e) => {
     e.stopPropagation();
-    // Counts as the first interaction, so a later click elsewhere
-    // doesn't restart music that was just muted here.
+    // Bilang "first interaction" na rin 'to. Kung wala 'to, pag in-mute mo
+    // tapos nag-click ka sa ibang lugar, tutugtog ulit yung music.
     hasInteracted = true;
 
     try {
@@ -182,15 +183,16 @@ if (bgMusic && musicToggle) {
 })();
 
 
-// Demo XP system – same numbers as the Quest Board (125 XP per level,
-// starting at 1,450 XP = Level 12). A sandbox: nothing here is saved.
+// Demo XP system ("Try it" sa Home) – pareho ang numbers sa Tasks page:
+// 125 XP per level, simula sa 1,450 XP = Level 12. Pang-demo lang 'to,
+// walang sine-save at hindi nito ginagalaw yung totoong board.
 (function () {
   const list = document.getElementById('demoTasks');
   if (!list) return;
 
   const XP_PER_TASK = 20;
   const XP_PER_LEVEL = 125;
-  // Same as the "Climb the ranks" list
+  // Kinopya sa "Climb the ranks" section ng Home, para tugma
   const RANKS = [
     { name: 'Novice', xp: 0 },
     { name: 'Apprentice', xp: 100 },
@@ -223,7 +225,7 @@ if (bgMusic && musicToggle) {
     };
   }
 
-  // "1,450 XP · 50 XP to Level 13"
+  // Ito yung text sa ilalim ng bar, hal. "1,450 XP · 50 XP to Level 13"
   function xpText(t) {
     const level = levelOf(t);
     return t.toLocaleString('en-US') + ' XP · ' + (level * XP_PER_LEVEL - t) + ' XP to Level ' + (level + 1);
@@ -275,8 +277,8 @@ if (bgMusic && musicToggle) {
     levelEl.textContent = 'Level ' + next.level;
     rankEl.textContent = next.rank;
 
-    // Level up: fill to the end, then start the new level from zero.
-    // Level down: empty the bar, then show the old level's fill.
+    // Level up: punuin muna yung bar hanggang dulo, tapos balik sa zero.
+    // Level down (nag-untick): ubusin yung bar, tapos ipakita yung laman ng dating level.
     clearTimeout(fillTimer);
     if ((leveledUp || leveledDown) && !reduceMotion.matches) {
       setFill(leveledUp ? 100 : 0);
