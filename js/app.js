@@ -372,3 +372,190 @@ if (bgMusic && musicToggle) {
     });
   });
 })();
+
+// --- TASKS CORE LOGIC ---
+
+const TASKS_KEY = 'questify_tasks';
+
+function loadTasks() {
+  try {
+    return JSON.parse(localStorage.getItem(TASKS_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveTasks(tasks) {
+  localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function formatDueDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit' });
+}
+
+function categoryChipClass(category) {
+  if (category === 'Work') return 'chip-work';
+  if (category === 'Growth') return 'chip-growth';
+  return 'chip-health';
+}
+
+function priorityChipClass(priority) {
+  if (priority === 'High') return 'chip-hi';
+  if (priority === 'Medium') return 'chip-med';
+  return 'chip-lo';
+}
+
+// Add quest form (modal)
+function initAddQuestForm() {
+  const saveBtn = document.getElementById('saveQuestBtn');
+  if (!saveBtn) return;
+
+  const titleInput = document.getElementById('questTitle');
+  const errEl = document.getElementById('questError');
+
+  saveBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    const title = titleInput ? titleInput.value.trim() : '';
+
+    if (!title) {
+      if (errEl) errEl.style.display = 'block';
+      if (titleInput) titleInput.focus();
+      return;
+    }
+
+    if (errEl) errEl.style.display = 'none';
+
+    const captionInput = document.getElementById('questCaption');
+    const categorySelect = document.getElementById('questCategory');
+    const prioritySelect = document.getElementById('questPriority');
+    const xpSelect = document.getElementById('questXp');
+    const dueInput = document.getElementById('questDue');
+
+    const task = {
+      id: 'q_' + Date.now(),
+      title,
+      caption: captionInput ? captionInput.value.trim() : '',
+      category: categorySelect ? categorySelect.value : 'Work',
+      priority: prioritySelect ? prioritySelect.value : 'High',
+      xp: xpSelect ? (parseInt(xpSelect.value, 10) || 10) : 10,
+      due: dueInput ? (dueInput.value || null) : null,
+      status: 'todo'
+    };
+
+    const tasks = loadTasks();
+    tasks.unshift(task);
+    saveTasks(tasks);
+
+    window.location.href = 'tasks.html';
+  });
+}
+
+// Quest board rendering and actions
+function questCardHTML(task) {
+  const catChip = `<span class="chip ${categoryChipClass(task.category)}">${escapeHtml(task.category)}</span>`;
+  const prioChip = task.priority && task.priority !== 'Low'
+    ? `<span class="chip ${priorityChipClass(task.priority)}">${escapeHtml(task.priority)}</span>`
+    : '';
+  const due = task.due
+    ? `<span class="due"><img class="icon" src="../assets/icons/00-shared/icon-calendar.png" alt="">${formatDueDate(task.due)}</span>`
+    : '';
+
+  let actions;
+  if (task.status === 'todo') {
+    actions = `
+      <button class="btn-gold" type="button" data-action="start"><img class="icon" src="../assets/icons/04-tasks/icon-start.png" alt=""> Start</button>
+      <button class="btn-ghost" type="button" data-action="delete"><img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete</button>`;
+  } else if (task.status === 'doing') {
+    actions = `
+      <button class="btn-lime" type="button" data-action="done"><img class="icon" src="../assets/icons/04-tasks/icon-done.png" alt=""> Done</button>
+      <button class="btn-ghost" type="button" data-action="delete"><img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete</button>`;
+  } else {
+    actions = `
+      <button class="btn-ghost" type="button" data-action="delete"><img class="icon" src="../assets/icons/00-shared/icon-trash.png" alt=""> Delete</button>`;
+  }
+
+  return `
+    <article class="qcard" data-id="${task.id}">
+      <strong>${escapeHtml(task.title)}</strong>
+      ${task.caption ? `<p class="cap">${escapeHtml(task.caption)}</p>` : ''}
+      <div class="meta">
+        ${catChip}
+        ${prioChip}
+        <span class="xp">+${Number(task.xp) || 0} XP</span>
+        ${due}
+      </div>
+      <div class="qactions">${actions}</div>
+    </article>`;
+}
+
+function updateCounts() {
+  [['todoList', 'todoCount'], ['doingList', 'doingCount'], ['doneList', 'doneCount']]
+    .forEach(([listId, countId]) => {
+      const list = document.getElementById(listId);
+      const countEl = document.getElementById(countId);
+      if (list && countEl) countEl.textContent = list.children.length;
+    });
+}
+
+function renderBoard() {
+  const todoList = document.getElementById('todoList');
+  if (!todoList) return;
+
+  const doingList = document.getElementById('doingList');
+  const doneList = document.getElementById('doneList');
+
+  document.querySelectorAll('.qcard[data-id]').forEach(el => el.remove());
+
+  loadTasks().forEach(task => {
+    const html = questCardHTML(task);
+    if (task.status === 'doing' && doingList) doingList.insertAdjacentHTML('afterbegin', html);
+    else if (task.status === 'done' && doneList) doneList.insertAdjacentHTML('afterbegin', html);
+    else todoList.insertAdjacentHTML('afterbegin', html);
+  });
+
+  updateCounts();
+}
+
+function initBoardActions() {
+  const board = document.querySelector('.board');
+  if (!board) return;
+
+  board.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+
+    const card = btn.closest('.qcard[data-id]');
+    if (!card) return;
+
+    const id = card.dataset.id;
+    const action = btn.dataset.action;
+    let tasks = loadTasks();
+
+    if (action === 'delete') {
+      tasks = tasks.filter(t => t.id !== id);
+    } else if (action === 'start') {
+      tasks = tasks.map(t => (t.id === id ? { ...t, status: 'doing' } : t));
+    } else if (action === 'done') {
+      tasks = tasks.map(t => (t.id === id ? { ...t, status: 'done' } : t));
+    }
+
+    saveTasks(tasks);
+    renderBoard();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initAddQuestForm();
+  renderBoard();
+  initBoardActions();
+});
