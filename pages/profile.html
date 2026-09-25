@@ -4,34 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Questify — Profile</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <script src="../js/nav.js"></script>
 </head>
 <body>
 
-<header>
-  <nav>
-    <div class="nav-logo">
-      <a href="../index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
+<nav>
+  <div class="nav-logo">
+    <a href="../index.html">QUESTIFY</a>
+  </div>
+  <div class="nav-links">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="tasks.html">Tasks</a>
+    <a href="profile.html" class="active" aria-current="page">Profile</a>
+    <a href="about.html">About</a>
+    <div class="level-pill" id="levelPill">
+      <span><b id="levelNum">Level 12</b> <span class="lp-sep">·</span> <span id="levelXp">1,450 XP</span></span>
+      <span class="level-track" aria-hidden="true"><span class="level-fill" id="levelFill" style="width:60%"></span></span>
     </div>
-    <div class="nav-links">
-      <a href="dashboard.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-home.png" alt=""> Dashboard
-      </a>
-      <a href="tasks.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-tasks.png" alt=""> Tasks
-      </a>
-      <a class="active" href="profile.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-profile.png" alt=""> Profile
-      </a>
-      <a href="about.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-about.png" alt=""> About
-      </a>
-      <a class="nav-signup" href="signin.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-user.png" alt=""> Alex
-      </a>
-    </div>
-  </nav>
-</header>
+    <a href="signin.html" class="nav-signup">Alex</a>
+  </div>
+</nav>
 
 <main class="container">
   <!-- Profile Header -->
@@ -203,13 +199,12 @@
 </main>
 
 <footer>
-  <div class="footer-logo">
-    <a href="index.html" style="text-decoration: none; color: inherit;">QUESTIFY</a>
-  </div>
+  <a class="footer-logo" href="../index.html">QUESTIFY</a>
   <div class="footer-info">
-    <span>Abigail Ann Sarmiento · Christian Allen Soriano · Jeremiah Alzona · Rowel Jepsani · Sire Manalo</span>
-    <span>© 2026 Questify</span>
+    <p><strong>Web Systems and Technology</strong></p>
+    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
   </div>
+  <div>© 2026 Questify</div>
 </footer>
 
 </body>

@@ -5,6 +5,12 @@ let musicPlaying = false;
 let hasInteracted = false;
 
 if (bgMusic && musicToggle) {
+  // The button shows a muted or playing speaker from aria-pressed (see .music-btn in the CSS)
+  const showMusicState = on => {
+    musicToggle.setAttribute('aria-pressed', String(on));
+    musicToggle.title = on ? 'Mute music' : 'Play music';
+  };
+
   const startMusicOnFirstInteraction = async () => {
     if (hasInteracted) return;
     hasInteracted = true;
@@ -13,7 +19,7 @@ if (bgMusic && musicToggle) {
       bgMusic.muted = false;
       await bgMusic.play();
       musicPlaying = true;
-      musicToggle.textContent = '🔊';
+      showMusicState(true);
     } catch (err) {
       console.warn('Could not start music:', err.message);
     }
@@ -27,16 +33,19 @@ if (bgMusic && musicToggle) {
 
   musicToggle.addEventListener('click', async (e) => {
     e.stopPropagation();
+    // Counts as the first interaction, so a later click elsewhere
+    // doesn't restart music that was just muted here.
+    hasInteracted = true;
 
     try {
       if (musicPlaying) {
         bgMusic.pause();
-        musicToggle.textContent = '🔇';
+        showMusicState(false);
         musicPlaying = false;
       } else {
         bgMusic.muted = false;
         await bgMusic.play();
-        musicToggle.textContent = '🔊';
+        showMusicState(true);
         musicPlaying = true;
       }
     } catch (err) {
@@ -173,18 +182,28 @@ if (bgMusic && musicToggle) {
 })();
 
 
-// Demo XP system
+// Demo XP system – same numbers as the Quest Board (125 XP per level,
+// starting at 1,450 XP = Level 12). A sandbox: nothing here is saved.
 (function () {
   const list = document.getElementById('demoTasks');
   if (!list) return;
 
   const XP_PER_TASK = 20;
-  const RANKS = ['Novice', 'Apprentice', 'Adventurer', 'Veteran', 'Master'];
-  const MAX_LEVEL = RANKS.length;
-  const MAX_TOTAL = 1500;
+  const XP_PER_LEVEL = 125;
+  // Same as the "Climb the ranks" list
+  const RANKS = [
+    { name: 'Novice', xp: 0 },
+    { name: 'Apprentice', xp: 100 },
+    { name: 'Adventurer', xp: 300 },
+    { name: 'Veteran', xp: 700 },
+    { name: 'Master', xp: 1500 }
+  ];
 
-  // Start at Level 3 with 240 / 300 XP
-  let total = 100 + 200 + 240;
+  let total = 1450;
+  let displayed = total;
+  let countFrame = 0;
+  let fillTimer = null;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const levelEl = document.getElementById('demoLevel');
   const rankEl = document.getElementById('demoRank');
@@ -194,31 +213,50 @@ if (bgMusic && musicToggle) {
   const forEl = document.getElementById('demoFor');
   const wrapEl = document.querySelector('.demo-bar-wrap');
 
+  const levelOf = t => Math.floor(t / XP_PER_LEVEL) + 1;
+
   function stateFor(t) {
-    let level = 1;
-    let rem = t;
-    while (level < MAX_LEVEL && rem >= level * 100) {
-      rem -= level * 100;
-      level++;
-    }
     return {
-      level,
-      xp: Math.min(rem, level * 100),
-      max: level * 100
+      level: levelOf(t),
+      rank: RANKS.filter(r => t >= r.xp).pop().name,
+      pct: ((t % XP_PER_LEVEL) / XP_PER_LEVEL) * 100
     };
+  }
+
+  // "1,450 XP · 50 XP to Level 13"
+  function xpText(t) {
+    const level = levelOf(t);
+    return t.toLocaleString('en-US') + ' XP · ' + (level * XP_PER_LEVEL - t) + ' XP to Level ' + (level + 1);
   }
 
   let shown = stateFor(total);
 
-  function countTo(from, to, max) {
+  function countTo(from, to) {
     const start = performance.now();
     const dur = 450;
+    cancelAnimationFrame(countFrame);
 
     (function step(now) {
-      const p = Math.min(1, (now - start) / dur);
-      xpEl.textContent = Math.round(from + (to - from) * p) + ' / ' + max + ' XP';
-      if (p < 1) requestAnimationFrame(step);
+      const p = reduceMotion.matches ? 1 : Math.min(1, (now - start) / dur);
+      displayed = Math.round(from + (to - from) * p);
+      xpEl.textContent = xpText(displayed);
+      if (p < 1) countFrame = requestAnimationFrame(step);
     })(start);
+  }
+
+  function restart(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function setFill(pct, animate = true) {
+    if (!animate) fillEl.style.transition = 'none';
+    fillEl.style.width = pct + '%';
+    if (!animate) {
+      void fillEl.offsetWidth;
+      fillEl.style.transition = '';
+    }
   }
 
   function popFloat(text, pct, neg) {
@@ -235,31 +273,37 @@ if (bgMusic && musicToggle) {
     const leveledDown = next.level < shown.level;
 
     levelEl.textContent = 'Level ' + next.level;
-    rankEl.textContent = RANKS[next.level - 1];
+    rankEl.textContent = next.rank;
 
-    const pct = (next.xp / next.max) * 100;
-    fillEl.style.width = pct + '%';
+    // Level up: fill to the end, then start the new level from zero.
+    // Level down: empty the bar, then show the old level's fill.
+    clearTimeout(fillTimer);
+    if ((leveledUp || leveledDown) && !reduceMotion.matches) {
+      setFill(leveledUp ? 100 : 0);
+      fillTimer = setTimeout(() => {
+        setFill(leveledUp ? 0 : 100, false);
+        setFill(next.pct);
+      }, 600);
+    } else {
+      setFill(next.pct);
+    }
     fillEl.classList.add('glow');
     setTimeout(() => fillEl.classList.remove('glow'), 600);
 
-    countTo(leveledUp || leveledDown ? next.xp : shown.xp, next.xp, next.max);
+    countTo(displayed, total);
 
     if (change) {
       const neg = change < 0;
-      pillEl.textContent = (neg ? '-' : '+') + Math.abs(change) + ' XP';
+      pillEl.hidden = false;
+      pillEl.textContent = (neg ? '−' : '+') + Math.abs(change) + ' XP';
       pillEl.classList.toggle('neg', neg);
       forEl.textContent = leveledUp ? 'Level up! for ' + name : (neg ? 'undid ' : 'for ') + name;
-      pillEl.classList.remove('bump');
-      void pillEl.offsetWidth;
-      pillEl.classList.add('bump');
-      popFloat(pillEl.textContent, pct, neg);
+      restart(pillEl, 'bump');
+      if (!reduceMotion.matches) popFloat(pillEl.textContent, next.pct, neg);
     }
 
-    if (leveledUp) {
-      levelEl.classList.remove('pop');
-      void levelEl.offsetWidth;
-      levelEl.classList.add('pop');
-    }
+    if (leveledUp) restart(levelEl, 'pop');
+    if (next.rank !== shown.rank) restart(rankEl, 'pop');
 
     shown = next;
   }
@@ -272,7 +316,7 @@ if (bgMusic && musicToggle) {
     label.classList.toggle('done', e.target.checked);
 
     const before = total;
-    total = Math.max(0, Math.min(MAX_TOTAL, total + (e.target.checked ? XP_PER_TASK : -XP_PER_TASK)));
+    total = Math.max(0, total + (e.target.checked ? XP_PER_TASK : -XP_PER_TASK));
     render(stateFor(total), total - before, name);
   });
 
@@ -300,9 +344,9 @@ if (bgMusic && musicToggle) {
 
   // Initial paint
   levelEl.textContent = 'Level ' + shown.level;
-  rankEl.textContent = RANKS[shown.level - 1];
-  fillEl.style.width = (shown.xp / shown.max) * 100 + '%';
-  xpEl.textContent = shown.xp + ' / ' + shown.max + ' XP';
+  rankEl.textContent = shown.rank;
+  setFill(shown.pct, false);
+  xpEl.textContent = xpText(total);
 })();
 
 
