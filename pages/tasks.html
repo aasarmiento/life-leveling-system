@@ -66,8 +66,8 @@
 
     <!-- To Do Column -->
      <div class="board-col">
-      <div class="col-h"><span>To Do <span class="count">6</span></span></div>
-      <div class="col-scroll">
+      <div class="col-h"><span>To Do <span class="count" id="todoCount">6</span></span></div>
+      <div class="col-scroll" id = "todoList">
         <article class="qcard">
           <strong>Send client proposal</strong>
           <p class="cap">Attach the PDF and hit send before noon.</p>
@@ -211,8 +211,8 @@
 
     <!-- Doing Column -->
     <div class="board-col">
-      <div class="col-h"><span>Doing <span class="count">4</span></span></div>
-      <div class="col-scroll">
+      <div class="col-h"><span>Doing <span class="count" id="doingCount">4</span></span></div>
+      <div class="col-scroll" id = "doingList">
         <article class="qcard">
           <strong>Read 20 pages</strong>
           <p class="cap">Stay in the same book. Twenty real pages.</p>
@@ -309,7 +309,7 @@
 
 <!-- Done Column -->
     <div class="board-col">
-      <div class="col-h"><span>Done <span class="count">5</span></span></div>
+      <div class="col-h"><span>Done <span class="count" id="doneCount">5</span></span></div>
       <div class="col-scroll">
         <article class="qcard">
           <strong>45-min run</strong>
@@ -381,5 +381,6 @@
   <div>© 2026 Questify</div>
 </footer>
 
+<script src="../js/app.js"></script>
 </body>
 </html>
