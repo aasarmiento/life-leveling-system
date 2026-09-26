@@ -22,7 +22,9 @@
 // Yung mga id sa tasks.html (hal. id="addQuestBtn") ay "hawakan" ng JS.
 // Huwag palitan yung id nang hindi binabago dito, kasi masisira yung JS.
 // =====================================================================
-(function () {
+// Nagsisimula pag handa na ang page (DOMContentLoaded), para nauna na ang
+// nav.js na gumawa ng player card (Alex ▾) kung saan naka-lagay ang Level at XP.
+document.addEventListener('DOMContentLoaded', function () {
   const XP_BY_PRIORITY = { low: 10, medium: 20, high: 30 };
   const PRIORITY_VALUE = { low: 1, medium: 2, high: 3 };
   const PRIORITY_LABEL = { low: 'Low', medium: 'Medium', high: 'High' };
@@ -612,7 +614,6 @@
   const totalXp = () => bankedXp.reduce((sum, entry) => sum + entry.xp, 0);
   const xpLabel = n => n.toLocaleString('en-US') + ' XP';
   let levelTimer = null;
-  let glowTimer = null;
   let countFrame = 0;
   let pillXp = 0; // what the pill's XP text says right now
 
@@ -648,6 +649,8 @@
 
     levelNum.textContent = 'Level ' + level;
     levelPill.dataset.level = level;
+    // Sabihan ang header (nav.js) para ma-update ang rank at "XP to Level"
+    document.dispatchEvent(new CustomEvent('questify:xp', { detail: { total, level, change } }));
     levelPill.title = `${XP_PER_LEVEL - (total % XP_PER_LEVEL)} XP to Level ${level + 1}`;
 
     clearTimeout(levelTimer);
@@ -680,21 +683,9 @@
       setFill(pct);
     }
 
-    restartAnimation(levelPill, 'bump');
-    levelFill.classList.add('glow');
-    clearTimeout(glowTimer);
-    glowTimer = setTimeout(() => levelFill.classList.remove('glow'), 700);
-
-    // Yung "+20 XP" / "−20 XP" na lumalabas sa dulo ng bar tapos bumababa
-    // (pababa kasi kung pataas, lalabas na sa screen). Isa lang ang pinapakita.
-    levelPill.querySelectorAll('.level-float').forEach(el => el.remove());
-    const float = document.createElement('span');
-    float.className = 'level-float' + (change < 0 ? ' neg' : '');
-    float.textContent = (change < 0 ? '−' : '+') + Math.abs(change) + ' XP';
-    const track = levelFill.parentElement;
-    float.style.left = track.offsetLeft + (track.offsetWidth * pct) / 100 + 'px';
-    levelPill.appendChild(float);
-    float.addEventListener('animationend', () => float.remove());
+    // Wala nang "+20 XP" float at glow dito: nasa loob na ng Alex ▾ menu ang level
+    // (sarado kadalasan), kaya hindi nakikita. Ang nav.js na ang nagpapa-"bump"
+    // sa Alex button, at ang toast ang nagsasabi ng +XP.
   }
 
   // ---------- quest actions (Start, Mark done, Undo) ----------
@@ -728,6 +719,10 @@
       action: { label: 'Undo', run: () => undoComplete(q, rankBefore) }
     });
     announce(`Completed "${q.title}". Plus ${q.earned} XP.${levelUp} Undo is available for a few seconds, or press Control Z.`);
+    // Para sa notifications (nav.js): "Quest done" at, kung umakyat, "Level up"
+    document.dispatchEvent(new CustomEvent('questify:quest-done', {
+      detail: { id: q.id, title: q.title, xp: q.earned, level: levelNow, leveledUp: levelNow > levelBefore }
+    }));
   }
 
   // Undo: ibabalik sa Doing (sa dating pwesto) at babawiin yung XP.
@@ -743,6 +738,8 @@
     paintLevel(-lost);
     focusCard(q.id);
     announce(`Undone. "${q.title}" is back in Doing.`);
+    // Binawi: tanggalin din yung notifications ng quest na 'to
+    document.dispatchEvent(new CustomEvent('questify:quest-undo', { detail: { id: q.id } }));
   }
 
   // ---------- overdue nudge (paalala pag late na yung quest) ----------
@@ -757,6 +754,15 @@
   }
 
   // Chine-check kada minuto: hal. pag lumampas ng hatinggabi, o nag-save ka ng lumang petsa.
+  // Para sa notifications (nav.js): isang "Overdue" bawat quest na late na.
+  // Si nav.js na ang bahala na hindi maulit ang parehong quest.
+  function notifyOverdue(list) {
+    if (!list.length) return;
+    document.dispatchEvent(new CustomEvent('questify:overdue', {
+      detail: { quests: list.map(q => ({ id: q.id, title: q.title, due: shortDate(q.due) })) }
+    }));
+  }
+
   function checkOverdue({ rerender = true } = {}) {
     const now = quests.filter(isOverdue);
     const fresh = now.filter(q => !knownOverdue.has(q.id));
@@ -764,6 +770,7 @@
     if (fresh.length) {
       if (rerender) render();
       nudge(fresh);
+      notifyOverdue(fresh);
     }
   }
 
@@ -1363,4 +1370,5 @@
   syncSort();
   render({ animate: false });
   nudge(quests.filter(isOverdue));
-})();
+  notifyOverdue(quests.filter(isOverdue));
+});
