@@ -1,113 +1,286 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Questify — Create account</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Questify — Create account</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="../js/nav.js"></script>
-</head>
-<body>
-
-<!-- Shared header (pareho sa lahat ng page).
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+    <script src="../js/nav.js"></script>
+  </head>
+  <body>
+    <!-- Shared header (pareho sa lahat ng page).
      .guest-only = kita lang pag HINDI naka-sign in; .member-only = pag naka-sign in.
      Ang laman ng Alex ▾ (player card) at ng bell ay binubuo ng js/nav.js. -->
-<nav>
-  <div class="nav-logo">
-    <a href="../index.html">QUESTIFY</a>
-  </div>
-  <div class="nav-links">
-    <a href="../index.html" class="guest-only">Home</a>
-    <a href="tasks.html" class="member-only">Tasks</a>
-    <a href="profile.html" class="member-only">Profile</a>
-    <a href="about.html">About</a>
-    <div class="notif-wrap member-only">
-      <button type="button" class="icon-btn" id="notifBtn" aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
-    </div>
-    <div class="acct-wrap member-only">
-      <button type="button" class="nav-signup acct-btn" id="acctBtn" aria-haspopup="menu"><span data-acct-name>Alex</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-    </div>
-    <a href="signin.html" class="nav-signup guest-only">Sign In</a>
-  </div>
-</nav>
+    <nav>
+      <div class="nav-logo">
+        <a href="../index.html">QUESTIFY</a>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="guest-only">Home</a>
+        <a href="tasks.html" class="member-only">Tasks</a>
+        <a href="profile.html" class="member-only">Profile</a>
+        <a href="about.html">About</a>
+        <div class="notif-wrap member-only">
+          <button
+            type="button"
+            class="icon-btn"
+            id="notifBtn"
+            aria-label="Notifications"
+            aria-haspopup="dialog"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+          </button>
+        </div>
+        <div class="acct-wrap member-only">
+          <button
+            type="button"
+            class="nav-signup acct-btn"
+            id="acctBtn"
+            aria-haspopup="menu"
+          >
+            <span data-acct-name>Alex</span
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+        </div>
+        <a href="signin.html" class="nav-signup guest-only">Sign In</a>
+      </div>
+    </nav>
 
-<!-- Create account: parehong style ng Sign in. Kaliwa = pili ng avatar. -->
-<main class="auth-page">
-  <!-- Background lang: lime glow sa likod ng form + maliliit na bituin (galing sa Figma ni Abigail) -->
-  <span class="auth-glow" aria-hidden="true"></span>
-  <span class="auth-star" style="left:6.25%;top:66px;opacity:0.6" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:18.06%;top:32px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star" style="left:29.86%;top:86px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:42.36%;top:46px;opacity:0.6" aria-hidden="true"></span>
-  <span class="auth-star" style="left:48.61%;top:166px;opacity:0.3" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:52.78%;top:56px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star" style="left:90.97%;top:56px;opacity:0.6" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:95.83%;top:196px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star" style="left:89.58%;top:756px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:4.17%;top:636px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star" style="left:12.50%;top:736px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:51.39%;top:716px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star" style="left:95.83%;top:496px;opacity:0.3" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:55.56%;top:6px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:2.78%;top:316px;opacity:0.4" aria-hidden="true"></span>
-  <div class="auth-grid">
-    <section class="auth-intro">
-      <h1 class="auth-title">Pick your<br><span>player.</span></h1>
-      <p class="auth-copy">Choose an avatar and a name. Your board starts<br>with sample quests you can try, edit or delete.</p>
-      <p class="av-label" id="avLabel">Choose your avatar</p>
-      <!-- Totoong radio buttons (gumagana sa keyboard). Kasama sa form sa kanan. -->
-      <div class="av-pick" role="radiogroup" aria-labelledby="avLabel">
-        <label class="av-opt"><input type="radio" name="avatar" value="lime" form="signupForm" checked><span class="av-tick" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><img src="../assets/avatars/avatar-lime-slime-256.png" alt=""><b>Lime</b><small>Slime with a headset</small></label>
-        <label class="av-opt"><input type="radio" name="avatar" value="gold" form="signupForm"><span class="av-tick" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><img src="../assets/avatars/avatar-gold-slime-256.png" alt=""><b>Gold</b><small>Slime with cat ears</small></label>
-      </div>
-      <p class="auth-note">Your avatar shows on your player card in the Alex ▾ menu.</p>
-    </section>
+    <!-- Create account: parehong style ng Sign in. Kaliwa = pili ng avatar. -->
+    <main class="auth-page">
+      <!-- Background lang: lime glow sa likod ng form + maliliit na bituin (galing sa Figma ni Abigail) -->
+      <span class="auth-glow" aria-hidden="true"></span>
+      <span
+        class="auth-star"
+        style="left: 6.25%; top: 66px; opacity: 0.6"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 18.06%; top: 32px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 29.86%; top: 86px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 42.36%; top: 46px; opacity: 0.6"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 48.61%; top: 166px; opacity: 0.3"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 52.78%; top: 56px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 90.97%; top: 56px; opacity: 0.6"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 95.83%; top: 196px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 89.58%; top: 756px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 4.17%; top: 636px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 12.5%; top: 736px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 51.39%; top: 716px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 95.83%; top: 496px; opacity: 0.3"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 55.56%; top: 6px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 2.78%; top: 316px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <div class="auth-grid">
+        <section class="auth-intro">
+          <h1 class="auth-title">Pick your<br /><span>player.</span></h1>
+          <p class="auth-copy">
+            Choose an avatar and a name. Your board starts<br />with sample
+            quests you can try, edit or delete.
+          </p>
+          <p class="av-label" id="avLabel">Choose your avatar</p>
+          <!-- Totoong radio buttons (gumagana sa keyboard). Kasama sa form sa kanan. -->
+          <div class="av-pick" role="radiogroup" aria-labelledby="avLabel">
+            <label class="av-opt"
+              ><input
+                type="radio"
+                name="avatar"
+                value="lime"
+                form="signupForm"
+                checked
+              /><span class="av-tick" aria-hidden="true"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span
+              ><img
+                src="../assets/avatars/avatar-lime-slime-256.png"
+                alt=""
+              /><b>Lime</b><small>Slime with a headset</small></label
+            >
+            <label class="av-opt"
+              ><input
+                type="radio"
+                name="avatar"
+                value="gold"
+                form="signupForm"
+              /><span class="av-tick" aria-hidden="true"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span
+              ><img
+                src="../assets/avatars/avatar-gold-slime-256.png"
+                alt=""
+              /><b>Gold</b><small>Slime with cat ears</small></label
+            >
+          </div>
+          <p class="auth-note">
+            Your avatar shows on your player card in the Alex ▾ menu.
+          </p>
+        </section>
 
-    <form class="auth-card" id="signupForm">
-      <div class="auth-notice" id="authNotice" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
-        <span><b id="authNoticeText">Sign in to open your Quest Board.</b>You will go straight there after.</span>
+        <form class="auth-card" id="signupForm">
+          <div class="auth-notice" id="authNotice" role="status" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4.5" y="10.5" width="15" height="10" rx="2" />
+              <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+            </svg>
+            <span
+              ><b id="authNoticeText">Sign in to open your Quest Board.</b>You
+              will go straight there after.</span
+            >
+          </div>
+          <h2>Start your quest</h2>
+          <p class="page-kicker">Free, and it takes a minute.</p>
+          <div class="tabs">
+            <a href="signin.html">Sign in</a>
+            <a href="create-account.html" class="on" aria-current="page"
+              >Create account</a
+            >
+          </div>
+          <div class="field">
+            <label for="name">Display name</label>
+            <div class="in-wrap">
+              <input
+                type="text"
+                id="name"
+                placeholder="Alex Rivera"
+                autocomplete="nickname"
+                required
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <div class="in-wrap">
+              <input
+                type="email"
+                id="email"
+                placeholder="alex@email.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="in-wrap">
+              <input
+                type="password"
+                id="password"
+                placeholder="At least 8 characters"
+                autocomplete="new-password"
+                required
+                minlength="8"
+              /><button
+                type="button"
+                class="show-btn"
+                aria-controls="password"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="confirm">Confirm password</label>
+            <div class="in-wrap">
+              <input
+                type="password"
+                id="confirm"
+                placeholder="Type it again"
+                autocomplete="new-password"
+                required
+                minlength="8"
+              />
+            </div>
+          </div>
+          <p class="auth-err" id="confirmErr" role="alert" hidden>
+            Those passwords do not match.
+          </p>
+          <button class="btn-lime auth-submit" type="submit">
+            Create free account
+          </button>
+          <div class="auth-foot">
+            Already a player? <a href="signin.html">Sign in</a>
+          </div>
+          <p class="auth-privacy">Your data stays in your browser.</p>
+        </form>
       </div>
-      <h2>Start your quest</h2>
-      <p class="page-kicker">Free, and it takes a minute.</p>
-      <div class="tabs">
-        <a href="signin.html">Sign in</a>
-        <a href="create-account.html" class="on" aria-current="page">Create account</a>
-      </div>
-      <div class="field">
-        <label for="name">Display name</label>
-        <div class="in-wrap"><input type="text" id="name" placeholder="Alex Rivera" autocomplete="nickname" required></div>
-      </div>
-      <div class="field">
-        <label for="email">Email</label>
-        <div class="in-wrap"><input type="email" id="email" placeholder="alex@email.com" autocomplete="email" required></div>
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <div class="in-wrap"><input type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password" required minlength="8"><button type="button" class="show-btn" aria-controls="password" aria-pressed="false">Show</button></div>
-      </div>
-      <div class="field">
-        <label for="confirm">Confirm password</label>
-        <div class="in-wrap"><input type="password" id="confirm" placeholder="Type it again" autocomplete="new-password" required minlength="8"></div>
-      </div>
-      <p class="auth-err" id="confirmErr" role="alert" hidden>Those passwords do not match.</p>
-      <button class="btn-lime auth-submit" type="submit">Create free account</button>
-      <div class="auth-foot">Already a player? <a href="signin.html">Sign in</a></div>
-      <p class="auth-privacy">Your data stays in your browser.</p>
-    </form>
-  </div>
-</main>
+    </main>
 
-<footer>
-  <a class="footer-logo" href="../index.html">QUESTIFY</a>
-  <div class="footer-info">
-    <p><strong>Web Systems and Technology</strong></p>
-    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
-  </div>
-  <div>© 2026 Questify</div>
-</footer>
-
-</body>
+    <footer>
+      <a class="footer-logo" href="../index.html">QUESTIFY</a>
+      <div class="footer-info">
+        <p><strong>Web Systems and Technology</strong></p>
+        <p>
+          Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona |
+          Rowel Jepsani | Sire Manalo
+        </p>
+      </div>
+      <div>© 2026 Questify</div>
+    </footer>
+  </body>
 </html>
