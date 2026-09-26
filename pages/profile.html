@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-guard="profile">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,20 +13,25 @@
 </head>
 <body class="profile-page">
 
+<!-- Shared header (pareho sa lahat ng page).
+     .guest-only = kita lang pag HINDI naka-sign in; .member-only = pag naka-sign in.
+     Ang laman ng Alex ▾ (player card) at ng bell ay binubuo ng js/nav.js. -->
 <nav>
   <div class="nav-logo">
     <a href="../index.html">QUESTIFY</a>
   </div>
   <div class="nav-links">
-    <a href="dashboard.html">Dashboard</a>
-    <a href="tasks.html">Tasks</a>
-    <a href="profile.html" class="active" aria-current="page">Profile</a>
+    <a href="../index.html" class="guest-only">Home</a>
+    <a href="tasks.html" class="member-only">Tasks</a>
+    <a href="profile.html" class="member-only active" aria-current="page">Profile</a>
     <a href="about.html">About</a>
-    <div class="level-pill" id="levelPill">
-      <span><b id="levelNum">Level 12</b> <span class="lp-sep">·</span> <span id="levelXp">1,450 XP</span></span>
-      <span class="level-track" aria-hidden="true"><span class="level-fill" id="levelFill" style="width:60%"></span></span>
+    <div class="notif-wrap member-only">
+      <button type="button" class="icon-btn" id="notifBtn" aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
     </div>
-    <a href="signin.html" class="nav-signup">Alex</a>
+    <div class="acct-wrap member-only">
+      <button type="button" class="nav-signup acct-btn" id="acctBtn" aria-haspopup="menu"><span data-acct-name>Alex</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
+    <a href="signin.html" class="nav-signup guest-only">Sign In</a>
   </div>
 </nav>
 

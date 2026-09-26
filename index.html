@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/nav.js"></script>
 </head>
 <body>
 
@@ -18,14 +19,25 @@
     <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 2.4l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.6l-6.1 3.4 1.4-6.8L2.2 9.5l6.9-.8z"/></symbol>
   </svg>
 
+<!-- Shared header (pareho sa lahat ng page).
+     .guest-only = kita lang pag HINDI naka-sign in; .member-only = pag naka-sign in.
+     Ang laman ng Alex ▾ (player card) at ng bell ay binubuo ng js/nav.js. -->
 <nav id="main-nav">
   <div class="nav-logo">
     <a href="index.html">QUESTIFY</a>
   </div>
   <div class="nav-links">
-    <a href="index.html" class="active">Home</a>
+    <a href="index.html" class="guest-only active" aria-current="page">Home</a>
+    <a href="pages/tasks.html" class="member-only">Tasks</a>
+    <a href="pages/profile.html" class="member-only">Profile</a>
     <a href="pages/about.html">About</a>
-    <a href="pages/signin.html" class="nav-signup">Sign In</a>
+    <div class="notif-wrap member-only">
+      <button type="button" class="icon-btn" id="notifBtn" aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+    </div>
+    <div class="acct-wrap member-only">
+      <button type="button" class="nav-signup acct-btn" id="acctBtn" aria-haspopup="menu"><span data-acct-name>Alex</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
+    <a href="pages/signin.html" class="nav-signup guest-only">Sign In</a>
   </div>
 </nav>
 
@@ -44,7 +56,10 @@
       <p class="hero-sub">
         A gamified dashboard that turns your real daily effort — work, learning, and health — into XP and a level you can actually see.
       </p>
-      <a href="pages/signin.html" class="hero-cta">Get started</a>
+      <!-- Papunta sa Create account kasi para sa bagong user yung button na 'to -->
+      <a href="pages/create-account.html" class="hero-cta guest-only">Start your journey <span class="arrow" aria-hidden="true">→</span></a>
+      <!-- Kapag naka-sign in: diretso na sa Quest Board -->
+      <a href="pages/tasks.html" class="hero-cta member-only">Open your Quest Board <span class="arrow" aria-hidden="true">→</span></a>
     </div>
   </header>
 
@@ -465,12 +480,12 @@
   <div class="cta-footer">
     <section class="final-cta" id="signup">
       <h2>Ready to make<br>your effort visible?</h2>
-      <a href="pages/signin.html" class="btn-primary">Create free account</a>
+      <a href="pages/create-account.html" class="btn-primary">Create free account</a>
       <p class="cta-note">Your first step is one log away.</p>
     </section>
 
     <footer>
-      <div class="footer-logo"><img src="assets/images/footer-logo.png" alt="Questify" height="28"></div>
+      <a class="footer-logo" href="index.html">QUESTIFY</a>
       <div class="footer-info">
         <p><strong>Web Systems and Technology</strong></p>
         <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
@@ -482,7 +497,11 @@
   <audio id="bg-music" loop preload="auto">
     <source src="assets/audio/bg-music.mp3" type="audio/mpeg">
   </audio>
-  <button id="music-toggle" class="music-btn" aria-label="Toggle music">🔇</button>
+  <!-- Sound button: ang icon (mute / may tunog) ay pinapalitan ng app.js gamit aria-pressed -->
+  <button type="button" id="music-toggle" class="music-btn" aria-label="Background music" aria-pressed="false" title="Play music">
+    <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+    <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+  </button>
 
   <script src="js/app.js"></script>
 </body>
