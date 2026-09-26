@@ -55,85 +55,128 @@ if (bgMusic && musicToggle) {
   });
 }
 
-
 // Level-up animation
 (function () {
   const categories = [
-    { name: "Work mastery", icon: "💼", badges: ["📋", "⏱️", "🎯", "📈"] },
-    { name: "Learning mastery", icon: "📚", badges: ["🧠", "✍️", "🔍", "🏆"] },
-    { name: "Health mastery", icon: "💪", badges: ["🏃", "🧘", "❤️", "⚡"] }
+    {
+      name: 'Work mastery',
+      badgeImg: 'assets/images/work.jpeg',
+      badges: ['📝', '💻', '📊', '🎯']
+    },
+    {
+      name: 'Learning mastery',
+      badgeImg: 'assets/images/learn.jpeg',
+      badges: ['📖', '✍️', '🧠', '🎓']
+    },
+    {
+      name: 'Health mastery',
+      badgeImg: 'assets/images/health.jpeg',
+      badges: ['🏃', '🧘', '🍎', '😴']
+    }
   ];
 
-  const logoEl = document.getElementById("levelupLogo");
-  const labelEl = document.getElementById("levelupLabel");
-  const fillEl = document.getElementById("levelupFill");
-  const percentEl = document.getElementById("levelupPercent");
-  const leftBadges = document.querySelector(".left-badges");
-  const rightBadges = document.querySelector(".right-badges");
-  const logoWrap = document.querySelector(".levelup-logo-wrapper");
+  const iconBadge = document.getElementById('levelupIconBadge');
+  const logoEl = document.getElementById('levelupLogo');
+  const labelEl = document.getElementById('levelupLabel');
+  const fillEl = document.getElementById('levelupFill');
+  const percentEl = document.getElementById('levelupPercent');
+  const leftBadges = document.querySelector('.left-badges');
+  const rightBadges = document.querySelector('.right-badges');
+  const logoWrap = document.querySelector('.levelup-logo-wrapper');
+
+  // Stop if this section is missing on the page
+  if (!logoEl || !labelEl || !fillEl || !percentEl || !leftBadges || !rightBadges || !logoWrap) return;
 
   let current = 0;
   let progress = 0;
+  let animating = false;
 
   function renderBadges(icons) {
-    leftBadges.innerHTML = "";
-    rightBadges.innerHTML = "";
+    leftBadges.innerHTML = '';
+    rightBadges.innerHTML = '';
 
     icons.forEach((icon, i) => {
-      const badge = document.createElement("div");
-      badge.className = "levelup-badge";
+      const badge = document.createElement('div');
+      badge.className = 'levelup-badge';
       badge.textContent = icon;
       (i < 2 ? leftBadges : rightBadges).appendChild(badge);
     });
+  }
+
+  function setLogoImage(src) {
+    // Put the JPEG inside the center circle
+    logoEl.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = '';
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'contain';
+    img.style.imageRendering = 'pixelated';
+    logoEl.appendChild(img);
   }
 
   function startCategory() {
     const cat = categories[current];
 
     progress = 0;
-    fillEl.style.width = "0%";
-    percentEl.textContent = "0%";
+    fillEl.style.width = '0%';
+    percentEl.textContent = '0%';
     labelEl.textContent = cat.name;
-    logoEl.style.opacity = "0";
-    logoEl.style.transform = "scale(0.7)";
+
+    // Floating badge above the card
+    if (iconBadge) {
+      iconBadge.classList.remove('show');
+      iconBadge.src = cat.badgeImg;
+      requestAnimationFrame(() => iconBadge.classList.add('show'));
+    }
+
+    // Center logo → JPEG
+    logoEl.classList.remove('show');
+    setLogoImage(cat.badgeImg);
 
     setTimeout(() => {
-      logoEl.textContent = cat.icon;
-      logoEl.style.opacity = "1";
-      logoEl.style.transform = "scale(1)";
-      logoWrap.classList.add("active");
+      logoEl.classList.add('show');
+      logoWrap.classList.add('active');
     }, 150);
 
     renderBadges(cat.badges);
-    document.querySelectorAll(".levelup-badge").forEach(b => b.classList.remove("visible"));
+    document.querySelectorAll('.levelup-badge').forEach(b => b.classList.remove('visible'));
 
+    animating = true;
     animate();
   }
 
   function animate() {
+    if (!animating) return;
+
     progress += 0.7;
 
     if (progress >= 100) {
+      animating = false;
       setTimeout(() => {
-        logoWrap.classList.remove("active");
+        logoWrap.classList.remove('active');
+        if (iconBadge) iconBadge.classList.remove('show');
         current = (current + 1) % categories.length;
-        startCategory();
+        startCategory(); // next category
       }, 700);
       return;
     }
 
-    fillEl.style.width = progress + "%";
-    percentEl.textContent = Math.floor(progress) + "%";
+    fillEl.style.width = progress + '%';
+    percentEl.textContent = Math.floor(progress) + '%';
 
+    // Reveal side badges at these % marks
     const thresholds = [18, 38, 58, 78];
-    const badges = document.querySelectorAll(".levelup-badge");
+    const badges = document.querySelectorAll('.levelup-badge');
     thresholds.forEach((t, i) => {
-      if (progress >= t && badges[i]) badges[i].classList.add("visible");
+      if (progress >= t && badges[i]) badges[i].classList.add('visible');
     });
 
     requestAnimationFrame(animate);
   }
 
+  // Start only when the section scrolls into view
   const observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
       startCategory();
@@ -141,11 +184,9 @@ if (bgMusic && musicToggle) {
     }
   }, { threshold: 0.3 });
 
-  const section = document.querySelector(".progress-section");
+  const section = document.querySelector('.progress-section');
   if (section) observer.observe(section);
 })();
-
-
 // Quest cards – select one and play its video
 (function () {
   const items = document.querySelectorAll('.quest-item');
@@ -435,82 +476,82 @@ if (bgMusic && musicToggle) {
   if (!grid) return; // not on the about page
 
   const TEAM_MEMBERS = [
-    {
-      id: 'abigail',
-      name: 'Abigail Ann Sarmiento',
-      role: 'UI/UX design',
-      image: '../assets/icons/06-about/gail.jpg',
-      desc: 'Designs how Questify looks and keeps every page consistent. Turns messy ideas into clean layouts. (sample)',
-      workedShort: 'Landing page, style guide',
-      bio: 'Started in graphic design and moved into web layouts this term. Keeps a running style guide so every page matches. (sample)',
-      hobbies: 'Lifting weights, baking, calisthenics, hiking, travelling, composing music. (sample)',
-      favorite: 'The level-up moment. (sample)',
-      games: 'Genshin Impact, Stardew Valley, Valorant. (sample)',
-      quote: 'Design is invisible until it’s missing. (sample)',
-      github: '#',
-      linkedin: '#'
-    },
-    {
-      id: 'christian',
-      name: 'Christian Allen Soriano',
-      role: 'Project manager',
-      image: '../assets/icons/06-about/team-christian.png',
-      desc: 'Keeps the schedule and the scope honest. Runs weekly check-ins and decides what gets cut. (sample)',
-      workedShort: 'Scope plan, task breakdown',
-      bio: 'Runs the weekly check-ins and keeps the scope from creeping. (sample)',
-      hobbies: 'Basketball, watching anime, thrifting, road trips. (sample)',
-      favorite: 'Seeing a milestone actually close on time. (sample)',
-      games: 'Mobile Legends, FIFA, Minecraft. (sample)',
-      quote: 'A plan is only real once someone owns a deadline. (sample)',
-      github: '#',
-      linkedin: '#'
-    },
-    {
-      id: 'jeremiah',
-      name: 'Jeremiah Alzona',
-      role: 'Documentation',
-      image: '../assets/icons/06-about/team-jeremiah.png',
-      desc: 'Writes down what we decide and why, so the worksheet is never a last-minute scramble. (sample)',
-      workedShort: 'Workflow worksheet, About copy',
-      bio: 'Keeps the workflow worksheet current and writes most of the About copy. (sample)',
-      hobbies: 'Reading manga, journaling, cycling, coffee brewing. (sample)',
-      favorite: 'Finally getting the About page to make sense. (sample)',
-      games: 'Persona 5, Chess.com, Among Us. (sample)',
-      quote: 'If it is not written down, it did not happen. (sample)',
-      github: '#',
-      linkedin: '#'
-    },
-    {
-      id: 'rowel',
-      name: 'Rowel Jepsani',
-      role: 'Documentation',
-      image: '../assets/icons/06-about/team-rowel.png',
-      desc: 'Collects design references and asset research, and keeps the About and asset notes current. (sample)',
-      workedShort: 'Asset research, icon set',
-      bio: 'Gathers reference material and keeps the icon set organized. (sample)',
-      hobbies: 'Photography, sketching, board games, swimming. (sample)',
-      favorite: 'Finding the right icon on the first try. (sample)',
-      games: 'Animal Crossing, Overwatch 2, Tetris. (sample)',
-      quote: 'Good references save more time than good ideas. (sample)',
-      github: '#',
-      linkedin: '#'
-    },
-    {
-      id: 'sire',
-      name: 'Sire Manalo',
-      role: 'GitHub lead',
-      image: '../assets/icons/06-about/team-sire.png',
-      desc: 'Owns the repo, reviews merges, and keeps the main branch working. (sample)',
-      workedShort: 'Repository, merge reviews',
-      bio: 'Reviews every merge and keeps the main branch green. (sample)',
-      hobbies: 'Building PCs, running, badminton, video editing. (sample)',
-      favorite: 'A clean merge with zero conflicts. (sample)',
-      games: 'League of Legends, Counter-Strike 2, Rocket League. (sample)',
-      quote: 'Commit small, commit often. (sample)',
-      github: '#',
-      linkedin: '#'
-    }
-  ];
+  {
+    id: 'abigail',
+    name: 'Abigail Ann Sarmiento',
+    role: 'UI/UX design',
+    image: '../assets/icons/06-about/gail.jpg',
+    desc: 'Shapes how Questify looks and feels across every page, from the landing screen to the quest board.',
+    workedShort: 'Landing page, style guide, component layout',
+    bio: 'A designer student/ video editor / Ai prompt engineer who treats interfaces like game HUDsclear feedback, readable progress, and no wasted clicks. Abigail keeps the visual system consistent so the product feels like one world instead of five different pages.',
+    hobbies: 'Pixel art, strength training, baking, hiking, writing short game design notes',
+    favorite: 'The level-up moment when the bar fills and the rank finally changes',
+    games: 'League of Legends, Dota 2, Ragnarok , Valorant',
+    quote: 'If progress is invisible, people stop believing it happened.',
+    github: 'https://github.com/aasarmiento',
+    linkedin: 'aasarmiento'
+  },
+  {
+    id: 'christian',
+    name: 'Christian Allen Soriano',
+    role: 'Project manager',
+    image: '../assets/icons/06-about/team-christian.png',
+    desc: 'Keeps scope honest, runs check-ins, and makes sure the team ships what we promised.',
+    workedShort: 'Scope plan, task breakdown, weekly reviews',
+    bio: 'Balances student deadlines with product deadlines. Christian turns vague ideas into weekly goals and cuts features that sound cool but do not serve the core loop: log effort, earn XP, see the level climb.',
+    hobbies: 'Basketball, anime, thrifting, weekend road trips',
+    favorite: 'Closing a milestone on time without the team burning out',
+    games: 'Mobile Legends, FIFA, Minecraft',
+    quote: 'A plan only counts when someone owns the next deadline.',
+    github: '#',
+    linkedin: '#'
+  },
+  {
+    id: 'jeremiah',
+    name: 'Jeremiah Alzona',
+    role: 'Documentation',
+    image: '../assets/icons/06-about/team-jeremiah.png',
+    desc: 'Writes down decisions, workflows, and About copy so nothing important lives only in group chat.',
+    workedShort: 'Workflow worksheet, About page, process notes',
+    bio: 'Believes documentation is part of the build, not an afterthought. Jeremiah connects classroom requirements to the product story—why we log effort, how ranks work, and what each screen is for.',
+    hobbies: 'Reading manga, journaling, cycling, coffee brewing',
+    favorite: 'When the About page finally explains the project in one clear pass',
+    games: 'Persona 5, Chess.com, Among Us',
+    quote: 'If it is not written down, it did not really happen.',
+    github: '#',
+    linkedin: '#'
+  },
+  {
+    id: 'rowel',
+    name: 'Rowel Jepsani',
+    role: 'Documentation',
+    image: '../assets/icons/06-about/team-rowel.png',
+    desc: 'Gathers references, organizes assets, and keeps design and content notes easy to find.',
+    workedShort: 'Asset research, icon set, reference library',
+    bio: 'Mixes research habits from class with a collector’s instinct from gaming—screenshots, icons, and style notes sorted so the team can reuse them instead of starting from zero every week.',
+    hobbies: 'Photography, sketching, board games, swimming',
+    favorite: 'Finding the right reference on the first try and saving the team an hour',
+    games: 'Animal Crossing, Overwatch 2, Tetris',
+    quote: 'Good references save more time than sudden inspiration.',
+    github: '#',
+    linkedin: '#'
+  },
+  {
+    id: 'sire',
+    name: 'Sire Manalo',
+    role: 'GitHub lead',
+    image: '../assets/icons/06-about/team-sire.png',
+    desc: 'Owns the repository, reviews merges, and keeps the main branch stable for the whole team.',
+    workedShort: 'Repo setup, merge reviews, branch hygiene',
+    bio: 'Treats version control like a party raid: clear roles, clean commits, and no one merging chaos into main. Sire makes sure student work stays recoverable, reviewable, and ready to present.',
+    hobbies: 'Building PCs, running, badminton, video editing',
+    favorite: 'A clean merge with zero conflicts after a long feature branch',
+    games: 'League of Legends, Counter-Strike 2, Rocket League',
+    quote: 'Commit small, commit often, and leave the main branch playable.',
+    github: '#',
+    linkedin: '#'
+  }
+];
 
   function teamCardHTML(m) {
     return `
