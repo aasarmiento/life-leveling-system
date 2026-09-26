@@ -1,120 +1,266 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Questify — Sign in</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Questify — Sign in</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
-  <script src="../js/nav.js"></script>
-</head>
-<body>
-
-<!-- Shared header (pareho sa lahat ng page).
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+    <script src="../js/nav.js"></script>
+  </head>
+  <body>
+    <!-- Shared header (pareho sa lahat ng page).
      .guest-only = kita lang pag HINDI naka-sign in; .member-only = pag naka-sign in.
      Ang laman ng Alex ▾ (player card) at ng bell ay binubuo ng js/nav.js. -->
-<nav>
-  <div class="nav-logo">
-    <a href="../index.html">QUESTIFY</a>
-  </div>
-  <div class="nav-links">
-    <a href="../index.html" class="guest-only">Home</a>
-    <a href="tasks.html" class="member-only">Tasks</a>
-    <a href="profile.html" class="member-only">Profile</a>
-    <a href="about.html">About</a>
-    <div class="notif-wrap member-only">
-      <button type="button" class="icon-btn" id="notifBtn" aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
-    </div>
-    <div class="acct-wrap member-only">
-      <button type="button" class="nav-signup acct-btn" id="acctBtn" aria-haspopup="menu"><span data-acct-name>Alex</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-    </div>
-    <a href="signin.html" class="nav-signup guest-only">Sign In</a>
-  </div>
-</nav>
-
-<!-- Sign in: layout galing sa Figma ni Abigail. Kaliwa = sample player card,
-     kanan = form. Ang pag-submit ay hinahawakan ng js/nav.js (walang server). -->
-<main class="auth-page">
-  <!-- Background lang: lime glow sa likod ng form + maliliit na bituin (galing sa Figma ni Abigail) -->
-  <span class="auth-glow" aria-hidden="true"></span>
-  <span class="auth-star" style="left:6.25%;top:66px;opacity:0.6" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:18.06%;top:32px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star" style="left:29.86%;top:86px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:42.36%;top:46px;opacity:0.6" aria-hidden="true"></span>
-  <span class="auth-star" style="left:48.61%;top:166px;opacity:0.3" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:52.78%;top:56px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star" style="left:90.97%;top:56px;opacity:0.6" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:95.83%;top:196px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star" style="left:89.58%;top:756px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:4.17%;top:636px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star" style="left:12.50%;top:736px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:51.39%;top:716px;opacity:0.5" aria-hidden="true"></span>
-  <span class="auth-star" style="left:95.83%;top:496px;opacity:0.3" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:55.56%;top:6px;opacity:0.4" aria-hidden="true"></span>
-  <span class="auth-star sm" style="left:2.78%;top:316px;opacity:0.4" aria-hidden="true"></span>
-  <div class="auth-grid">
-    <section class="auth-intro">
-      <h1 class="auth-title">Turn effort<br><span>into XP.</span></h1>
-      <p class="auth-copy">Sign in to pick up where you left off.<br>Your quests are right where you left them.</p>
-
-      <!-- Sample player card: parehong blueprint ng Alex ▾ player card -->
-      <div class="auth-sample" role="group" aria-label="Sample player card">
-        <div class="as-head">
-          <span class="as-avatar"><img src="../assets/avatars/avatar-lime-slime-256.png" alt=""></span>
-          <div class="as-id">
-            <span class="as-name">Alex Rivera</span>
-            <span class="as-level">Level 12 · Veteran</span>
-          </div>
-          <span class="as-pill">Sample</span>
+    <nav>
+      <div class="nav-logo">
+        <a href="../index.html">QUESTIFY</a>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="guest-only">Home</a>
+        <a href="tasks.html" class="member-only">Tasks</a>
+        <a href="profile.html" class="member-only">Profile</a>
+        <a href="about.html">About</a>
+        <div class="notif-wrap member-only">
+          <button
+            type="button"
+            class="icon-btn"
+            id="notifBtn"
+            aria-label="Notifications"
+            aria-haspopup="dialog"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+          </button>
         </div>
-        <div class="as-bar"><span></span></div>
-        <div class="as-xp"><span>1,450 XP</span><span>50 XP to Level 13</span></div>
-        <ul class="as-quests">
-          <li class="done"><span class="as-check" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="t">Send client proposal</span><span class="as-chip work">Work</span><span class="xp">+30 XP</span></li>
-          <li class="done"><span class="as-check" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="t">Read 20 pages</span><span class="as-chip learning">Learning</span><span class="xp">+20 XP</span></li>
-          <li class="next"><span class="as-check" aria-hidden="true"></span><span class="t">45-min run</span><span class="as-chip health">Health</span><span class="xp">+20 XP</span></li>
-        </ul>
+        <div class="acct-wrap member-only">
+          <button
+            type="button"
+            class="nav-signup acct-btn"
+            id="acctBtn"
+            aria-haspopup="menu"
+          >
+            <span data-acct-name>Alex</span
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+        </div>
+        <a href="signin.html" class="nav-signup guest-only">Sign In</a>
       </div>
-      <p class="auth-note">Sample quests. Sign in to log your own.</p>
-    </section>
+    </nav>
 
-    <form class="auth-card">
-      <!-- Lumalabas lang kapag galing sa Tasks / Profile na hindi pa naka-sign in -->
-      <div class="auth-notice" id="authNotice" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
-        <span><b id="authNoticeText">Sign in to open your Quest Board.</b>You will go straight there after.</span>
-      </div>
-      <h2>Welcome back</h2>
-      <p class="page-kicker">Log your effort. Watch it turn into XP.</p>
-      <div class="tabs">
-        <a href="signin.html" class="on" aria-current="page">Sign in</a>
-        <a href="create-account.html">Create account</a>
-      </div>
-      <div class="field">
-        <label for="email">Email</label>
-        <div class="in-wrap"><input type="email" id="email" placeholder="alex@email.com" autocomplete="email" required></div>
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <div class="in-wrap"><input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required minlength="8"><button type="button" class="show-btn" aria-controls="password" aria-pressed="false">Show</button></div>
-        <p class="auth-hint">Use at least 8 characters.</p>
-      </div>
-      <button class="btn-gold auth-submit" type="submit">Enter Questify</button>
-      <div class="auth-foot">New here? <a href="create-account.html">Create your account</a></div>
-      <p class="auth-privacy">Your data stays in your browser.</p>
-    </form>
-  </div>
-</main>
+    <!-- Sign in: layout galing sa Figma ni Abigail. Kaliwa = sample player card,
+     kanan = form. Ang pag-submit ay hinahawakan ng js/nav.js (walang server). -->
+    <main class="auth-page">
+      <!-- Background lang: lime glow sa likod ng form + maliliit na bituin (galing sa Figma ni Abigail) -->
+      <span class="auth-glow" aria-hidden="true"></span>
+      <span
+        class="auth-star"
+        style="left: 6.25%; top: 66px; opacity: 0.6"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 18.06%; top: 32px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 29.86%; top: 86px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 42.36%; top: 46px; opacity: 0.6"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 48.61%; top: 166px; opacity: 0.3"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 52.78%; top: 56px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 90.97%; top: 56px; opacity: 0.6"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 95.83%; top: 196px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 89.58%; top: 756px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 4.17%; top: 636px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 12.5%; top: 736px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 51.39%; top: 716px; opacity: 0.5"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star"
+        style="left: 95.83%; top: 496px; opacity: 0.3"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 55.56%; top: 6px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="auth-star sm"
+        style="left: 2.78%; top: 316px; opacity: 0.4"
+        aria-hidden="true"
+      ></span>
+      <div class="auth-grid">
+        <section class="auth-intro">
+          <h1 class="auth-title">Turn effort<br /><span>into XP.</span></h1>
+          <p class="auth-copy">
+            Sign in to pick up where you left off.<br />Your quests are right
+            where you left them.
+          </p>
 
-<footer>
-  <a class="footer-logo" href="../index.html">QUESTIFY</a>
-  <div class="footer-info">
-    <p><strong>Web Systems and Technology</strong></p>
-    <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
-  </div>
-  <div>© 2026 Questify</div>
-</footer>
+          <!-- Sample player card: parehong blueprint ng Alex ▾ player card -->
+          <div class="auth-sample" role="group" aria-label="Sample player card">
+            <div class="as-head">
+              <span class="as-avatar"
+                ><img src="../assets/avatars/avatar-lime-slime-256.png" alt=""
+              /></span>
+              <div class="as-id">
+                <span class="as-name">Alex Rivera</span>
+                <span class="as-level">Level 12 · Veteran</span>
+              </div>
+              <span class="as-pill">Sample</span>
+            </div>
+            <div class="as-bar"><span></span></div>
+            <div class="as-xp">
+              <span>1,450 XP</span><span>50 XP to Level 13</span>
+            </div>
+            <ul class="as-quests">
+              <li class="done">
+                <span class="as-check" aria-hidden="true"
+                  ><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span
+                ><span class="t">Send client proposal</span
+                ><span class="as-chip work">Work</span
+                ><span class="xp">+30 XP</span>
+              </li>
+              <li class="done">
+                <span class="as-check" aria-hidden="true"
+                  ><svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span
+                ><span class="t">Read 20 pages</span
+                ><span class="as-chip learning">Learning</span
+                ><span class="xp">+20 XP</span>
+              </li>
+              <li class="next">
+                <span class="as-check" aria-hidden="true"></span
+                ><span class="t">45-min run</span
+                ><span class="as-chip health">Health</span
+                ><span class="xp">+20 XP</span>
+              </li>
+            </ul>
+          </div>
+          <p class="auth-note">Sample quests. Sign in to log your own.</p>
+        </section>
 
-</body>
+        <form class="auth-card">
+          <!-- Lumalabas lang kapag galing sa Tasks / Profile na hindi pa naka-sign in -->
+          <div class="auth-notice" id="authNotice" role="status" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4.5" y="10.5" width="15" height="10" rx="2" />
+              <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+            </svg>
+            <span
+              ><b id="authNoticeText">Sign in to open your Quest Board.</b>You
+              will go straight there after.</span
+            >
+          </div>
+          <h2>Welcome back</h2>
+          <p class="page-kicker">Log your effort. Watch it turn into XP.</p>
+          <div class="tabs">
+            <a href="signin.html" class="on" aria-current="page">Sign in</a>
+            <a href="create-account.html">Create account</a>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <div class="in-wrap">
+              <input
+                type="email"
+                id="email"
+                placeholder="alex@email.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="in-wrap">
+              <input
+                type="password"
+                id="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+                minlength="8"
+              /><button
+                type="button"
+                class="show-btn"
+                aria-controls="password"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+            <p class="auth-hint">Use at least 8 characters.</p>
+          </div>
+          <button class="btn-gold auth-submit" type="submit">
+            Enter Questify
+          </button>
+          <div class="auth-foot">
+            New here? <a href="create-account.html">Create your account</a>
+          </div>
+          <p class="auth-privacy">Your data stays in your browser.</p>
+        </form>
+      </div>
+    </main>
+
+    <footer>
+      <a class="footer-logo" href="../index.html">QUESTIFY</a>
+      <div class="footer-info">
+        <p><strong>Web Systems and Technology</strong></p>
+        <p>
+          Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona |
+          Rowel Jepsani | Sire Manalo
+        </p>
+      </div>
+      <div>© 2026 Questify</div>
+    </footer>
+  </body>
 </html>
