@@ -12,37 +12,31 @@
 
 
 <link rel="stylesheet" href="../css/style.css">
+<script src="../js/nav.js"></script>
 </head>
 <body>
 
-<header>
-  <nav>
-    <a href="../index.html" class="nav-logo">QUESTIFY</a>
-    <div class="nav-links">
-      <a href="dashboard.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-home.png" alt=""> Dashboard
-      </a>
-      <a href="tasks.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-tasks.png" alt=""> Tasks
-      </a>
-      <a href="profile.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-profile.png" alt=""> Profile
-      </a>
-      <a class="active" href="about.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-about.png" alt=""> About
-      </a>
-      <!-- Example XP badge — dummy data (Level 1, 100/2000 XP). Swap for real values once
-           quest/XP state is wired up (e.g. from localStorage or your app state). -->
-      <span class="nav-xp" style="--xp-pct: 5%">
-        LV 1 · 100 XP
-        <span class="xp-track"><span class="xp-fill"></span></span>
-      </span>
-      <a class="nav-signup" href="signin.html">
-        <img class="icon" src="../assets/icons/00-shared/icon-user.png" alt=""> Alex
-      </a>
+<!-- Shared header (pareho sa lahat ng page).
+     .guest-only = kita lang pag HINDI naka-sign in; .member-only = pag naka-sign in.
+     Ang laman ng Alex ▾ (player card) at ng bell ay binubuo ng js/nav.js. -->
+<nav>
+  <div class="nav-logo">
+    <a href="../index.html">QUESTIFY</a>
+  </div>
+  <div class="nav-links">
+    <a href="../index.html" class="guest-only">Home</a>
+    <a href="tasks.html" class="member-only">Tasks</a>
+    <a href="profile.html" class="member-only">Profile</a>
+    <a href="about.html" class="active" aria-current="page">About</a>
+    <div class="notif-wrap member-only">
+      <button type="button" class="icon-btn" id="notifBtn" aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
     </div>
-  </nav>
-</header>
+    <div class="acct-wrap member-only">
+      <button type="button" class="nav-signup acct-btn" id="acctBtn" aria-haspopup="menu"><span data-acct-name>Alex</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
+    <a href="signin.html" class="nav-signup guest-only">Sign In</a>
+  </div>
+</nav>
 
 
 
