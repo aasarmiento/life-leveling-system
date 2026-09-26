@@ -736,10 +736,10 @@ section {
 }
 .levelup-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
   align-items: center;
-  max-width: 900px;
+  max-width: 980px;
   margin: 0 auto;
 }
 .levelup-text {
@@ -779,10 +779,11 @@ section {
   position: relative;
 }
 .levelup-logo-wrapper {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   background: #2a2e35;
+  overflow: hidden;
   display: grid;
   place-items: center;
   position: relative;
@@ -793,12 +794,11 @@ section {
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.06);
 }
 .levelup-logo {
-  font-size: 30px;
-  line-height: 1;
+  width: 100%;
+  height: 100%;
   opacity: 0;
   transform: scale(0.55);
   transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: opacity, transform;
 }
 .levelup-logo.show {
   opacity: 1;
@@ -809,6 +809,15 @@ section {
   gap: 8px;
   min-width: 0;
   z-index: 1;
+}
+
+.levelup-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;          
+  object-position: center;
+  image-rendering: pixelated;
+  border-radius: 50%;
 }
 .levelup-badge {
   width: 28px;
@@ -830,9 +839,10 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 10px;
+  font-size: 13px;
   color: #cacbcb;
+  margin-top: 8px;           /* optional extra space above the bar */
 }
 .levelup-bar {
   flex: 1;
@@ -861,6 +871,55 @@ section {
   white-space: nowrap;
   text-align: left;
   font-weight: 500;
+}
+
+/* Wrapper carries the width/margin that .levelup-card used to have,
+   kasi overflow:hidden yung .levelup-card at ma-clip yung badge na
+   lulutang sa itaas kung doon pa rin nakalagay. */
+.levelup-card-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 0 0 auto;
+}
+
+.levelup-card {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 52px 40px 44px;
+  background: #1b1e22;
+  border: 1px solid #282c32;
+  border-radius: 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.levelup-icon-badge {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+ width: 80px;          /* a bit larger */
+  height: 68px;
+  object-fit: contain;
+  transform: translateX(-50%) scale(0.6);
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 12px;
+}
+
+
+.levelup-icon-badge.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+@media (max-width: 900px) {
+  .levelup-card-wrap { margin: 0 auto; }
 }
 
 .next-quests {
@@ -1797,8 +1856,33 @@ main.container > .team .team-card b { color: var(--cream); font-size: 13px; }
   .effort-xp { grid-template-columns: 1fr; padding: 56px 6vw; }
   .cat-grid { grid-template-columns: 1fr; }
   .cat-card { padding: 24px 22px 24px 32px; }
-  .levelup-layout { grid-template-columns: 1fr; gap: 32px; }
-  .levelup-card { margin: 0 auto; }
+  .levelup-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
+  align-items: center;
+  max-width: 980px;
+  margin: 0 auto;
+}
+  
+
+.levelup-card {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 52px 40px 44px;
+  background: #1b1e22;
+  border: 1px solid #282c32;
+  border-radius: 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+
+
+
   .quest-grid { grid-template-columns: 1fr; gap: 32px; }
   .rank-list { grid-template-columns: repeat(2, 1fr); }
   .board { grid-template-columns: 1fr; }
@@ -1825,10 +1909,26 @@ main.container > .team .team-card b { color: var(--cream); font-size: 13px; }
 
 @media (max-width: 640px) {
   .levelup-card { padding: 36px 20px; }
-  .levelup-main { gap: 10px; }
+
+
+  .levelup-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 0 0 36px;
+  min-height: 160px;
+  position: relative;
+}
+
+
   .levelup-badges { min-width: 90px; gap: 8px; }
   .levelup-badge { width: 34px; height: 34px; font-size: 15px; }
-  .levelup-logo-wrapper { width: 80px; height: 80px; }
+  .levelup-logo-wrapper {
+  width: 120px;
+  height: 120px;
+  /* keep the rest of your existing rules */
+}
   .levelup-logo { font-size: 34px; }
   .levelup-bar { width: 140px; }
   .testimonial-grid { grid-template-columns: 1fr; }
@@ -1979,7 +2079,91 @@ main.container > .team .team-card b { color: var(--cream); font-size: 13px; }
   .profile-page .badges { grid-template-columns: repeat(2, 1fr); }
   .profile-page .week-chart { padding: 28px 0 0; gap: 10px; }
 }
+.rank {
+  --c: #6b6f85;
+  position: relative;
+  background: #212431;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 12px 16px;
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
 
+.rank::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -1px;
+  right: -1px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--c);
+}
+
+.rank strong {
+  display: block;
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.rank > span {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.rank small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-dim);
+  opacity: 0.9;
+}
+
+.rank-novice { --c: #6f7391; }
+.rank-apprentice { --c: #7fa8bd; }
+.rank-adventurer { --c: #d9b03e; }
+.rank-veteran { --c: #b95a68; }
+.rank-master { --c: #d8f24a; }
+
+.rank.current {
+  border-color: var(--green);
+  box-shadow:
+    0 0 0 1px rgba(198, 239, 46, 0.3),
+    0 10px 28px rgba(0, 0, 0, 0.4);
+  transform: translateY(-5px);
+}
+
+.rank.current strong {
+  color: var(--green);
+}
+
+.rank.current small {
+  color: #d0d6e4;
+  opacity: 1;
+}
+
+
+
+.testimonial-author .avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #2d3250;
+}
+
+.testimonial-author small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--green);
+  font-weight: 600;
+}
 /* ============================================================
    ABOUT PAGE — team cards, modal, mentor, tech strip, accents
    ============================================================ */
@@ -2429,6 +2613,35 @@ button.nav-signup {
 .acct-item:focus-visible {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
+}
+
+.team-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #343957;
+  margin-bottom: 24px;
+  display: block;
+}
+
+.team-card .role {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.team-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+.team-cta .btn-lime {
+  box-shadow: 3px 3px 0 #3a4a0d;
+  border-radius: 8px;
+  padding: 12px 28px;
+  min-height: 44px;
+  text-decoration: none;
 }
 
 /* Player card (Alex ▾), Garena-style ayon sa sketch ni Abigail */

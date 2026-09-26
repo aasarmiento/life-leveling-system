@@ -96,24 +96,23 @@
       </div>
     </section>
 
-    <section class="effort-xp">
-      <div class="effort-text">
-        <h2 class="section-title">See your effort<br>turn into XP</h2>
-        <p class="section-sub">
-          The hours you put in usually disappear.<br>
-          Watch how Questify turns them into<br>
-          XP, levels, and proof of progress.
-        </p>
-      </div>
+   <section class="effort-xp">
+  <div class="effort-text">
+    <h2 class="section-title">See your effort<br>turn into XP</h2>
+    <p class="section-sub">
+      The hours you put in usually disappear.<br>
+      Watch how Questify turns them into<br>
+      XP, levels, and proof of progress.
+    </p>
+  </div>
 
-      <div class="quest-video-wrapper">
-        <!-- video file isn't added yet -->
-        <video class="quest-video" controls preload="metadata">
-          <source src="assets/videos/choose-your-quest.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-      </div>
-    </section>
+  <div class="quest-video-wrapper">
+    <video class="quest-video" controls preload="metadata" playsinline>
+      <source src="assets/videos/questify.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+</section>
 
    <section class="categories">
   <div class="section-head">
@@ -190,80 +189,103 @@
         </div>
 
         <!-- app.js looks these ids up, don't rename them -->
-        <div class="levelup-card">
-          <div class="levelup-main">
-            <div class="levelup-badges left-badges"></div>
-            <div class="levelup-logo-wrapper">
-              <div class="levelup-logo" id="levelupLogo"></div>
-            </div>
-            <div class="levelup-badges right-badges"></div>
-          </div>
+        <div class="levelup-card-wrap">
 
-          <div class="levelup-progress">
-            <span class="levelup-label" id="levelupLabel">Learning mastery</span>
-            <div class="levelup-bar">
-              <div class="levelup-fill" id="levelupFill"></div>
-            </div>
-            <span class="levelup-percent" id="levelupPercent">99%</span>
-          </div>
-        </div>
+  <div class="levelup-card">
+    <div class="levelup-main">
+      <div class="levelup-badges left-badges"></div>
+      <div class="levelup-logo-wrapper">
+        <div class="levelup-logo" id="levelupLogo"></div>
       </div>
+      <div class="levelup-badges right-badges"></div>
+    </div>
+    <div class="levelup-progress">
+      <span class="levelup-label" id="levelupLabel">Learning mastery</span>
+      <div class="levelup-bar">
+        <div class="levelup-fill" id="levelupFill"></div>
+      </div>
+      <span class="levelup-percent" id="levelupPercent">99%</span>
+    </div>
+  </div>
+</div>
     </section>
 
-    <!-- quests, ranks and the demo -->
-    <section class="next-quests">
-      <div class="section-head">
-        <h2 class="section-title">Pick your next quest</h2>
+   <section class="next-quests">
+  <div class="section-head">
+    <h2 class="section-title">Pick your next quest</h2>
+  </div>
+
+  <div class="quest-grid">
+    <div class="quest-item selected" tabindex="0">
+      <div class="quest-media purple">
+        <video muted loop playsinline autoplay preload="auto">
+          <source src="assets/videos/quest-boss-fights.mp4" type="video/mp4">
+        </video>
       </div>
+      <h3>Boss fights and study grinds</h3>
+      <p>That deadline won't defeat itself. Log the focus blocks, clear the chapter, and pocket the XP.</p>
+    </div>
 
-      <div class="quest-grid">
-        <div class="quest-item selected" tabindex="0">
-          <!-- quest videos aren't added yet, the colored box shows instead -->
-          <div class="quest-media purple">
-            <video muted loop playsinline preload="metadata">
-              <source src="assets/videos/quest-boss-fights.mp4" type="video/mp4">
-            </video>
-          </div>
-          <h3>Boss fights and study grinds</h3>
-          <p>That deadline won't defeat itself. Log the focus blocks, clear the chapter, and pocket the XP.</p>
-        </div>
-
-        <div class="quest-item" tabindex="0">
-          <div class="quest-media green">
-            <video muted loop playsinline preload="metadata">
-              <source src="assets/videos/quest-side-quest.mp4" type="video/mp4">
-            </video>
-          </div>
-          <h3>Side quest: get moving</h3>
-          <p>A walk counts. A workout counts. Even a full night's sleep earns XP, so keep the streak alive.</p>
-        </div>
-
-        <div class="quest-item" tabindex="0">
-          <div class="quest-media orange">
-            <video muted loop playsinline preload="metadata">
-              <source src="assets/videos/quest-own-quest.mp4" type="video/mp4">
-            </video>
-          </div>
-          <h3>Write your own quest</h3>
-          <p>Guitar practice, a side project, a garden. Name it, log it, and Questify keeps score.</p>
-        </div>
+    <div class="quest-item" tabindex="0">
+      <div class="quest-media green">
+        <video muted loop playsinline preload="metadata">
+          <source src="assets/videos/quest-side-quest.mp4" type="video/mp4">
+        </video>
       </div>
-    </section>
+      <h3>Side quest: get moving</h3>
+      <p>A walk counts. A workout counts. Even a full night's sleep earns XP, so keep the streak alive.</p>
+    </div>
 
-    <section class="ranks">
-      <div class="section-head">
-        <h2 class="section-title">Climb the ranks</h2>
-        <p class="section-sub">Five ranks from first log to full mastery. XP values are placeholders until the formula is set.</p>
+    <div class="quest-item" tabindex="0">
+      <div class="quest-media orange">
+        <video muted loop playsinline preload="metadata">
+          <source src="assets/videos/quest-own-quest.mp4" type="video/mp4">
+        </video>
       </div>
+      <h3>Write your own quest</h3>
+      <p>Guitar practice, a side project, a garden. Name it, log it, and Questify keeps score.</p>
+    </div>
+  </div>
+</section>
 
-      <div class="rank-list">
-        <div class="rank rank-novice"><strong>Novice</strong><span>0 XP</span></div>
-        <div class="rank rank-apprentice"><strong>Apprentice</strong><span>100 XP</span></div>
-        <div class="rank rank-adventurer"><strong>Adventurer</strong><span>300 XP</span></div>
-        <div class="rank rank-veteran"><strong>Veteran</strong><span>700 XP</span></div>
-        <div class="rank rank-master"><strong>Master</strong><span>1,500 XP</span></div>
-      </div>
-    </section>
+   <section class="ranks">
+  <div class="section-head">
+    <h2 class="section-title">Climb the ranks</h2>
+    <p class="section-sub">Five ranks from first log to full mastery. XP values are placeholders until the formula is set.</p>
+  </div>
+
+  <div class="rank-list">
+    <div class="rank rank-novice">
+      <strong>Novice</strong>
+      <span>0 XP</span>
+      <small>Just starting the log</small>
+    </div>
+
+    <div class="rank rank-apprentice">
+      <strong>Apprentice</strong>
+      <span>100 XP</span>
+      <small>Habits are forming</small>
+    </div>
+
+    <div class="rank rank-adventurer current">
+      <strong>Adventurer</strong>
+      <span>300 XP</span>
+      <small>Effort is consistent</small>
+    </div>
+
+    <div class="rank rank-veteran">
+      <strong>Veteran</strong>
+      <span>700 XP</span>
+      <small>Streaks are solid</small>
+    </div>
+
+    <div class="rank rank-master">
+      <strong>Master</strong>
+      <span>1,500 XP</span>
+      <small>Proof is visible</small>
+    </div>
+  </div>
+</section>
 
     <section class="try-it">
       <div class="section-head">
@@ -319,58 +341,73 @@
       </div>
 
       <section class="testimonials">
-        <div class="section-head">
-          <h2 class="section-title">What early testers say</h2>
-          <p class="section-sub">Players who tried Questify</p>
+  <div class="section-head">
+    <h2 class="section-title">What early testers say</h2>
+    <p class="section-sub">Players who tried Questify</p>
+  </div>
+
+  <div class="testimonial-grid">
+    <div class="testimonial-card">
+      <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
+      <p>Sana tumaas grade namin dahil sa app na ’to. Kung hindi, at least tumaas ang level ko.</p>
+      <div class="testimonial-author">
+        <img class="avatar" src="assets/icons/06-about/gail.jpg" alt="">
+        <div>
+          <b>Abigail</b>
+          <small>UI/UX design</small>
         </div>
+      </div>
+    </div>
 
-        <div class="testimonial-grid">
-          <div class="testimonial-card">
-            <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
-            <p>Sana tumaas grade namin dahil sa app na ’to. Kung hindi, at least tumaas ang level ko.</p>
-            <div class="testimonial-author">
-              <i class="avatar"></i>
-              <div><b>Abigail</b><small>UI/UX design (sample)</small></div>
-            </div>
-          </div>
-
-          <div class="testimonial-card">
-            <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
-            <p>Sabi ko ‘quick meeting lang.’ Isang level up na ang lumipas.</p>
-            <div class="testimonial-author">
-              <i class="avatar"></i>
-              <div><b>Christian</b><small>Project manager (sample)</small></div>
-            </div>
-          </div>
-
-          <div class="testimonial-card">
-            <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
-            <p>Nag-document ako ng bawat desisyon. Sana may document din kung bakit 3AM na.</p>
-            <div class="testimonial-author">
-              <i class="avatar"></i>
-              <div><b>Jeremiah</b><small>Documentation (sample)</small></div>
-            </div>
-          </div>
-
-          <div class="testimonial-card">
-            <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
-            <p>Naka-log na lahat ng research ko. Sana makita rin ni Sir at Ma’am ang XP ko.</p>
-            <div class="testimonial-author">
-              <i class="avatar"></i>
-              <div><b>Rowel</b><small>Documentation (sample)</small></div>
-            </div>
-          </div>
-
-          <div class="testimonial-card">
-            <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
-            <p>Nag-push ako sa GitHub, tapos nag-level up pa sa Questify. Double XP na ’to!</p>
-            <div class="testimonial-author">
-              <i class="avatar"></i>
-              <div><b>Sire</b><small>GitHub lead (sample)</small></div>
-            </div>
-          </div>
+    <div class="testimonial-card">
+      <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
+      <p>Sabi ko ‘quick meeting lang.’ Isang level up na ang lumipas.</p>
+      <div class="testimonial-author">
+        <img class="avatar" src="assets/icons/06-about/team-christian.png" alt="">
+        <div>
+          <b>Christian</b>
+          <small>Project manager</small>
         </div>
-      </section>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
+      <p>Nag-document ako ng bawat desisyon. Sana may document din kung bakit 3AM na.</p>
+      <div class="testimonial-author">
+        <img class="avatar" src="assets/icons/06-about/team-jeremiah.png" alt="">
+        <div>
+          <b>Jeremiah</b>
+          <small>Documentation</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
+      <p>Naka-log na lahat ng research ko. Sana makita rin ni Sir at Ma’am ang XP ko.</p>
+      <div class="testimonial-author">
+        <img class="avatar" src="assets/icons/06-about/team-rowel.png" alt="">
+        <div>
+          <b>Rowel</b>
+          <small>Documentation</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <span class="quote-mark"><svg aria-hidden="true"><use href="#icon-quote"/></svg></span>
+      <p>Nag-push ako sa GitHub, tapos nag-level up pa sa Questify. Double XP na ’to!</p>
+      <div class="testimonial-author">
+        <img class="avatar" src="assets/icons/06-about/team-sire.png" alt="">
+        <div>
+          <b>Sire</b>
+          <small>GitHub lead</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       <section class="feedback">
         <div class="section-head">
@@ -428,51 +465,58 @@
       </div>
     </section>
 
-    <section class="team">
-      <div class="section-head">
-        <h2 class="section-title">Meet the team behind Questify</h2>
-        <p class="section-sub">Five students building Questify for our Web Systems and Technology course.</p>
-      </div>
+   <section class="team">
+  <div class="section-head">
+    <h2 class="section-title">Meet the team behind Questify</h2>
+    <p class="section-sub">Five students building Questify for our Web Systems and Technology course.</p>
+  </div>
 
-      <div class="team-grid">
-        <div class="team-card">
-          <!-- swap the circle for a photo later -->
-          <div class="team-avatar"></div>
-          <h3>Abigail Ann Sarmiento</h3>
-          <p class="role">UI/UX design</p>
-          <small>Why I built Questify:</small>
-          <em>[one sentence goes here]</em>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar"></div>
-          <h3>Christian Allen Soriano</h3>
-          <p class="role">Project manager</p>
-          <small>Why I built Questify:</small>
-          <em>[one sentence goes here]</em>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar"></div>
-          <h3>Jeremiah Alzona</h3>
-          <p class="role">Documentation</p>
-          <small>Why I built Questify:</small>
-          <em>[one sentence goes here]</em>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar"></div>
-          <h3>Rowel Jepsani</h3>
-          <p class="role">Documentation</p>
-          <small>Why I built Questify:</small>
-          <em>[one sentence goes here]</em>
-        </div>
-        <div class="team-card">
-          <div class="team-avatar"></div>
-          <h3>Sire Manalo</h3>
-          <p class="role">GitHub lead</p>
-          <small>Why I built Questify:</small>
-          <em>[one sentence goes here]</em>
-        </div>
-      </div>
-    </section>
+  <div class="team-grid">
+    <div class="team-card">
+      <img class="team-avatar" src="assets/icons/06-about/gail.jpg" alt="">
+      <h3>Abigail Ann Sarmiento</h3>
+      <p class="role">UI/UX design</p>
+      <small>Why I built Questify:</small>
+      <em>I wanted a clear way to see progress that usually stays invisible.</em>
+    </div>
+
+    <div class="team-card">
+      <img class="team-avatar" src="assets/icons/06-about/team-christian.png" alt="">
+      <h3>Christian Allen Soriano</h3>
+      <p class="role">Project manager</p>
+      <small>Why I built Questify:</small>
+      <em>So our team could turn daily effort into something we can actually track.</em>
+    </div>
+
+    <div class="team-card">
+      <img class="team-avatar" src="assets/icons/06-about/team-jeremiah.png" alt="">
+      <h3>Jeremiah Alzona</h3>
+      <p class="role">Documentation</p>
+      <small>Why I built Questify:</small>
+      <em>Because writing things down only helps if the work itself is visible too.</em>
+    </div>
+
+    <div class="team-card">
+      <img class="team-avatar" src="assets/icons/06-about/team-rowel.png" alt="">
+      <h3>Rowel Jepsani</h3>
+      <p class="role">Documentation</p>
+      <small>Why I built Questify:</small>
+      <em>I wanted a simple system that makes small habits add up over time.</em>
+    </div>
+
+    <div class="team-card">
+      <img class="team-avatar" src="assets/icons/06-about/team-sire.png" alt="">
+      <h3>Sire Manalo</h3>
+      <p class="role">GitHub lead</p>
+      <small>Why I built Questify:</small>
+      <em>So every commit of real effort has a place to land and level up.</em>
+    </div>
+  </div>
+
+  <div class="team-cta">
+    <a href="pages/about.html" class="btn-lime">Meet the full team</a>
+  </div>
+</section>
 
   </main>
 
