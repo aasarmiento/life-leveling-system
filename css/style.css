@@ -2357,3 +2357,913 @@ main.container > .team .team-card b { color: var(--cream); font-size: 13px; }
 .left-out > .card p {
   margin: 0 !important;
 }
+/* =====================================================================
+   HEADER v2 + SIGN IN / SIGN OUT (Step 6, Christian)
+   Bagong header sa lahat ng page: Tasks · Profile · About · bell · Alex ▾.
+   Ang laman ng Alex ▾ (player card) at ng bell ay gawa ng js/nav.js.
+   Lahat ng class dito ay bago (acct-, pc-, notif-, auth-, as-, av-),
+   kaya walang ibang rule na napapalitan.
+   ===================================================================== */
+
+/* Bell + account button */
+.icon-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cream);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.icon-btn:hover,
+.icon-btn[aria-expanded="true"] {
+  border-color: var(--green);
+  background: rgba(198, 239, 46, 0.1);
+  color: var(--green);
+}
+.icon-btn svg,
+.acct-btn svg,
+.acct-item svg,
+.notif-ico svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.acct-wrap,
+.notif-wrap {
+  position: relative;
+}
+button.nav-signup {
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.acct-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.acct-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.4;
+  transition: transform 0.15s;
+}
+.acct-btn[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.icon-btn:focus-visible,
+.acct-btn:focus-visible,
+.acct-item:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* Player card (Alex ▾), Garena-style ayon sa sketch ni Abigail */
+.acct-menu,
+.notif-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  z-index: 120;
+  padding: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  text-align: left;
+  color: var(--cream);
+}
+.acct-menu {
+  width: 304px;
+}
+.acct-menu[hidden],
+.notif-panel[hidden] {
+  display: none;
+}
+.pc-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.pc-avatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border: 1px solid #2a3445;
+  border-radius: 10px;
+  background: var(--card);
+}
+.pc-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.pc-id {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.acct-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cream);
+}
+.acct-email {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.acct-level {
+  position: relative;
+  padding: 12px 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.acct-level .row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+.acct-level b {
+  color: var(--green);
+}
+.acct-level b.pop {
+  display: inline-block;
+  animation: levelPop 0.6s ease;
+}
+.acct-bar {
+  height: 6px;
+  margin: 8px 0 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #33364a;
+}
+.acct-level small {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.acct-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--cream);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.acct-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.acct-item[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.6;
+}
+.acct-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-dim);
+}
+.acct-item.danger,
+.acct-item.danger svg {
+  color: #ff8fa3;
+}
+.acct-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border);
+}
+.pc-foot {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 6px;
+  padding: 10px 10px 4px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Notifications panel: placeholder lang (si Abigail ang gagawa ng totoo) */
+.notif-panel {
+  width: 320px;
+}
+.notif-head {
+  padding: 8px 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 26px 16px 22px;
+  text-align: center;
+}
+.notif-ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dim);
+}
+.notif-ico svg {
+  width: 20px;
+  height: 20px;
+}
+.notif-empty b {
+  font-size: 14px;
+}
+.notif-empty small {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Toast pagkatapos mag-Sign out (teal = info) */
+.toast[data-tone="info"] {
+  border-color: rgba(111, 227, 217, 0.5);
+}
+.toast[data-tone="info"]::before {
+  background: var(--teal);
+  box-shadow: 0 0 10px var(--teal);
+}
+
+/* ---------- Sign in / Create account (Figma ni Abigail) ---------- */
+.auth-page {
+  --a-lime: #d7ff4a;
+  --a-card: #1c1f2e;
+  --a-line: #2a3147;
+  --a-deep: #0d111b;
+  --a-dim: #9aa3be;
+  --a-faint: #666a86;
+  --a-white: #f4f2f7;
+  --a-gold: #e0b13d;
+  position: relative;
+  overflow: hidden;
+  padding: 86px 0 110px;
+}
+.auth-star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+}
+.auth-star.sm {
+  width: 2px;
+  height: 2px;
+}
+.auth-glow {
+  position: absolute;
+  left: calc(50% - 70px);
+  top: -20px;
+  width: 840px;
+  height: 760px;
+  background: radial-gradient(closest-side, rgba(215, 255, 74, 0.1), rgba(215, 255, 74, 0));
+  pointer-events: none;
+}
+.auth-grid {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 48px;
+  width: min(100% - 2 * var(--page-gutter), 1120px);
+  margin: 0 auto;
+}
+.auth-page section.auth-intro {
+  flex: 0 1 500px;
+  min-width: 0;
+  margin: 0;
+  padding: 24px 0 0;
+  background: none;
+}
+.auth-title {
+  margin: 0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 400;
+  line-height: 1.8;
+  color: #fff;
+}
+.auth-title span {
+  color: var(--a-lime);
+}
+.auth-copy {
+  margin: 30px 0 42px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--a-dim);
+}
+.auth-note {
+  margin: 40px 0 0;
+  font-size: 12px;
+  color: var(--a-dim);
+}
+
+/* Sample player card */
+.auth-sample {
+  padding: 20px 20px 16px;
+  background: var(--a-card);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+}
+.as-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.as-avatar {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  background: var(--a-deep);
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+}
+.as-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.as-id {
+  flex: 1;
+  min-width: 0;
+}
+.as-name {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+.as-level {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--a-gold);
+}
+.as-pill {
+  flex: none;
+  padding: 6px 14px;
+  border-radius: 15px;
+  background: #1a2a14;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--a-lime);
+}
+.as-bar {
+  height: 10px;
+  margin: 16px 0 8px;
+  border-radius: 5px;
+  background: var(--a-line);
+}
+.as-bar span {
+  display: block;
+  width: 60%;
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #498bbf, #d7ff4a);
+}
+.as-xp {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--a-dim);
+}
+.as-quests {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.as-quests li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 38px;
+  padding: 0 14px;
+  background: var(--a-deep);
+  border: 1px solid var(--a-line);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--a-white);
+}
+.as-quests li.next {
+  border-color: rgba(215, 255, 74, 0.5);
+}
+.as-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #6b7185;
+  border-radius: 4px;
+}
+.as-check svg,
+.av-tick svg {
+  fill: none;
+  stroke: #0a0e1a;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.as-check svg {
+  width: 11px;
+  height: 11px;
+}
+.as-quests li.done .as-check {
+  background: var(--a-lime);
+  border-color: var(--a-lime);
+}
+.as-quests .t {
+  flex: 1;
+  min-width: 0;
+}
+.as-quests li.done .t {
+  color: var(--a-dim);
+  text-decoration: line-through;
+}
+.as-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 9px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.as-chip.work { background: #7a5525; color: #fff8b0; }
+.as-chip.learning { background: #2d5a66; color: #b8f0ea; }
+.as-chip.health { background: #ec94d7; color: #0d111b; }
+.as-quests .xp {
+  min-width: 50px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--a-lime);
+}
+
+/* Avatar picker (Create account): totoong radio buttons */
+.av-label {
+  margin: 0 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--a-dim);
+}
+.av-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.av-opt {
+  position: relative;
+  width: 170px;
+  margin: 0;
+  padding: 10px 10px 14px;
+  background: var(--a-card);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--a-dim);
+  cursor: pointer;
+}
+.av-opt input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.av-opt img {
+  display: block;
+  width: 148px;
+  height: 148px;
+  border-radius: 8px;
+  image-rendering: pixelated;
+}
+.av-opt b {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #fff;
+}
+.av-opt small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+}
+.av-tick {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--a-lime);
+}
+.av-tick svg {
+  width: 14px;
+  height: 14px;
+}
+.av-opt:has(input:checked) {
+  padding: 9px 9px 13px;
+  border: 2px solid var(--a-lime);
+}
+.av-opt:has(input:checked) .av-tick {
+  display: grid;
+}
+.av-opt:has(input:focus-visible) {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+/* Form card: pinapalitan ang lumang .auth-card style sa pages na ito lang */
+.auth-page .auth-card {
+  flex: 0 0 420px;
+  width: 420px;
+  max-width: 100%;
+  padding: 50px 32px 30px;
+  background: var(--a-card);
+  border: 1px solid var(--a-line);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+  text-align: left;
+}
+.auth-page .auth-card h2 {
+  margin: 0;
+  text-align: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--a-white);
+}
+.auth-page .auth-card .page-kicker {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--a-dim);
+}
+.auth-page .auth-card .tabs {
+  margin: 26px 0 0;
+  padding: 3px;
+  background: var(--a-deep);
+  border: 1px solid var(--a-line);
+}
+.auth-page .auth-card .tabs a {
+  display: block;
+  padding: 10px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--a-dim);
+}
+.auth-page .auth-card .tabs a:hover {
+  color: var(--a-white);
+}
+.auth-page .auth-card .tabs a.on {
+  background: var(--a-lime);
+  color: var(--a-deep);
+  font-weight: 700;
+  box-shadow: none;
+}
+.auth-page .auth-card .field {
+  margin-top: 22px;
+}
+.auth-page .auth-card .field label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--a-dim);
+}
+.in-wrap {
+  position: relative;
+}
+.auth-page .auth-card input {
+  height: 48px;
+  padding: 0 16px;
+  background: var(--a-deep);
+  border: 1px solid var(--a-line);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--a-white);
+}
+.auth-page .auth-card input::placeholder {
+  color: var(--a-faint);
+}
+.auth-page .auth-card input:focus {
+  border-color: var(--a-lime);
+  box-shadow: 0 0 0 1px var(--a-lime);
+  outline: none;
+}
+.auth-page .auth-card .in-wrap:has(.show-btn) input {
+  padding-right: 64px;
+}
+.show-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  translate: 0 -50%;
+  padding: 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--a-lime);
+  cursor: pointer;
+}
+.auth-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--a-dim);
+}
+.auth-err {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #ff8fa3;
+}
+.auth-err[hidden] {
+  display: none;
+}
+.auth-page .auth-submit {
+  width: 100%;
+  justify-content: center;
+  margin-top: 30px;
+  min-height: 52px;
+  border-radius: 6px;
+  font-size: 17px;
+}
+.auth-page .auth-submit.btn-gold {
+  background: var(--a-gold);
+  box-shadow: 4px 4px 0 #9a6b14;
+}
+.auth-page .auth-submit.btn-lime {
+  background: var(--a-lime);
+  box-shadow: 4px 4px 0 #5a7a14;
+}
+.auth-foot {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--a-line);
+  text-align: center;
+  font-size: 14px;
+  color: var(--a-dim);
+}
+.auth-foot a {
+  color: var(--a-lime);
+  font-weight: 700;
+}
+.auth-privacy {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--a-dim);
+}
+/* Notice kapag galing sa Tasks / Profile na naka-sign out */
+.auth-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -18px 0 28px;
+  padding: 12px 14px;
+  border: 1px solid rgba(224, 177, 61, 0.5);
+  border-radius: 10px;
+  background: rgba(224, 177, 61, 0.08);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--a-white);
+}
+.auth-notice[hidden] {
+  display: none;
+}
+.auth-notice svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--a-gold);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.auth-notice b {
+  display: block;
+  color: var(--a-gold);
+}
+
+/* Tablet / phone: isang column, form muna */
+@media (max-width: 960px) {
+  .auth-grid {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+  .auth-page section.auth-intro {
+    flex: none;
+    width: 100%;
+    max-width: 500px;
+  }
+  .auth-page .auth-card {
+    flex: none;
+    width: 100%;
+    max-width: 420px;
+  }
+  .auth-glow {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .auth-page {
+    padding: 40px 0 72px;
+  }
+  .auth-page .auth-card {
+    padding: 32px 20px 24px;
+  }
+  .acct-menu,
+  .notif-panel {
+    position: fixed;
+    top: 72px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+}
+
+/* ---------- Step 6 fixes (Christian) ---------- */
+
+/* Profile: parehong background ng ibang pages, para pareho ang dating ng header.
+   (Mas mataas ang "specificity" ng body.profile-page, kaya hindi na ginalaw
+   yung .profile-page rule ni Abigail.) */
+body.profile-page {
+  background: var(--bg);
+}
+
+/* Alex button: maliit na "bump" tuwing nagbabago ang XP (Mark done / Undo) */
+.acct-btn.xp-bump {
+  animation: pillBump 0.35s ease;
+}
+
+/* Bell: lime na dot kapag may hindi pa nababasang notification */
+.icon-btn.has-unread::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+/* Notifications list */
+.notif-list {
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 10px;
+  border-radius: 8px;
+}
+.notif-item + .notif-item {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.notif-item.unread {
+  background: rgba(198, 239, 46, 0.05);
+}
+.notif-item .notif-ico {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+}
+.notif-item .notif-ico svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.2;
+}
+.notif-ico.lime {
+  background: rgba(198, 239, 46, 0.14);
+  color: var(--green);
+}
+.notif-ico.gold {
+  background: rgba(240, 180, 41, 0.14);
+  color: var(--gold);
+}
+.notif-text {
+  flex: 1;
+  min-width: 0;
+}
+.notif-text b {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--cream);
+}
+.notif-text small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.notif-item time {
+  flex: none;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.notif-foot {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.notif-foot:hover {
+  color: var(--cream);
+}
+.notif-ico.red {
+  background: rgba(255, 107, 129, 0.14);
+  color: var(--danger);
+}
+
+/* ---------- Iisang "level" style sa buong site (Figma ni Abigail) ----------
+   Gold = level mo ("Level 12 · Veteran"). Lime = XP na makukuha ("+20 XP").
+   XP bar = blue → lime gradient, gaya ng sample card sa Sign in. */
+
+/* Alex ▾ player card */
+.acct-level .row > span:first-child,
+.acct-level .row > span:first-child b {
+  color: #e0b13d;
+  font-weight: 700;
+}
+.acct-bar {
+  background: #2a3147;
+}
+.acct-bar .level-fill {
+  background: linear-gradient(90deg, #498bbf, #d7ff4a);
+}
+
+/* Home "Try it" demo */
+.demo-rank {
+  color: #e0b13d;
+  font-weight: 700;
+}
+.demo-bar {
+  background: #2a3147;
+}
+.demo-fill {
+  background: linear-gradient(90deg, #498bbf, #d7ff4a);
+}
+.demo-fill.glow {
+  box-shadow: 0 0 12px rgba(215, 255, 74, 0.6);
+}
