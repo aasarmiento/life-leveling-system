@@ -118,9 +118,44 @@
     toastEl.hidden = true;
     void toastEl.offsetWidth;
     toastEl.hidden = false;
-    clearTimeout(toastTimer);
+       clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, 4000);
   };
+
+  // ---------- RANK UP (buong-screen na celebration) ----------
+  let rankUpEl = null;
+  let rankUpTimer = null;
+
+  function hideRankUp() {
+    clearTimeout(rankUpTimer);
+    if (rankUpEl) rankUpEl.classList.remove("show");
+  }
+
+  function showRankUp(rank, total) {
+    if (!rankUpEl) {
+      rankUpEl = document.createElement("div");
+      rankUpEl.className = "rankup";
+      rankUpEl.setAttribute("role", "status");
+      rankUpEl.setAttribute("aria-live", "polite");
+      rankUpEl.innerHTML = `
+        <div class="rankup-card">
+          <span class="rankup-kicker">Rank up</span>
+          <div class="rankup-badge">${svgIcon(TOAST_ICON.star)}</div>
+          <h2 class="rankup-name"></h2>
+          <p class="rankup-sub"></p>
+        </div>`;
+      rankUpEl.addEventListener("click", hideRankUp);
+      document.body.appendChild(rankUpEl);
+    }
+    rankUpEl.querySelector(".rankup-name").textContent = rank;
+    rankUpEl.querySelector(".rankup-sub").textContent =
+      `${total.toLocaleString("en-US")} XP total`;
+    rankUpEl.classList.remove("show");
+    void rankUpEl.offsetWidth;
+    rankUpEl.classList.add("show");
+    clearTimeout(rankUpTimer);
+    rankUpTimer = setTimeout(hideRankUp, 3600);
+  }
 
   const signedIn = read(SIGNED_IN_KEY) === "1";
 
@@ -168,6 +203,8 @@
   // Para mabasa ng tasks.js (nauuna ang nav.js sa <head>)
   window.questifyAccount = { boardKey: BOARD_KEY, isDemo: IS_DEMO };
 
+    window.questifyDebugShowRankUp = showRankUp; // TEMP: para lang sa testing, tanggalin bago i-launch
+
   // Total XP = sum ng XP ledger na sine-save ng Tasks page.
   // Kung wala pa: 1,450 sa demo, 0 sa bagong account.
   function savedXp() {
@@ -185,6 +222,11 @@
   const rankFor = (total) => RANKS.filter((r) => total >= r.xp).pop().name;
   const toNext = (total) => XP_PER_LEVEL - (total % XP_PER_LEVEL);
   const pctFor = (total) => ((total % XP_PER_LEVEL) / XP_PER_LEVEL) * 100;
+
+    const RANK_INDEX = (name) => RANKS.findIndex((r) => r.name === name);
+  // Natatandaan ang huling rank na nakita, para malaman kung "umakyat" talaga
+  // (hindi lang naka-refresh). Nase-set ulit tuwing bukas ng page.
+  let currentRank = rankFor(savedXp());
 
   const esc = (s) =>
     String(s).replace(
@@ -237,16 +279,17 @@
   //   type 'overdue' = lumampas na sa due date (isa lang bawat quest)
   // Para magdagdag ng bagong klase: bagong type + icon sa NOTIF_STYLE, tapos
   // tawagin ang addNotif({...}) kung saan nangyari yung event.
-  const NOTIF_KEY = "questify.notifs" + SUFFIX; // bawat account may sarili
-  const NOTIF_MAX = 20;
-  const OVERDUE_SEEN_KEY = "questify.notifs.overdueSeen" + SUFFIX;
-  const NOTIF_STYLE = {
+   const NOTIF_STYLE = {
     done: {
       tone: "lime",
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
     },
     levelup: {
       tone: "gold",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+    },
+    rankup: {
+      tone: "lime",
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
     },
     overdue: {
@@ -296,7 +339,7 @@
   }
 
   // Label sa maliit na chip ng bawat notification
-  const NOTIF_CHIP = { done: "Quest", levelup: "Level up", overdue: "Overdue" };
+    const NOTIF_CHIP = { done: "Quest", levelup: "Level up", rankup: "Rank up", overdue: "Overdue" };
 
   function timeAgo(ms) {
     const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
@@ -461,6 +504,7 @@
     });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
+      hideRankUp();
       const open = pairs.find(([, panel]) => !panel.hidden);
       closeAll();
       if (open) open[0].focus();
@@ -474,13 +518,12 @@
       });
     });
 
-    // Tasks page: tuwing nagbabago ang XP, i-update din ang rank at "XP to Level",
-    // at pa-"bump" ang Alex button para makita na may nagbago sa level mo.
-    document.addEventListener("questify:xp", (e) => {
+       document.addEventListener("questify:xp", (e) => {
       const t = e.detail.total;
-      const rank = document.getElementById("levelRank");
+      const rankName = rankFor(t);
+      const rankEl = document.getElementById("levelRank");
       const next = document.getElementById("levelNext");
-      if (rank) rank.textContent = rankFor(t);
+      if (rankEl) rankEl.textContent = rankName;
       if (next)
         next.textContent = `${toNext(t)} XP to Level ${levelFor(t) + 1}`;
       const acctBtn = document.getElementById("acctBtn");
@@ -489,6 +532,17 @@
         void acctBtn.offsetWidth; // para mag-restart ang animation
         acctBtn.classList.add("xp-bump");
       }
+
+      // Rank up lang (hindi rank down, hal. galing sa Undo done)
+      if (rankName !== currentRank && RANK_INDEX(rankName) > RANK_INDEX(currentRank)) {
+        showRankUp(rankName, t);
+        addNotif({
+          type: "rankup",
+          title: `New rank: ${rankName}`,
+          text: `You're now ${withArticle(rankName)}. ${toNext(t)} XP to Level ${levelFor(t) + 1}.`,
+        });
+      }
+      currentRank = rankName;
     });
 
     // ---------- notifications ----------
