@@ -1,59 +1,174 @@
-// Background music – starts on first interaction
-const bgMusic = document.getElementById("bg-music");
-const musicToggle = document.getElementById("music-toggle");
-let musicPlaying = false;
-let hasInteracted = false;
+// =====================================================================
+// BACKGROUND MUSIC (Home at About)
+// - Naka-OFF pagdating. Ikaw ang magbubukas gamit ang button sa kanan-taas.
+// - Hover (o keyboard focus) sa button = lalabas ang volume slider sa kaliwa.
+// - Tuloy-tuloy sa Home ↔ About: tinatandaan sa session na 'to kung naka-on
+//   at kung nasaan na yung kanta. Ang volume, tinatandaan kahit bukas pa.
+// - Sa About walang music HTML, kaya dito na ginagawa yung audio at button.
+// =====================================================================
+(function () {
+  const VOLUME_KEY = "questify.music.volume"; // localStorage (0 hanggang 1)
+  const STATE_KEY = "questify.music.state"; // sessionStorage: { on, time }
+  const base = document.currentScript
+    ? document.currentScript.src.replace(/js\/app\.js.*$/, "")
+    : "";
 
-if (bgMusic && musicToggle) {
-  // Yung icon ng sound button (naka-mute o tumutugtog) ay nakabase sa aria-pressed.
-  // Si CSS (.music-btn) na bahala kung aling speaker icon ang lalabas.
-  const showMusicState = (on) => {
-    musicToggle.setAttribute("aria-pressed", String(on));
-    musicToggle.title = on ? "Mute music" : "Play music";
-  };
-
-  const startMusicOnFirstInteraction = async () => {
-    if (hasInteracted) return;
-    hasInteracted = true;
-
+  function load(storage, key) {
     try {
-      bgMusic.muted = false;
-      await bgMusic.play();
-      musicPlaying = true;
-      showMusicState(true);
+      return JSON.parse(window[storage].getItem(key));
     } catch (err) {
-      console.warn("Could not start music:", err.message);
+      return null;
     }
-
-    document.removeEventListener("click", startMusicOnFirstInteraction);
-    document.removeEventListener("touchstart", startMusicOnFirstInteraction);
-  };
-
-  document.addEventListener("click", startMusicOnFirstInteraction);
-  document.addEventListener("touchstart", startMusicOnFirstInteraction);
-
-  musicToggle.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    // Bilang "first interaction" na rin 'to. Kung wala 'to, pag in-mute mo
-    // tapos nag-click ka sa ibang lugar, tutugtog ulit yung music.
-    hasInteracted = true;
-
+  }
+  function save(storage, key, value) {
     try {
-      if (musicPlaying) {
-        bgMusic.pause();
-        showMusicState(false);
-        musicPlaying = false;
-      } else {
-        bgMusic.muted = false;
-        await bgMusic.play();
-        showMusicState(true);
-        musicPlaying = true;
-      }
+      window[storage].setItem(key, JSON.stringify(value));
     } catch (err) {
-      console.warn("Music toggle error:", err.message);
+      /* naka-block ang storage: gagana pa rin, hindi lang matatandaan */
+    }
+  }
+
+  let audio = document.getElementById("bg-music");
+  let btn = document.getElementById("music-toggle");
+  if (!audio) {
+    audio = document.createElement("audio");
+    audio.id = "bg-music";
+    audio.loop = true;
+    audio.preload = "auto";
+    audio.src = base + "assets/audio/bg-music.mp3";
+    document.body.appendChild(audio);
+  }
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "music-toggle";
+    btn.className = "music-btn";
+    btn.innerHTML =
+      '<svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>' +
+      '<svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+    document.body.appendChild(btn);
+  }
+  btn.setAttribute("aria-label", "Background music");
+
+  // Button + volume slider sa iisang lalagyan (para hindi mawala ang hover sa pagitan)
+  const ctl = document.createElement("div");
+  ctl.className = "music-ctl";
+  btn.before(ctl);
+  ctl.appendChild(btn);
+  ctl.insertAdjacentHTML(
+    "afterbegin",
+    `<div class="music-pop">
+      <div class="music-pop-in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+        <input type="range" id="musicVolume" min="0" max="100" step="5" aria-label="Music volume">
+        <span class="music-pct" aria-hidden="true"></span>
+      </div>
+    </div>`,
+  );
+  const slider = ctl.querySelector("#musicVolume");
+  const pct = ctl.querySelector(".music-pct");
+
+  const saved = load("localStorage", VOLUME_KEY);
+  audio.volume = typeof saved === "number" && saved >= 0 && saved <= 1 ? saved : 0.6;
+
+  function showVolume() {
+    const p = Math.round(audio.volume * 100);
+    slider.value = p;
+    slider.style.setProperty("--v", p + "%");
+    slider.setAttribute("aria-valuetext", p + " percent");
+    pct.textContent = p + "%";
+  }
+  function showOn(on) {
+    btn.setAttribute("aria-pressed", String(on));
+    btn.title = on ? "Pause music" : "Play music";
+  }
+  // "wanted" = pinili ng user na naka-on (kahit na-block pa ng browser ang tunog)
+  let wanted = false;
+  function saveState() {
+    save("sessionStorage", STATE_KEY, {
+      on: wanted,
+      time: audio.currentTime || 0,
+    });
+  }
+
+  // Puwedeng i-block ng browser ang tunog hangga't wala pang click sa page.
+  async function play() {
+    wanted = true;
+    if (audio.volume === 0) {
+      audio.volume = 0.6;
+      showVolume();
+    }
+    try {
+      await audio.play();
+      return true;
+    } catch (err) {
+      showOn(false);
+      return false;
+    }
+  }
+
+  audio.addEventListener("play", () => {
+    showOn(true);
+    saveState();
+  });
+  audio.addEventListener("pause", () => {
+    showOn(false);
+    saveState();
+  });
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (audio.paused) play();
+    else {
+      wanted = false;
+      audio.pause();
     }
   });
-}
+
+  slider.addEventListener("input", () => {
+    audio.volume = slider.value / 100;
+    save("localStorage", VOLUME_KEY, audio.volume);
+    showVolume();
+    // Tinaas ang volume habang naka-off = gusto nang marinig. Sa 0 = patay.
+    if (audio.volume > 0 && audio.paused) play();
+    if (audio.volume === 0 && !audio.paused) {
+      wanted = false;
+      audio.pause();
+    }
+  });
+
+  // Tandaan kung nasaan na yung kanta bago umalis sa page
+  window.addEventListener("pagehide", saveState);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveState();
+  });
+
+  showVolume();
+  showOn(false);
+
+  // Galing sa kabilang page na naka-on ang music: ituloy.
+  const state = load("sessionStorage", STATE_KEY);
+  if (state && state.on) {
+    const resume = () => {
+      if (state.time) audio.currentTime = state.time;
+      play().then((ok) => {
+        if (ok) return;
+        // Na-block ng browser: ituloy sa unang click o pindot sa page
+        // (pero hindi sa music button mismo, siya na ang bahala doon).
+        const onFirst = (e) => {
+          if (ctl.contains(e.target)) return;
+          document.removeEventListener("pointerdown", onFirst);
+          document.removeEventListener("keydown", onFirst);
+          play();
+        };
+        document.addEventListener("pointerdown", onFirst);
+        document.addEventListener("keydown", onFirst);
+      });
+    };
+    if (audio.readyState >= 1) resume();
+    else audio.addEventListener("loadedmetadata", resume, { once: true });
+  }
+})();
 
 // Level-up animation
 (function () {
@@ -438,31 +553,251 @@ if (bgMusic && musicToggle) {
   for (let i = 0; i < 14; i++) add("spark");
 })();
 
+// =====================================================================
+// FEEDBACK (Home): kailangan ng rating bago i-send. May salita ang stars
+// (Poor → Excellent), optional na "What stood out?" tags, bilang ng letra,
+// at footer. Pagka-send, papalitan ang form ng "receipt".
+// Reference = FB-YYMMDD-XXXX (petsa + 4 na random na letra/numero, walang
+// magkamukha gaya ng 0/O at 1/I). Naka-save lang sa browser (wala pang server).
+// Hindi ginalaw ang index.html: dito na idinadagdag ang bagong parts.
+// =====================================================================
 (function () {
   const stars = document.querySelectorAll("#stars .star");
   const form = document.getElementById("feedbackForm");
   if (!stars.length || !form) return;
 
-  let rating = 4;
+  const starBox = document.getElementById("stars");
+  const comment = form.querySelector("textarea");
+  const sendBtn = document.getElementById("feedbackBtn");
+  const FEEDBACK_KEY = "questify.feedback";
+  const REF_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const WORDS = ["", "Poor", "Fair", "Good", "Great", "Excellent"];
+  const TAGS = ["Quest board", "XP and levels", "Design", "Music", "Easy to use"];
+  const MAX_COMMENT = 500;
+  const MONTHS_LONG = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const esc = (s) =>
+    String(s).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+    );
+  const icon = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const ICON_ALERT = '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>';
+  const ICON_CHECK = '<path d="M5 12.5l4.5 4.5L19 7.5"/>';
+  const ICON_LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+  const ICON_COPY =
+    '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>';
+  const STAR_PATH =
+    '<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.5 1.1 6.3L12 17.3l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/>';
 
-  const paint = (v) =>
+  let rating = 0; // wala pang napipili (dati 4 agad, kaya hindi na-check)
+
+  // --- Stars + salita sa tabi (hal. "Great") ---
+  const rate = document.createElement("div");
+  rate.className = "fb-rate";
+  starBox.before(rate);
+  rate.appendChild(starBox);
+  const word = document.createElement("span");
+  word.className = "fb-word";
+  word.setAttribute("aria-live", "polite");
+  rate.appendChild(word);
+
+  function showWord(v) {
+    word.textContent = v ? WORDS[v] : "Select a rating";
+    word.classList.toggle("dim", !v);
+  }
+  const paint = (v) => {
     stars.forEach((s) => s.classList.toggle("on", Number(s.dataset.v) <= v));
+    showWord(v);
+  };
+  const markChosen = () =>
+    stars.forEach((s) => {
+      const v = Number(s.dataset.v);
+      s.setAttribute("aria-pressed", String(v === rating));
+      s.setAttribute("aria-label", `${v} star${v > 1 ? "s" : ""}, ${WORDS[v]}`);
+    });
+
+  // Error sa ilalim ng stars (hindi popup)
+  const err = document.createElement("p");
+  err.className = "fb-err";
+  err.id = "ratingErr";
+  err.setAttribute("role", "alert");
+  err.hidden = true;
+  err.innerHTML = icon(ICON_ALERT) + "<span>Choose a rating from 1 to 5 stars.</span>";
+  rate.after(err);
+
+  function showError(on) {
+    err.hidden = !on;
+    starBox.classList.toggle("invalid", on);
+  }
 
   stars.forEach((s) => {
     s.addEventListener("click", () => {
       rating = Number(s.dataset.v);
       paint(rating);
+      markChosen();
+      showError(false);
     });
     s.addEventListener("mouseenter", () => paint(Number(s.dataset.v)));
     s.addEventListener("mouseleave", () => paint(rating));
   });
 
+  // --- "What stood out?" (optional na tags) ---
+  const commentLabel = form.querySelector('label[for="comment"]');
+  const tagBlock = document.createElement("div");
+  tagBlock.className = "fb-block";
+  tagBlock.innerHTML =
+    '<span class="field-label" id="fbTagsLabel">What stood out? <small>optional</small></span>' +
+    `<div class="fb-tags" role="group" aria-labelledby="fbTagsLabel">${TAGS.map(
+      (t) =>
+        `<button type="button" class="fb-tag" aria-pressed="false">${icon(ICON_CHECK)}${t}</button>`,
+    ).join("")}</div>`;
+  commentLabel.before(tagBlock);
+  const tagBtns = [...tagBlock.querySelectorAll(".fb-tag")];
+  tagBtns.forEach((b) =>
+    b.addEventListener("click", () =>
+      b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")),
+    ),
+  );
+  const chosenTags = () =>
+    tagBtns.filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.textContent);
+
+  // --- Comment: "(optional)", bilang ng letra, at paalala ---
+  commentLabel.insertAdjacentHTML("beforeend", " <small>optional</small>");
+  comment.maxLength = MAX_COMMENT;
+  const help = document.createElement("div");
+  help.className = "fb-help";
+  help.id = "fbHelp";
+  help.innerHTML =
+    '<span>Please don\'t include passwords or personal details.</span><span class="fb-count"></span>';
+  comment.after(help);
+  comment.setAttribute("aria-describedby", "fbHelp");
+  const count = help.querySelector(".fb-count");
+  const updateCount = () => (count.textContent = `${comment.value.length} / ${MAX_COMMENT}`);
+  comment.addEventListener("input", updateCount);
+
+  // --- Footer: privacy note sa kaliwa, button sa kanan ---
+  const foot = document.createElement("div");
+  foot.className = "fb-foot";
+  foot.innerHTML = `<small>${icon(ICON_LOCK)}Saved in this browser only.</small>`;
+  form.appendChild(foot);
+  foot.appendChild(sendBtn);
+
+  paint(0);
+  markChosen();
+  updateCount();
+
+  function makeRef(d) {
+    const pad = (n) => String(n).padStart(2, "0");
+    const rnd = new Uint8Array(4);
+    crypto.getRandomValues(rnd);
+    const tail = [...rnd].map((b) => REF_CHARS[b % REF_CHARS.length]).join("");
+    return `FB-${String(d.getFullYear()).slice(2)}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${tail}`;
+  }
+
+  function sentText(d) {
+    const h = d.getHours() % 12 || 12;
+    const m = String(d.getMinutes()).padStart(2, "0");
+    return `Sent ${MONTHS_LONG[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} at ${h}:${m} ${d.getHours() < 12 ? "AM" : "PM"}`;
+  }
+
+  function saveEntry(entry) {
+    try {
+      const list = JSON.parse(localStorage.getItem(FEEDBACK_KEY));
+      const all = Array.isArray(list) ? list : [];
+      all.unshift(entry);
+      localStorage.setItem(FEEDBACK_KEY, JSON.stringify(all.slice(0, 20)));
+    } catch (e) {
+      /* naka-block ang storage: lalabas pa rin ang receipt */
+    }
+  }
+
+  function resetForm() {
+    rating = 0;
+    paint(0);
+    markChosen();
+    showError(false);
+    tagBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    comment.value = "";
+    updateCount();
+  }
+
+  function showReceipt(entry) {
+    const d = new Date(entry.at);
+    const starsHtml = [1, 2, 3, 4, 5]
+      .map((v) => `<svg viewBox="0 0 24 24" class="${v <= entry.rating ? "" : "off"}" aria-hidden="true">${STAR_PATH}</svg>`)
+      .join("");
+    const card = document.createElement("div");
+    card.className = "feedback-form fb-receipt";
+    card.setAttribute("tabindex", "-1");
+    card.setAttribute("aria-labelledby", "fbReceiptTitle");
+    card.innerHTML = `
+      <div class="rc-head">
+        <span class="rc-ico">${icon(ICON_CHECK)}</span>
+        <div><b id="fbReceiptTitle">Feedback received</b><small>${sentText(d)}</small></div>
+      </div>
+      <dl class="rc-rows">
+        <div class="rc-row"><dt>Rating</dt><dd><span class="rc-stars">${starsHtml}<span>${WORDS[entry.rating]} · ${entry.rating} of 5</span></span></dd></div>
+        ${entry.tags.length ? `<div class="rc-row"><dt>Stood out</dt><dd>${entry.tags.map(esc).join(", ")}</dd></div>` : ""}
+        <div class="rc-row"><dt>Message</dt><dd>${entry.message ? esc(entry.message) : '<span class="rc-none">No message</span>'}</dd></div>
+        <div class="rc-row"><dt>Reference</dt><dd><span class="rc-ref"><code>${entry.ref}</code><button type="button" class="rc-copy">${icon(ICON_COPY)}<span>Copy</span></button></span></dd></div>
+      </dl>
+      <div class="rc-foot"><small>Saved in this browser.</small><button type="button" class="rc-again">Send another response</button></div>`;
+
+    card.querySelector(".rc-copy").addEventListener("click", (e) => {
+      const label = e.currentTarget.querySelector("span");
+      const done = (text) => {
+        label.textContent = text;
+        setTimeout(() => (label.textContent = "Copy"), 2000);
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(entry.ref).then(
+          () => done("Copied"),
+          () => done("Copy failed"),
+        );
+      } else done("Copy failed");
+    });
+    card.querySelector(".rc-again").addEventListener("click", () => {
+      card.remove();
+      resetForm();
+      form.hidden = false;
+      stars[0].focus();
+    });
+
+    form.hidden = true;
+    form.after(card);
+    card.focus();
+  }
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const btn = document.getElementById("feedbackBtn");
-    btn.textContent = "Thanks for your feedback!";
-    btn.disabled = true;
-    form.querySelector("textarea").value = "";
+    if (!rating) {
+      showError(true);
+      stars[0].focus();
+      return;
+    }
+    const entry = {
+      ref: makeRef(new Date()),
+      rating,
+      tags: chosenTags(),
+      message: comment.value.trim(),
+      at: Date.now(),
+    };
+    saveEntry(entry);
+    showReceipt(entry);
   });
 })();
 

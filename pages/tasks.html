@@ -295,7 +295,7 @@
     <!-- Add / Edit quest -->
     <div class="modal-back" id="questModal" hidden>
       <div
-        class="modal quest-modal"
+        class="modal quest-modal aq"
         role="dialog"
         aria-modal="true"
         aria-labelledby="questModalTitle"
@@ -307,60 +307,112 @@
           </button>
         </div>
         <form id="questForm" novalidate>
-          <label for="qTitle">Title</label>
-          <input
-            id="qTitle"
-            maxlength="60"
-            placeholder="Name the quest"
-            autocomplete="off"
-            aria-describedby="qTitleErr"
-          />
-          <div class="err" id="qTitleErr">Name the quest first.</div>
-
-          <label for="qDesc">Description</label>
-          <input
-            id="qDesc"
-            maxlength="160"
-            placeholder="One short line (optional)"
-            autocomplete="off"
-          />
-
-          <div class="form-row">
-            <div>
-              <label for="qCat">Category</label>
-              <select id="qCat">
-                <option value="work">Work</option>
-                <option value="growth">Learning</option>
-                <option value="health">Health</option>
-              </select>
+          <div class="aq-field">
+            <div class="aq-label">
+              <label for="qTitle">Title</label>
+              <small id="qTitleCount" aria-hidden="true">0 / 60</small>
             </div>
-            <div>
-              <label for="qPriority">Priority</label>
-              <select id="qPriority">
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+            <input
+              id="qTitle"
+              maxlength="60"
+              placeholder="Name the quest"
+              autocomplete="off"
+              aria-describedby="qTitleErr"
+            />
+            <div class="err" id="qTitleErr">Name the quest first.</div>
+          </div>
+
+          <div class="aq-field">
+            <div class="aq-label">
+              <label for="qDesc">Description</label>
+              <small>optional</small>
+            </div>
+            <!-- Lumalaki habang nagta-type. Enter = bagong linya, Ctrl + Enter = save -->
+            <textarea
+              id="qDesc"
+              rows="2"
+              maxlength="300"
+              placeholder="Describe the quest"
+              aria-describedby="qDescHelp"
+            ></textarea>
+            <div class="aq-help" id="qDescHelp">
+              <span
+                ><kbd>Enter</kbd> new line · <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                save</span
+              >
+              <span id="qDescCount">0 / 300</span>
             </div>
           </div>
 
-          <label for="qDue">Due date</label>
-          <input type="date" id="qDue" />
+          <fieldset class="aq-field">
+            <legend class="aq-label">Category</legend>
+            <div class="aq-cats">
+              <label class="aq-cat work"
+                ><input type="radio" name="qCat" value="work" /><i
+                  aria-hidden="true"
+                ></i
+                >Work</label
+              >
+              <label class="aq-cat growth"
+                ><input type="radio" name="qCat" value="growth" /><i
+                  aria-hidden="true"
+                ></i
+                >Learning</label
+              >
+              <label class="aq-cat health"
+                ><input type="radio" name="qCat" value="health" /><i
+                  aria-hidden="true"
+                ></i
+                >Health</label
+              >
+            </div>
+          </fieldset>
 
-          <div class="xp-readout">
-            <span class="xp-pill" id="qXp" aria-live="polite">+20 XP</span>
-            <small id="qXpNote"
-              >Set by priority: Low 10 · Medium 20 · High 30</small
+          <fieldset class="aq-field">
+            <legend class="aq-label">Priority</legend>
+            <div class="aq-seg">
+              <label
+                ><input type="radio" name="qPriority" value="low" />Low
+                <em>+10</em></label
+              >
+              <label
+                ><input type="radio" name="qPriority" value="medium" />Medium
+                <em>+20</em></label
+              >
+              <label
+                ><input type="radio" name="qPriority" value="high" />High
+                <em>+30</em></label
+              >
+            </div>
+          </fieldset>
+
+          <div class="aq-field">
+            <div class="aq-label"><label for="qDue">Due date</label></div>
+            <div class="aq-due">
+              <input type="date" id="qDue" aria-describedby="qDueErr" />
+              <button type="button" class="aq-quick" data-due="0">Today</button>
+              <button type="button" class="aq-quick" data-due="1">
+                Tomorrow
+              </button>
+              <button type="button" class="aq-quick" data-due="7">
+                Next week
+              </button>
+            </div>
+            <div class="err" id="qDueErr" role="alert"></div>
+          </div>
+
+          <div class="aq-foot">
+            <span class="aq-earn"
+              >Worth <b class="xp-pill" id="qXp" aria-live="polite">+20 XP</b></span
             >
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" class="btn-outline fx" data-close>
-              Cancel
-            </button>
-            <button type="submit" class="btn-lime fx" id="qSubmit">
-              Add quest
-            </button>
+            <span class="aq-btns">
+              <button type="button" class="btn-outline fx" data-close>
+                Cancel
+              </button>
+              <button type="submit" class="btn-lime fx" id="qSubmit">
+                Add quest
+              </button>
+            </span>
           </div>
         </form>
       </div>
@@ -420,40 +472,44 @@
       </div>
     </div>
 
-    <!-- Confirm bago mag-delete -->
-    <div class="modal-back" id="deleteModal" hidden>
+    <!-- Confirm popup: Mark done, Undo done at Delete (pinupuno ng tasks.js) -->
+    <div class="modal-back" id="confirmModal" hidden>
       <div
-        class="modal confirm-modal"
+        class="modal cm"
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="delTitle"
-        aria-describedby="delText"
+        aria-labelledby="cmTitle"
+        aria-describedby="cmText"
       >
-        <h2 id="delTitle">Delete this quest?</h2>
-        <p id="delText"></p>
-        <div class="modal-actions">
+        <button type="button" class="cm-x" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+        <span class="cm-ico" id="cmIco" aria-hidden="true"></span>
+        <h2 id="cmTitle">Mark this quest as done?</h2>
+        <p id="cmText"></p>
+        <div class="cm-quest">
+          <div>
+            <b id="cmQuest"></b>
+            <small id="cmMeta"></small>
+          </div>
+          <span class="cm-xp" id="cmXp"></span>
+        </div>
+        <div class="modal-actions cm-actions">
           <button
             type="button"
             class="btn-outline fx"
-            id="delCancel"
+            id="cmCancel"
             data-close
           >
             Cancel
           </button>
-          <button type="button" class="btn-rose fx" id="delConfirm">
-            Delete quest
-          </button>
+          <button type="button" class="btn-lime fx" id="cmOk">Mark done</button>
         </div>
       </div>
     </div>
-
-    <!-- Toast: maliit na message sa baba (hal. "Marked done" + Undo) -->
-    <div class="toast" id="toast" role="status" hidden>
-      <span id="toastText"></span>
-      <button type="button" class="toast-action" id="toastAction" hidden>
-        Undo
-      </button>
-    </div>
+    <!-- Toast: ginagawa na ng nav.js (window.questifyToast), baba-kanan ng screen -->
 
     <footer>
       <a class="footer-logo" href="../index.html">QUESTIFY</a>
