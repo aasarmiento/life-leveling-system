@@ -5496,3 +5496,1396 @@ body.profile-page {
 .demo-fill.glow {
   box-shadow: 0 0 12px rgba(215, 255, 74, 0.6);
 }
+
+/* =====================================================================
+   STEP 8 (Christian, Sep 27): toast, confirm popup, 3-dot menu,
+   notification panel, Sign in errors, feedback receipt, music volume.
+   Sariling block lang 'to sa dulo; walang ginalaw sa CSS ng iba.
+   ===================================================================== */
+
+/* Mga icon sa bagong parts: guhit lang (stroke), kulay = currentColor */
+.qtoast svg,
+.cm svg,
+.qmenu svg,
+.np-ico svg,
+.field-err svg,
+.auth-alert svg,
+.fb-err svg,
+.rc-ico svg,
+.rc-copy svg,
+.music-pop svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Toast (baba-kanan, walang Undo at timer bar) ---------- */
+.qtoast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 200;
+  display: grid;
+  grid-template-columns: 34px 1fr 28px;
+  align-items: start;
+  gap: 12px;
+  width: min(360px, calc(100vw - 32px));
+  padding: 14px 12px 14px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  color: var(--cream);
+  text-align: left;
+  animation: qtoastIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.qtoast[hidden] {
+  display: none;
+}
+@keyframes qtoastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.qtoast-ico {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+.qtoast-ico svg {
+  width: 18px;
+  height: 18px;
+}
+.qtoast-body b {
+  display: block;
+  margin-top: 1px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.qtoast-body span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+.qtoast-x {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.qtoast-x:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cream);
+}
+.qtoast-x:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+.qtoast-x svg {
+  width: 16px;
+  height: 16px;
+}
+.qtoast[data-tone="ok"] {
+  background: #1c2427;
+  border-color: rgba(198, 239, 46, 0.28);
+}
+.qtoast[data-tone="ok"] .qtoast-ico {
+  background: rgba(198, 239, 46, 0.15);
+  color: var(--green);
+}
+.qtoast[data-tone="ok"] b {
+  color: var(--green);
+}
+.qtoast[data-tone="lv"] {
+  background: #212227;
+  border-color: rgba(240, 180, 41, 0.3);
+}
+.qtoast[data-tone="lv"] .qtoast-ico {
+  background: rgba(240, 180, 41, 0.16);
+  color: var(--gold);
+}
+.qtoast[data-tone="lv"] b {
+  color: var(--gold);
+}
+.qtoast[data-tone="info"] {
+  background: #18242f;
+  border-color: rgba(111, 227, 217, 0.26);
+}
+.qtoast[data-tone="info"] .qtoast-ico {
+  background: rgba(111, 227, 217, 0.14);
+  color: var(--teal);
+}
+.qtoast[data-tone="info"] b {
+  color: var(--teal);
+}
+.qtoast[data-tone="err"] {
+  background: #221d2b;
+  border-color: rgba(255, 107, 129, 0.32);
+}
+.qtoast[data-tone="err"] .qtoast-ico {
+  background: rgba(255, 107, 129, 0.15);
+  color: var(--danger);
+}
+.qtoast[data-tone="err"] b {
+  color: #ff8fa3;
+}
+
+/* ---------- Confirm popup (Mark done, Undo done, Delete) ---------- */
+.modal.cm {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  text-align: left;
+}
+.cm-ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+.cm-ico svg {
+  width: 20px;
+  height: 20px;
+}
+.cm-ico.lime {
+  background: rgba(198, 239, 46, 0.12);
+  color: var(--green);
+}
+.cm-ico.teal {
+  background: rgba(111, 227, 217, 0.13);
+  color: var(--teal);
+}
+.cm-ico.rose {
+  background: rgba(255, 107, 129, 0.13);
+  color: var(--danger);
+}
+.cm-x {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.cm-x:hover {
+  background: var(--border);
+  color: var(--cream);
+}
+.cm-x:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+.cm-x svg {
+  width: 18px;
+  height: 18px;
+}
+.modal.cm h2 {
+  margin: 18px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--cream);
+}
+.modal.cm p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.cm-quest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: #0d121d;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.cm-quest > div {
+  min-width: 0;
+}
+.cm-quest b {
+  display: block;
+  font-size: 14px;
+  color: var(--cream);
+  overflow-wrap: anywhere;
+}
+.cm-quest small {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.cm-xp {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--green);
+  white-space: nowrap;
+}
+.cm-xp.lost {
+  color: #ff8fa3;
+}
+.cm-xp.muted {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.modal-actions.cm-actions {
+  margin-top: 24px;
+}
+.cm-actions button {
+  min-width: 104px;
+  justify-content: center;
+}
+
+/* Teal na popup button, parehong itsura ng .btn-lime.fx / .btn-rose.fx (Undo done) */
+.btn-teal.fx {
+  overflow: hidden;
+  padding: 8px 14px;
+  color: var(--ink);
+  background: linear-gradient(180deg, #a2f1ea 0%, var(--teal) 60%, #4fcdc1 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 rgba(20, 90, 84, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 6px 18px rgba(111, 227, 217, 0.18);
+}
+.btn-teal.fx:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 0 rgba(20, 90, 84, 0.25),
+    0 0 0 1px rgba(111, 227, 217, 0.6),
+    0 10px 28px rgba(111, 227, 217, 0.35);
+}
+
+/* ---------- 3-dot menu ng card (may icons, Delete sa dulo) ---------- */
+.qmenu {
+  min-width: 216px;
+  border-radius: 10px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+.qmenu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+.qmenu button svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--text-dim);
+}
+.qmenu button em {
+  margin-left: auto;
+  padding-left: 12px;
+  font-style: normal;
+  font-size: 12px;
+  color: #ff8fa3;
+}
+.qmenu hr {
+  margin: 6px 4px;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+.qmenu .danger svg {
+  color: #ff8fa3;
+}
+
+/* ---------- Notification panel (mas malaki, text lang, may tabs) ---------- */
+.notif-panel {
+  width: 400px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+.np-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 14px;
+}
+.np-head h3 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cream);
+}
+.np-link {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green);
+  cursor: pointer;
+}
+.np-link[hidden] {
+  display: none;
+}
+.np-link:hover {
+  text-decoration: underline;
+}
+.np-link:focus-visible,
+.np-tab:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+.np-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.np-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.np-tab:hover {
+  color: var(--cream);
+}
+.np-tab.on {
+  background: var(--cream);
+  border-color: var(--cream);
+  color: var(--ink);
+}
+.np-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.np-list {
+  max-height: min(440px, 60vh);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.np-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #182031;
+}
+.np-item:last-child {
+  border-bottom: 0;
+}
+/* Puwedeng i-click (Quest completed / overdue): bubukas ang quest */
+button.np-item {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid #182031;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.np-item.unread {
+  background: rgba(198, 239, 46, 0.035);
+}
+.np-item.opens:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.np-item.opens:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
+}
+.np-main > span {
+  display: block;
+}
+.np-main > .np-meta {
+  display: flex;
+}
+.np-item.unread {
+  background: rgba(198, 239, 46, 0.035);
+}
+.np-dot {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.np-ico {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dim);
+}
+.np-ico svg {
+  width: 18px;
+  height: 18px;
+}
+.np-ico.lime {
+  background: rgba(198, 239, 46, 0.12);
+  color: var(--green);
+}
+.np-ico.gold {
+  background: rgba(240, 180, 41, 0.14);
+  color: var(--gold);
+}
+.np-ico.red {
+  background: rgba(255, 107, 129, 0.14);
+  color: var(--danger);
+}
+.np-main {
+  min-width: 0;
+}
+.np-title {
+  display: block;
+  padding-right: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--cream);
+}
+.np-text {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+.np-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+.np-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.np-chip.lime {
+  background: rgba(198, 239, 46, 0.1);
+  color: var(--green);
+}
+.np-chip.gold {
+  background: rgba(240, 180, 41, 0.12);
+  color: var(--gold);
+}
+.np-chip.red {
+  background: rgba(255, 107, 129, 0.12);
+  color: #ff8fa3;
+}
+.np-time {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.np-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.np-foot[hidden] {
+  display: none;
+}
+.np-foot .np-link {
+  color: var(--text-dim);
+}
+.np-foot .np-link:hover {
+  color: var(--cream);
+}
+.np-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 32px 40px;
+  text-align: center;
+}
+.np-empty .np-ico {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+}
+.np-empty .np-ico svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.np-empty b {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--cream);
+}
+.np-empty small {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+/* ---------- Sign in / Create account errors ---------- */
+.auth-page .field.has-err input,
+.auth-page .field.has-err input:focus {
+  border-color: #ff8fa3;
+  box-shadow: none;
+}
+.field-err {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #ff8fa3;
+}
+.field-err svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+}
+.field-err a {
+  color: var(--a-lime, var(--green));
+  font-weight: 700;
+  text-decoration: none;
+}
+.field-err a:hover {
+  text-decoration: underline;
+}
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 12px 14px;
+  background: rgba(255, 107, 129, 0.08);
+  border: 1px solid rgba(255, 107, 129, 0.3);
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #ffc2cc;
+}
+.auth-alert svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: #ff8fa3;
+}
+.auth-page .auth-alert + .auth-submit {
+  margin-top: 18px;
+}
+.demo-note {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--a-dim, var(--text-dim));
+}
+.demo-note code {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 12px;
+  color: var(--a-white, var(--cream));
+}
+
+/* ---------- Feedback (Home): rating check + receipt ---------- */
+.fb-err {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: #ff8fa3;
+}
+.fb-err[hidden] {
+  display: none;
+}
+.fb-err svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.stars.invalid .star {
+  color: #5a3844;
+}
+.feedback-form[hidden] {
+  display: none;
+}
+.fb-receipt {
+  text-align: left;
+  color: #fff;
+}
+/* Naka-focus lang para mabasa ng screen reader; walang outline sa itsura */
+.fb-receipt:focus,
+.fb-receipt:focus-visible {
+  outline: none;
+}
+.rc-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.rc-ico {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(198, 239, 46, 0.12);
+  color: var(--green);
+}
+.rc-ico svg {
+  width: 20px;
+  height: 20px;
+}
+.rc-head b {
+  display: block;
+  font-size: 17px;
+}
+.rc-head small {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.rc-rows {
+  margin: 22px 0 0;
+  border-top: 1px solid #2d3040;
+}
+.rc-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #2d3040;
+  font-size: 14px;
+}
+.rc-row dt {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.rc-row dd {
+  margin: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.rc-none {
+  color: var(--text-dim);
+}
+.rc-stars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #dcb33e;
+}
+.rc-stars svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.rc-stars svg.off {
+  color: #3d4058;
+}
+.rc-stars span {
+  margin-left: 8px;
+  font-size: 13px;
+  color: var(--cream);
+}
+.rc-ref {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.rc-ref code {
+  padding: 3px 8px;
+  background: #171922;
+  border: 1px solid #2d3040;
+  border-radius: 6px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.rc-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green);
+  cursor: pointer;
+}
+.rc-copy svg {
+  width: 16px;
+  height: 16px;
+}
+.rc-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+.rc-foot small {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.rc-again {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid #3a4560;
+  border-radius: 8px;
+  background: none;
+  color: var(--cream);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.rc-again:hover {
+  border-color: var(--cream);
+}
+.rc-copy:focus-visible,
+.rc-again:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+/* ---------- Music: button + volume slider (hover / focus) ---------- */
+.music-ctl {
+  position: fixed;
+  top: calc(64px + 16px);
+  right: var(--page-gutter);
+  z-index: 90;
+}
+.music-ctl .music-btn {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+.music-btn[aria-pressed="true"] {
+  border-color: rgba(198, 239, 46, 0.55);
+  color: var(--green);
+}
+.music-pop {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  padding-right: 8px; /* tulay sa pagitan, para hindi mawala ang hover */
+  transform: translate(6px, -50%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s;
+}
+/* Hover (mouse) o keyboard focus lang. Kapag mouse click, hindi na naiiwang bukas. */
+.music-ctl:hover .music-pop,
+.music-ctl:has(:focus-visible) .music-pop {
+  transform: translate(0, -50%);
+  opacity: 1;
+  visibility: visible;
+}
+.music-pop-in {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 14px 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--cream);
+}
+.music-pop-in svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.music-pct {
+  width: 34px;
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+#musicVolume {
+  --v: 60%;
+  width: 120px;
+  height: 16px;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+#musicVolume::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--green) var(--v),
+    rgba(255, 255, 255, 0.16) var(--v)
+  );
+}
+#musicVolume::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.16);
+}
+#musicVolume::-moz-range-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--green);
+}
+#musicVolume::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(198, 239, 46, 0.25);
+  -webkit-appearance: none;
+  appearance: none;
+}
+#musicVolume::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(198, 239, 46, 0.25);
+}
+#musicVolume:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 560px) {
+  .qtoast {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+  }
+  .notif-panel {
+    width: auto;
+  }
+  .music-ctl {
+    top: calc(64px + 12px);
+  }
+  .music-ctl .music-btn {
+    top: auto;
+  }
+  .rc-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qtoast {
+    animation: none;
+  }
+  .music-pop {
+    transition: none;
+  }
+}
+
+/* ---------- Add / Edit quest (Step 8b): mas malinaw, one-click na choices ---------- */
+.modal.aq {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.aq .aq-field {
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.aq .aq-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--cream);
+}
+.aq .aq-label label {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--cream);
+}
+.aq .aq-label small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.aq input[type="text"],
+.aq input:not([type]),
+.aq input[type="date"],
+.aq textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cream);
+}
+.aq textarea {
+  min-height: 72px;
+  max-height: 200px;
+  resize: none;
+  overflow-y: auto;
+}
+.aq textarea::placeholder,
+.aq input::placeholder {
+  color: #5d6680;
+}
+.aq textarea[aria-invalid="true"],
+.aq input[aria-invalid="true"] {
+  border-color: #ff8fa3;
+}
+.aq-help {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.aq-help kbd {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--cream);
+}
+
+/* Category pills (kulay ng category chips sa board) */
+.aq-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.aq .aq-cat {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+.aq .aq-cat:hover {
+  color: var(--cream);
+  border-color: #33405a;
+}
+.aq-cat i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.aq-cat.work i {
+  background: #d9a24a;
+}
+.aq-cat.growth i {
+  background: #6fcfc4;
+}
+.aq-cat.health i {
+  background: #e0798c;
+}
+.aq-cat.work:has(input:checked) {
+  background: #7a5525;
+  border-color: #7a5525;
+  color: #fff8b0;
+}
+.aq-cat.growth:has(input:checked) {
+  background: #2d5a66;
+  border-color: #2d5a66;
+  color: #b8f0ea;
+}
+.aq-cat.health:has(input:checked) {
+  background: #7a3d4a;
+  border-color: #7a3d4a;
+  color: #ffd0d8;
+}
+.aq-cat:has(input:checked) i {
+  background: currentColor;
+}
+
+/* Priority: 3-way switch, bawat isa may XP */
+.aq-seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.aq .aq-seg label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  margin: 0;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.aq .aq-seg label:hover {
+  color: var(--cream);
+}
+.aq-seg em {
+  font-style: normal;
+  font-size: 12px;
+  color: #6b7a4a;
+}
+.aq .aq-seg label:has(input:checked) {
+  background: var(--border);
+  color: var(--cream);
+  box-shadow: inset 0 0 0 1px #2c3a52;
+}
+.aq-seg label:has(input:checked) em {
+  color: var(--green);
+}
+
+/* Nakatagong radio (para gumana pa rin sa keyboard at screen reader) */
+.aq-cat input,
+.aq-seg input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.aq-cat:has(input:focus-visible),
+.aq-seg label:has(input:focus-visible) {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* Due date + quick picks */
+.aq-due {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.aq .aq-due input[type="date"] {
+  width: 180px;
+  color-scheme: dark;
+}
+.aq-quick {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.aq-quick:hover {
+  color: var(--cream);
+  border-color: #33405a;
+}
+.aq-quick.on {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+.aq-quick:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* Footer: XP na makukuha + buttons */
+.aq-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.aq-earn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.aq-earn .xp-pill {
+  padding: 4px 10px;
+  font-size: 12.5px;
+}
+.aq-btns {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+.aq-btns button {
+  min-width: 96px;
+  justify-content: center;
+}
+
+/* ---------- Feedback (Step 8b): star words, tags, counter, footer ---------- */
+.fb-rate {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+.fb-rate .stars {
+  margin-top: 0;
+}
+.fb-word {
+  font-size: 14px;
+  font-weight: 700;
+  color: #dcb33e;
+}
+.fb-word.dim {
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.field-label small {
+  margin-left: 4px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.fb-block {
+  margin-top: 26px;
+}
+.fb-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.fb-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid #343849;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c3c8d6;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    color 0.15s;
+}
+.fb-tag:hover {
+  border-color: #4a4f66;
+  color: #fff;
+}
+.fb-tag svg {
+  display: none;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fb-tag[aria-pressed="true"] {
+  border-color: rgba(198, 239, 46, 0.55);
+  background: rgba(198, 239, 46, 0.1);
+  color: var(--green);
+}
+.fb-tag[aria-pressed="true"] svg {
+  display: block;
+}
+.fb-tag:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+.fb-help {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.fb-count {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fb-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #2d3040;
+}
+.fb-foot small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.fb-foot small svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.feedback-form .fb-foot .btn-lime {
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .modal.aq {
+    padding: 20px 18px;
+  }
+  .aq .aq-due input[type="date"] {
+    width: 100%;
+  }
+  .aq-help > span:first-child {
+    display: none; /* walang Ctrl + Enter sa phone */
+  }
+  .aq-help {
+    justify-content: flex-end;
+  }
+}
+
+/* Empty board: "Clear search" nakatago kapag walang search/filter (dati natatalo ng display ng button) */
+.board-empty [hidden] {
+  display: none;
+}
+
+/* Card sa board: kita ang line breaks ng description (2 lines pa rin ang max) */
+.qcard .cap {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

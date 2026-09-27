@@ -177,7 +177,7 @@
             >
           </div>
           <p class="auth-note">
-            Your avatar shows on your player card in the Alex ▾ menu.
+            Your avatar shows on your player card in the top-right menu.
           </p>
         </section>
 
@@ -218,7 +218,7 @@
               <input
                 type="email"
                 id="email"
-                placeholder="alex@email.com"
+                placeholder="alex@gmail.com"
                 autocomplete="email"
                 required
               />
@@ -254,12 +254,16 @@
                 autocomplete="new-password"
                 required
                 minlength="8"
-              />
+              /><button
+                type="button"
+                class="show-btn"
+                aria-controls="confirm"
+                aria-pressed="false"
+              >
+                Show
+              </button>
             </div>
           </div>
-          <p class="auth-err" id="confirmErr" role="alert" hidden>
-            Those passwords do not match.
-          </p>
           <button class="btn-lime auth-submit" type="submit">
             Create free account
           </button>
