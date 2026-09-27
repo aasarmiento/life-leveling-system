@@ -69,7 +69,12 @@
     alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.01"/>',
   };
-  const TOAST_DEFAULT_ICON = { ok: "check", lv: "star", info: "info", err: "alert" };
+  const TOAST_DEFAULT_ICON = {
+    ok: "check",
+    lv: "star",
+    info: "info",
+    err: "alert",
+  };
   const svgIcon = (d) =>
     `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
   let toastEl = null;
@@ -108,7 +113,9 @@
     toastEl.setAttribute("role", tone === "err" ? "alert" : "status");
     toastEl.dataset.tone = tone;
     toastEl.querySelector(".qtoast-ico").innerHTML = svgIcon(
-      TOAST_ICON[icon] || TOAST_ICON[TOAST_DEFAULT_ICON[tone]] || TOAST_ICON.info,
+      TOAST_ICON[icon] ||
+        TOAST_ICON[TOAST_DEFAULT_ICON[tone]] ||
+        TOAST_ICON.info,
     );
     toastEl.querySelector(".qtoast-body b").textContent = title;
     const small = toastEl.querySelector(".qtoast-body span");
@@ -167,6 +174,13 @@
     );
     return;
   }
+  // Sign in / Create account habang naka-sign in na: diretso sa Quest Board
+  // (gaya ng GitHub / Notion). May maliit na toast doon kung bakit (?already=1).
+  if (signedIn && /\/(signin|create-account)\.html$/.test(location.pathname)) {
+    const next = new URLSearchParams(location.search).get("next");
+    location.replace(BASE + "pages/" + (GUARDED[next] || "tasks.html") + "?already=1");
+    return;
+  }
 
   // ---------- 2. HEADER STATE ----------
   if (signedIn) document.documentElement.classList.add("is-member");
@@ -202,6 +216,175 @@
   const STARTING_XP = IS_DEMO ? DEMO_XP : 0;
   // Para mabasa ng tasks.js (nauuna ang nav.js sa <head>)
   window.questifyAccount = { boardKey: BOARD_KEY, isDemo: IS_DEMO };
+
+  // Demo board: 16 sample quests + 1,450 XP (Level 12). Dito na ginagawa (hindi sa
+  // tasks.js lang) para pareho ang Tasks at Profile kahit alin ang unang buksan.
+  // Relative sa araw ngayon ang due dates, kaya laging may overdue at paparating.
+  window.questifyDemoBoard = function () {
+    const XP_BY_PRIORITY = { low: 10, medium: 20, high: 30 };
+    const pad = (n) => String(n).padStart(2, "0");
+    const isoFor = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const isoOffset = (days) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return isoFor(d);
+    };
+    const parseIso = (iso) => {
+      const [y, m, d] = iso.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    };
+    let nextId = 1;
+    const seedStart = Date.now() - 12 * 86400000;
+    const seed = (title, desc, cat, priority, dueInDays, status) => {
+      const n = nextId++;
+      const due = isoOffset(dueInDays);
+      const done = status === "done";
+      return {
+        id: "q" + n,
+        title,
+        desc,
+        cat,
+        priority,
+        status,
+        due,
+        earned: done ? XP_BY_PRIORITY[priority] : null,
+        completed: done ? parseIso(due).getTime() + 18 * 3600000 : null,
+        added: seedStart + n * 3 * 3600000,
+        rank: n,
+      };
+    };
+    const quests = [
+      seed(
+        "Send client proposal",
+        "Attach the PDF and hit send before noon.",
+        "work",
+        "high",
+        2,
+        "todo",
+      ),
+      seed(
+        "Inbox zero",
+        "Leave the work inbox at zero before you log off.",
+        "work",
+        "low",
+        -1,
+        "todo",
+      ),
+      seed(
+        "Draft weekly report",
+        "One page. What moved. What is next.",
+        "work",
+        "medium",
+        3,
+        "todo",
+      ),
+      seed(
+        "Outline lecture notes",
+        "Headings only — the full write-up can wait.",
+        "growth",
+        "medium",
+        4,
+        "todo",
+      ),
+      seed(
+        "Pack gym bag",
+        "Shoes, bottle, headphones. Night-before so morning is easy.",
+        "health",
+        "low",
+        0,
+        "todo",
+      ),
+      seed(
+        "Call the supplier",
+        "Confirm the Friday delivery window.",
+        "work",
+        "high",
+        5,
+        "todo",
+      ),
+      seed(
+        "Read 20 pages",
+        "Stay in the same book. Twenty real pages.",
+        "growth",
+        "medium",
+        -2,
+        "doing",
+      ),
+      seed(
+        "Refactor login form",
+        "Labels, errors, and the gold / lime buttons.",
+        "work",
+        "high",
+        1,
+        "doing",
+      ),
+      seed(
+        "30-min walk",
+        "Outside. Phone stays in a pocket.",
+        "health",
+        "medium",
+        0,
+        "doing",
+      ),
+      seed(
+        "Watch one course module",
+        "One module, notes in the same sitting.",
+        "growth",
+        "medium",
+        2,
+        "doing",
+      ),
+      seed(
+        "45-min run",
+        "Easy pace. It counted.",
+        "health",
+        "medium",
+        -1,
+        "done",
+      ),
+      seed(
+        "Morning stretch",
+        "Ten minutes before the first meeting.",
+        "health",
+        "low",
+        -2,
+        "done",
+      ),
+      seed(
+        "Ship slide deck",
+        "Sent. Not perfect. Sent.",
+        "work",
+        "high",
+        -3,
+        "done",
+      ),
+      seed(
+        "Journal half a page",
+        "What actually happened today.",
+        "growth",
+        "low",
+        -3,
+        "done",
+      ),
+      seed(
+        "Water plants / walk",
+        "Two minutes. Then a loop around the block.",
+        "health",
+        "low",
+        -4,
+        "done",
+      ),
+      seed(
+        "Plan next week",
+        "Pick the top three quests.",
+        "work",
+        "medium",
+        -5,
+        "done",
+      ),
+    ];
+    return { quests, xp: [{ id: null, xp: DEMO_XP }], nextId };
+  };
 
     window.questifyDebugShowRankUp = showRankUp; // TEMP: para lang sa testing, tanggalin bago i-launch
 
@@ -279,7 +462,10 @@
   //   type 'overdue' = lumampas na sa due date (isa lang bawat quest)
   // Para magdagdag ng bagong klase: bagong type + icon sa NOTIF_STYLE, tapos
   // tawagin ang addNotif({...}) kung saan nangyari yung event.
-   const NOTIF_STYLE = {
+  const NOTIF_KEY = "questify.notifs" + SUFFIX; // bawat account may sarili
+  const NOTIF_MAX = 20;
+  const OVERDUE_SEEN_KEY = "questify.notifs.overdueSeen" + SUFFIX;
+  const NOTIF_STYLE = {
     done: {
       tone: "lime",
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
@@ -288,9 +474,10 @@
       tone: "gold",
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
     },
+    // Bagong rank (Novice → Apprentice → Adventurer → Veteran → Master)
     rankup: {
-      tone: "lime",
-      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+      tone: "teal",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l3 6 6 .9-4.5 4.3 1 6.3L12 17.5 6.5 20.5l1-6.3L3 9.9 9 9z"/><path d="M12 8v5"/></svg>',
     },
     overdue: {
       tone: "red",
@@ -325,7 +512,11 @@
         text: `${m[1]} ${n.text.replace(/^Was/, "was")}.`,
       });
     }
-    if (n.type === "levelup" && (m = /Level (\d+)/.exec(n.title)) && /^Level up!/.test(n.title)) {
+    if (
+      n.type === "levelup" &&
+      (m = /Level (\d+)/.exec(n.title)) &&
+      /^Level up!/.test(n.title)
+    ) {
       const rank = n.text.replace(/^New rank: /, "");
       return Object.assign({}, n, {
         title: `Level ${m[1]} reached`,
@@ -339,7 +530,7 @@
   }
 
   // Label sa maliit na chip ng bawat notification
-    const NOTIF_CHIP = { done: "Quest", levelup: "Level up", rankup: "Rank up", overdue: "Overdue" };
+  const NOTIF_CHIP = { done: "Quest", levelup: "Level up", rankup: "Rank up", overdue: "Overdue" };
 
   function timeAgo(ms) {
     const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
@@ -533,14 +724,10 @@
         acctBtn.classList.add("xp-bump");
       }
 
-      // Rank up lang (hindi rank down, hal. galing sa Undo done)
+      // Rank up lang (hindi rank down, hal. galing sa Undo done).
+      // Popup lang dito; ang "Rank up" notification ay nasa questify:quest-done sa baba.
       if (rankName !== currentRank && RANK_INDEX(rankName) > RANK_INDEX(currentRank)) {
         showRankUp(rankName, t);
-        addNotif({
-          type: "rankup",
-          title: `New rank: ${rankName}`,
-          text: `You're now ${withArticle(rankName)}. ${toNext(t)} XP to Level ${levelFor(t) + 1}.`,
-        });
       }
       currentRank = rankName;
     });
@@ -562,7 +749,9 @@
           const id = item.dataset.openQuest;
           saveNotifs(
             loadNotifs().map((n) =>
-              n.id === item.dataset.notifId ? Object.assign(n, { read: true }) : n,
+              n.id === item.dataset.notifId
+                ? Object.assign(n, { read: true })
+                : n,
             ),
           );
           paintNotifs();
@@ -601,7 +790,8 @@
     }
 
     // "a Master" / "an Adventurer"
-    const withArticle = (word) => (/^[aeiou]/i.test(word) ? "an " : "a ") + word;
+    const withArticle = (word) =>
+      (/^[aeiou]/i.test(word) ? "an " : "a ") + word;
 
     document.addEventListener("questify:quest-done", (e) => {
       const d = e.detail;
@@ -611,13 +801,26 @@
         title: "Quest completed",
         text: `${d.title} · +${d.xp} XP added to your total.`,
       });
+      const total = savedXp();
       if (d.leveledUp) {
-        const total = savedXp();
         addNotif({
           type: "levelup",
           quest: d.id,
           title: `Level ${d.level} reached`,
-          text: `You're now ${withArticle(rankFor(total))}. ${toNext(total)} XP to Level ${d.level + 1}.`,
+          text: `Keep going: ${toNext(total)} XP to Level ${d.level + 1}.`,
+        });
+      }
+      // Umakyat din ba ng rank? (hal. 300 XP = Adventurer)
+      const rankNow = rankFor(total);
+      if (rankFor(total - d.xp) !== rankNow) {
+        const next = RANKS.find((r) => r.xp > total);
+        addNotif({
+          type: "rankup",
+          quest: d.id,
+          title: `New rank: ${rankNow}`,
+          text: next
+            ? `You're now ${withArticle(rankNow)}. Next: ${next.name} at ${next.xp.toLocaleString("en-US")} XP.`
+            : "You reached the top rank. Well played.",
         });
       }
     });
@@ -655,6 +858,39 @@
           JSON.stringify(seen.concat(fresh.map((q) => q.id))),
         );
     });
+  }
+
+  // Tasks: galing sa Sign in / Create account pero naka-sign in na (tingnan ang GUARD)
+  function alreadySignedInToast() {
+    const url = new URL(location.href);
+    if (!url.searchParams.has("already")) return;
+    url.searchParams.delete("already");
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+    // setTimeout: pagkatapos ng ibang toast sa pagbukas (hal. "overdue" ng Tasks),
+    // kasi ito ang paliwanag kung bakit sila napunta rito
+    setTimeout(() =>
+      window.questifyToast({
+        tone: "info",
+        title: `You're already signed in as ${ME.name}`,
+        text: "To use another account, sign out from the menu at the top right first.",
+      }),
+    );
+  }
+
+  // Home: kapag naka-sign in, ang "Create free account" sa baba ay nagiging
+  // "Open your Quest Board" (JS lang, hindi ginalaw ang HTML ng Home)
+  function memberFinalCta() {
+    const cta = document.querySelector(".final-cta");
+    if (!cta || !signedIn) return;
+    const title = cta.querySelector("h2");
+    const btn = cta.querySelector(".btn-primary");
+    const note = cta.querySelector(".cta-note");
+    if (title) title.innerHTML = "Ready for today’s<br>quests?";
+    if (btn) {
+      btn.href = BASE + "pages/tasks.html";
+      btn.textContent = "Open your Quest Board";
+    }
+    if (note) note.textContent = `Pick up where you left off, ${ME.name.split(" ")[0]}.`;
   }
 
   // Home: maliit na toast pagkatapos mag-Sign out
@@ -802,7 +1038,11 @@
             return;
           }
         }
-        savePlayer({ name: player.name, email: player.email, avatar: player.avatar });
+        savePlayer({
+          name: player.name,
+          email: player.email,
+          avatar: player.avatar,
+        });
         write(SIGNED_IN_KEY, "1");
         location.href = target;
       } finally {
@@ -899,8 +1139,7 @@
       (input.closest(".in-wrap") || input).after(p);
     }
     p.innerHTML =
-      svgIcon(TOAST_ICON.alert) +
-      `<span>${allowLink ? msg : esc(msg)}</span>`;
+      svgIcon(TOAST_ICON.alert) + `<span>${allowLink ? msg : esc(msg)}</span>`;
     input.setAttribute("aria-describedby", p.id);
   }
 
@@ -922,9 +1161,210 @@
 
   // Hintayin munang ma-load yung HTML bago galawin ang header at forms.
   // (Nauuna 'to sa tasks.js, kaya andyan na ang player card pag nag-start ang Tasks.)
+  // =====================================================================
+  // BACKGROUND MUSIC (lahat ng page, kasama Sign in at Create account)
+  // - Tumutugtog pagka-click o pindot mo sa page (bawal sa browser ang tunog
+  //   bago ka mag-interact), maliban kung pinatay mo na ito dati.
+  // - Tuloy-tuloy paglipat ng page: tinatandaan kung nasaan na yung kanta.
+  // - Hover (o keyboard focus) sa button = volume slider sa kaliwa.
+  // - Walang music HTML sa ibang page, kaya dito ginagawa yung audio at button.
+  // =====================================================================
+  const MUSIC_KEY = "questify.music"; // localStorage: { off, volume }
+  const MUSIC_TIME_KEY = "questify.music.time"; // sessionStorage: nasaan na yung kanta
+
+  function setupMusic() {
+    let prefs = {};
+    try {
+      prefs = JSON.parse(read(MUSIC_KEY)) || {};
+    } catch (err) {
+      prefs = {};
+    }
+    const savePrefs = () => write(MUSIC_KEY, JSON.stringify(prefs));
+
+    let audio = document.getElementById("bg-music");
+    let btn = document.getElementById("music-toggle");
+    if (!audio) {
+      audio = document.createElement("audio");
+      audio.id = "bg-music";
+      audio.loop = true;
+      audio.preload = "auto";
+      audio.src = BASE + "assets/audio/bg-music.mp3";
+      document.body.appendChild(audio);
+    }
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "music-toggle";
+      btn.className = "music-btn";
+      btn.innerHTML =
+        '<svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>' +
+        '<svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+      document.body.appendChild(btn);
+    }
+    btn.setAttribute("aria-label", "Background music");
+
+    // Button + volume slider sa iisang lalagyan (para hindi mawala ang hover sa pagitan)
+    const ctl = document.createElement("div");
+    ctl.className = "music-ctl";
+    btn.before(ctl);
+    ctl.appendChild(btn);
+    ctl.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="music-pop"><div class="music-pop-in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+        <input type="range" id="musicVolume" min="0" max="100" step="5" aria-label="Music volume">
+        <span class="music-pct" aria-hidden="true"></span>
+      </div></div>`,
+    );
+    const slider = ctl.querySelector("#musicVolume");
+    const pct = ctl.querySelector(".music-pct");
+
+    const vol = Number(prefs.volume);
+    audio.volume = Number.isFinite(vol) && vol >= 0 && vol <= 1 ? vol : 0.6;
+
+    function showVolume() {
+      const p = Math.round(audio.volume * 100);
+      slider.value = p;
+      slider.style.setProperty("--v", p + "%");
+      slider.setAttribute("aria-valuetext", p + " percent");
+      pct.textContent = p + "%";
+    }
+    function showOn(on) {
+      btn.setAttribute("aria-pressed", String(on));
+      btn.title = on ? "Pause music" : "Play music";
+    }
+    function saveTime() {
+      try {
+        sessionStorage.setItem(MUSIC_TIME_KEY, String(audio.currentTime || 0));
+      } catch (err) {
+        /* okay lang */
+      }
+    }
+    async function play() {
+      if (audio.volume === 0) {
+        audio.volume = 0.6;
+        showVolume();
+      }
+      try {
+        await audio.play();
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+    // Pinatay mo = tatandaan (hindi na tutugtog kahit mag-click ka sa page)
+    function turnOff() {
+      prefs.off = true;
+      savePrefs();
+      audio.pause();
+    }
+    function turnOn() {
+      prefs.off = false;
+      savePrefs();
+      play();
+    }
+
+    audio.addEventListener("play", () => showOn(true));
+    audio.addEventListener("pause", () => showOn(false));
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (audio.paused) turnOn();
+      else turnOff();
+    });
+
+    slider.addEventListener("input", () => {
+      audio.volume = slider.value / 100;
+      prefs.volume = audio.volume;
+      savePrefs();
+      showVolume();
+      // Tinaas ang volume habang naka-off = gusto nang marinig. Sa 0 = patay.
+      if (audio.volume > 0 && audio.paused) turnOn();
+      if (audio.volume === 0 && !audio.paused) turnOff();
+    });
+
+    window.addEventListener("pagehide", saveTime);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") saveTime();
+    });
+
+    showVolume();
+    showOn(false);
+    if (prefs.off) return; // pinatay dati: hintayin na lang na i-on ulit
+
+    // Bawal ng browser ang tunog bago mag-interact, kaya tutugtog sa unang
+    // click o pindot sa page (hindi sa music button mismo, siya na ang bahala doon).
+    const onFirst = (e) => {
+      if (ctl.contains(e.target)) return;
+      stopWaiting();
+      if (!prefs.off && audio.paused) play();
+    };
+    const stopWaiting = () => {
+      document.removeEventListener("pointerdown", onFirst, true);
+      document.removeEventListener("keydown", onFirst, true);
+    };
+    document.addEventListener("pointerdown", onFirst, true);
+    document.addEventListener("keydown", onFirst, true);
+    audio.addEventListener("play", stopWaiting, { once: true });
+
+    // Ituloy kung saan huminto sa kabilang page (kung papayagan ng browser, agad)
+    const start = () => {
+      let t = 0;
+      try {
+        t = Number(sessionStorage.getItem(MUSIC_TIME_KEY)) || 0;
+      } catch (err) {
+        t = 0;
+      }
+      if (t > 0) audio.currentTime = t;
+      if (t > 0) play();
+    };
+    if (audio.readyState >= 1) start();
+    else audio.addEventListener("loadedmetadata", start, { once: true });
+  }
+
+  // ---------- CUSTOM CURSOR (Cursorly, galing kay Abigail) ----------
+  // Nandito (hindi sa app.js) para gumana sa lahat ng page, kasama Tasks at Profile.
+  // Kailangan ng <script src=".../cursorly.min.js"> sa <head> ng page.
+  // Kung hindi nag-load (hal. offline), normal na cursor lang at tuloy ang site.
+  function setupCursor() {
+    if (!window.Cursorly) return;
+    try {
+      const cur = window.Cursorly.init({
+        cursor: 23, // index ng cursor icon
+        effect: { name: "trail", color: "rainbow" },
+      });
+      // 1) Tama ang turo: naka-GITNA sa mouse ang drawing ng Cursorly (24px), pero ang
+      //    dulo ng daliri ay nasa ~(8, 3) ng image. Kaya inuusog ang drawing para ang
+      //    dulo ng daliri mismo ang nasa totoong puwesto ng mouse (click, highlight).
+      const SIZE = 24;
+      const TIP = { x: 8, y: 3 };
+      if (cur && cur.mouse) {
+        window.addEventListener("mousemove", (e) => {
+          cur.mouse.x = e.clientX + SIZE / 2 - TIP.x;
+          cur.mouse.y = e.clientY + SIZE / 2 - TIP.y;
+        });
+      }
+      // 2) Walang stretch: kasing-laki ng window ang canvas (kasama ang scrollbar),
+      //    pareho ng sukat na ginagamit ng Cursorly sa pag-drawing
+      if (cur && cur.canvas) {
+        cur.canvas.style.width = "100vw";
+        cur.canvas.style.height = "100vh";
+      }
+      // Para sa CSS: itago ang cursor ng Windows sa lahat (pati buttons at links),
+      // kung hindi may dalawang cursor sa ibabaw ng mga pinipindot
+      document.documentElement.classList.add("has-custom-cursor");
+    } catch (err) {
+      /* okay lang: normal na cursor */
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    setupMusic();
+    setupCursor();
     setupHeader();
     setupAuthForm();
     signedOutToast();
+    alreadySignedInToast();
+    memberFinalCta();
   });
 })();

@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const DRAG_THRESHOLD = 6;
   const LONG_PRESS_MS = 350;
   // Pinakahuling puwedeng due date (para walang year 20260 na mali ang type)
-  const MAX_DUE = "2099-12-31";
+  // (Ang pinakamalayong due date = 1 taon mula ngayon; tingnan ang maxDue() sa baba.)
   // Ilang card lang ang pinapakita per column bago lumabas yung "Show all".
   const COLUMN_LIMIT = 10;
   // Pangalan ng save sa localStorage. Binabasa rin 'to ng js/nav.js para sa Level
@@ -99,9 +99,17 @@ document.addEventListener("DOMContentLoaded", function () {
     return new Date(y, m - 1, d);
   }
 
+  // Laging may taon, hal. "Oct 05, 2026" (para malinaw kung kailan)
   function shortDate(iso) {
     const d = parseIso(iso);
-    return MONTHS[d.getMonth()] + " " + pad(d.getDate());
+    return MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear();
+  }
+
+  // Pinakamalayong puwedeng due date: 1 taon mula ngayon (parang 1-year planner)
+  function maxDue() {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return isoFor(d);
   }
 
   function longDate(date) {
@@ -110,9 +118,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function doneLabel(ms) {
     const iso = isoFor(new Date(ms));
-    if (iso === todayIso()) return "Done today";
-    if (iso === isoOffset(-1)) return "Done yesterday";
-    return "Done " + shortDate(iso);
+    if (iso === todayIso()) return "Completed today";
+    if (iso === isoOffset(-1)) return "Completed yesterday";
+    return "Completed " + shortDate(iso);
+  }
+
+  // Petsa lang para sa Done card (nasa ilalim na ang "Completed"): "Today", "Yesterday", "Sep 25, 2026"
+  function doneDay(ms) {
+    const iso = isoFor(new Date(ms));
+    if (iso === todayIso()) return "Today";
+    if (iso === isoOffset(-1)) return "Yesterday";
+    return shortDate(iso);
   }
 
   const isOverdue = (q) => q.status !== "done" && !!q.due && q.due < todayIso();
@@ -121,165 +137,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let nextId = 1;
 
-  // Sample quests para sa first visit. Relative sa araw ngayon yung due dates,
-  // kaya laging may ilang overdue at ilang paparating pa lang.
+  // Sample quests ng demo: nasa nav.js na (window.questifyDemoBoard), para pareho
+  // ang Tasks at Profile kahit alin ang unang buksan.
   function sampleQuests() {
-    nextId = 1;
-    const seedStart = Date.now() - 12 * 86400000;
-    const seed = (title, desc, cat, priority, dueInDays, status) => {
-      const n = nextId++;
-      const due = isoOffset(dueInDays);
-      const done = status === "done";
-      return {
-        id: "q" + n,
-        title,
-        desc,
-        cat,
-        priority,
-        status,
-        due,
-        earned: done ? XP_BY_PRIORITY[priority] : null,
-        completed: done ? parseIso(due).getTime() + 18 * 3600000 : null,
-        added: seedStart + n * 3 * 3600000,
-        rank: n,
-      };
-    };
-    return [
-      seed(
-        "Send client proposal",
-        "Attach the PDF and hit send before noon.",
-        "work",
-        "high",
-        2,
-        "todo",
-      ),
-      seed(
-        "Inbox zero",
-        "Leave the work inbox at zero before you log off.",
-        "work",
-        "low",
-        -1,
-        "todo",
-      ),
-      seed(
-        "Draft weekly report",
-        "One page. What moved. What is next.",
-        "work",
-        "medium",
-        3,
-        "todo",
-      ),
-      seed(
-        "Outline lecture notes",
-        "Headings only — the full write-up can wait.",
-        "growth",
-        "medium",
-        4,
-        "todo",
-      ),
-      seed(
-        "Pack gym bag",
-        "Shoes, bottle, headphones. Night-before so morning is easy.",
-        "health",
-        "low",
-        0,
-        "todo",
-      ),
-      seed(
-        "Call the supplier",
-        "Confirm the Friday delivery window.",
-        "work",
-        "high",
-        5,
-        "todo",
-      ),
-      seed(
-        "Read 20 pages",
-        "Stay in the same book. Twenty real pages.",
-        "growth",
-        "medium",
-        -2,
-        "doing",
-      ),
-      seed(
-        "Refactor login form",
-        "Labels, errors, and the gold / lime buttons.",
-        "work",
-        "high",
-        1,
-        "doing",
-      ),
-      seed(
-        "30-min walk",
-        "Outside. Phone stays in a pocket.",
-        "health",
-        "medium",
-        0,
-        "doing",
-      ),
-      seed(
-        "Watch one course module",
-        "One module, notes in the same sitting.",
-        "growth",
-        "medium",
-        2,
-        "doing",
-      ),
-      seed(
-        "45-min run",
-        "Easy pace. It counted.",
-        "health",
-        "medium",
-        -1,
-        "done",
-      ),
-      seed(
-        "Morning stretch",
-        "Ten minutes before the first meeting.",
-        "health",
-        "low",
-        -2,
-        "done",
-      ),
-      seed(
-        "Ship slide deck",
-        "Sent. Not perfect. Sent.",
-        "work",
-        "high",
-        -3,
-        "done",
-      ),
-      seed(
-        "Journal half a page",
-        "What actually happened today.",
-        "growth",
-        "low",
-        -3,
-        "done",
-      ),
-      seed(
-        "Water plants / walk",
-        "Two minutes. Then a loop around the block.",
-        "health",
-        "low",
-        -4,
-        "done",
-      ),
-      seed(
-        "Plan next week",
-        "Pick the top three quests.",
-        "work",
-        "medium",
-        -5,
-        "done",
-      ),
-    ];
+    const demo = window.questifyDemoBoard();
+    nextId = demo.nextId;
+    return demo.quests;
   }
 
   // XP ledger = listahan ng lahat ng nakuhang XP. Pag nag-delete ng quest, hindi
   // nababawas yung XP. Yung Undo lang pagkatapos ng "Mark done" ang nagbabawas.
   // Demo: nagsisimula sa 1,450 XP (Level 12). Bagong account: 0 XP (Level 1).
-  const startingXp = () => (ACCOUNT.isDemo ? [{ id: null, xp: STARTING_XP }] : []);
+  const startingXp = () =>
+    ACCOUNT.isDemo ? [{ id: null, xp: STARTING_XP }] : [];
 
   // ---------- saving (localStorage = maliit na storage ng browser) ----------
 
@@ -386,6 +256,34 @@ document.addEventListener("DOMContentLoaded", function () {
   const levelNum = $("levelNum");
   const levelXp = $("levelXp");
   const levelFill = $("levelFill");
+  // Level card sa taas ng board (pareho ng player card, live din)
+  const bLevel = $("bLevel");
+  const bRank = $("bRank");
+  const bXp = $("bXp");
+  const bFill = $("bFill");
+  const bNext = $("bNext");
+  const RANKS = [
+    { name: "Novice", xp: 0 },
+    { name: "Apprentice", xp: 100 },
+    { name: "Adventurer", xp: 300 },
+    { name: "Veteran", xp: 700 },
+    { name: "Master", xp: 1500 },
+  ];
+  const rankFor = (t) => RANKS.filter((r) => t >= r.xp).pop().name;
+  // Pangalan at avatar sa player strip (galing sa naka-sign in na player)
+  (function fillPlayerStrip() {
+    let p = {};
+    try {
+      p = JSON.parse(localStorage.getItem("questify.player")) || {};
+    } catch (err) {
+      p = {};
+    }
+    const name = $("bName");
+    const avatar = $("bAvatar");
+    if (name) name.textContent = p.name || "Alex Rivera";
+    if (avatar)
+      avatar.src = `../assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+  })();
 
   const questModal = $("questModal");
   const questForm = $("questForm");
@@ -593,10 +491,10 @@ document.addEventListener("DOMContentLoaded", function () {
         ${q.desc ? `<p class="cap">${esc(q.desc)}</p>` : ""}
         <div class="meta">
           <span class="chip chip-${q.cat}">${CATEGORY_LABEL[q.cat]}</span>
-          <span class="xp earned">+${q.earned} XP earned</span>
-          <span class="due">${doneLabel(q.completed)}</span>
+          <span class="xp earned">+${q.earned} XP</span>
+          <span class="due done-when"><span class="sr-only">Completed </span>${doneDay(q.completed)}</span>
         </div>
-        <div class="qactions"><span class="done-label">Completed</span></div>
+        <div class="qactions done-row" aria-hidden="true"><span class="done-tag">Completed</span></div>
       </article>`;
   }
 
@@ -672,8 +570,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (highlight) revealInList(highlight);
     updateFades();
+    paintStreak();
     saveBoard();
     if (before) play(before, highlight);
+  }
+
+  // Streak sa player strip: ilang sunod-sunod na araw (hanggang ngayon o kahapon)
+  // na may natapos na quest. Parehong bilang ng "Day streak" sa Profile.
+  let lastStreak = null;
+  function paintStreak() {
+    const el = $("bStreak");
+    if (!el) return;
+    const days = new Set(
+      quests
+        .filter((q) => q.status === "done" && typeof q.completed === "number")
+        .map((q) => isoFor(new Date(q.completed))),
+    );
+    const d = new Date();
+    if (!days.has(isoFor(d))) d.setDate(d.getDate() - 1); // hindi pa putol kung kahapon ang huli
+    let n = 0;
+    while (days.has(isoFor(d))) {
+      n++;
+      d.setDate(d.getDate() - 1);
+    }
+    const text = `${n} day${n === 1 ? "" : "s"}`;
+    // "pop" lang kapag tumaas (hindi sa pagbukas ng page)
+    if (lastStreak !== null && n > lastStreak) restartAnimation(el, "pop");
+    lastStreak = n;
+    $("bStreakText").textContent = text;
+    el.classList.toggle("off", n === 0);
+    el.setAttribute("aria-label", `Day streak: ${text}`);
   }
 
   // I-scroll yung list ng column (hindi yung buong page) para kita yung card na kakalipat lang.
@@ -822,12 +748,18 @@ document.addEventListener("DOMContentLoaded", function () {
     el.style.opacity = "0";
 
     const anim = copy.animate(keyframes, timing);
+    let cleaned = false;
     const done = () => {
+      if (cleaned) return;
+      cleaned = true;
       copy.remove();
       el.style.opacity = "";
     };
     anim.onfinish = done;
     anim.oncancel = done;
+    // Pananggalang: kapag naka-background ang tab, hindi dumarating ang "finish",
+    // kaya timer din ang nag-aalis ng kopya (walang naiiwan sa page)
+    setTimeout(done, timing.duration + 250);
   }
 
   function focusCard(id, target = "action") {
@@ -851,12 +783,15 @@ document.addEventListener("DOMContentLoaded", function () {
   let pillXp = 0; // what the pill's XP text says right now
 
   function setFill(pct, animate = true) {
-    if (!animate) levelFill.style.transition = "none";
-    levelFill.style.width = pct + "%";
-    if (!animate) {
-      void levelFill.offsetWidth;
-      levelFill.style.transition = "";
-    }
+    [levelFill, bFill].forEach((fill) => {
+      if (!fill) return;
+      if (!animate) fill.style.transition = "none";
+      fill.style.width = pct + "%";
+      if (!animate) {
+        void fill.offsetWidth;
+        fill.style.transition = "";
+      }
+    });
   }
 
   // Pinapatakbo yung numero ng XP (hal. 1,450 → 1,470), gaya ng demo sa Home.
@@ -868,6 +803,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const p = Math.min(1, (now - start) / 450);
       pillXp = Math.round(from + (to - from) * p);
       levelXp.textContent = xpLabel(pillXp);
+      if (bXp) bXp.textContent = xpLabel(pillXp);
       if (p < 1) countFrame = requestAnimationFrame(step);
     })(start);
   }
@@ -882,6 +818,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelNum.textContent = "Level " + level;
     levelPill.dataset.level = level;
+    if (bLevel) {
+      bLevel.textContent = "Level " + level;
+      bRank.textContent = rankFor(total);
+      bNext.textContent = `${XP_PER_LEVEL - (total % XP_PER_LEVEL)} XP to Level ${level + 1}`;
+      if (!change || reduceMotion.matches) bXp.textContent = xpLabel(total);
+    }
     // Sabihan ang header (nav.js) para ma-update ang rank at "XP to Level"
     document.dispatchEvent(
       new CustomEvent("questify:xp", { detail: { total, level, change } }),
@@ -906,6 +848,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setFill(pct);
       }, 600);
       restartAnimation(levelNum, "pop");
+      if (bLevel) restartAnimation(bLevel, "pop");
     } else if (level < prevLevel) {
       // Undo na nagpababa ng level: ubusin yung bar, tapos ipakita ulit yung laman ng dating level.
       setFill(0);
@@ -914,6 +857,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setFill(pct);
       }, 600);
       restartAnimation(levelNum, "pop");
+      if (bLevel) restartAnimation(bLevel, "pop");
     } else {
       setFill(pct);
     }
@@ -949,20 +893,17 @@ function completeQuest(q) {
   const levelNow = Number(levelPill.dataset.level);
   const leveledUp = levelNow > levelBefore;
   const toNext = XP_PER_LEVEL - (totalXp() % XP_PER_LEVEL);
+  const rankedUp = rankFor(totalXp()) !== rankFor(totalXp() - q.earned);
 
-  showToast(
-    leveledUp
-      ? {
-          tone: "lv",
-          title: `Level ${levelNow} reached`,
-          text: `${q.title} · +${q.earned} XP`,
-        }
-      : {
-          tone: "ok",
-          title: `+${q.earned} XP — Level up in ${toNext} XP!`,
-          text: q.title,
-        },
-  );
+  // Level up / rank up = may popup na (Level Up dito, Rank Up sa nav.js), kaya walang toast.
+  // Toast lang para sa karaniwang quest.
+  if (!leveledUp && !rankedUp) {
+    showToast({
+      tone: "ok",
+      title: `+${q.earned} XP — Level up in ${toNext} XP!`,
+      text: q.title,
+    });
+  }
   announce(
     `Completed "${q.title}". Plus ${q.earned} XP.${leveledUp ? ` Level ${levelNow}!` : ""} You can undo it from the quest's menu.`,
   );
@@ -1039,7 +980,7 @@ function completeQuest(q) {
         ? {
             tone: "err",
             title: "Quest Overdue",
-            title: `${list.length} quests have failed`,
+            text: `${list[0].title} was due ${shortDate(list[0].due)}.`,
             announce: true, // walang announce() dito, kaya ang toast ang magsasabi
           }
         : {
@@ -1094,14 +1035,31 @@ function completeQuest(q) {
     menu.hidden = false;
     kebab.setAttribute("aria-expanded", "true");
     kebab.closest(".qcard").classList.add("menu-open");
-    openMenu = { kebab, menu };
-    menu.querySelector('[role="menuitem"]').focus();
+    const list = menu.closest(".col-scroll");
+    openMenu = { kebab, menu, list };
+    fitMenu(menu, list);
+    menu.querySelector('[role="menuitem"]').focus({ preventScroll: true });
+  }
+
+  // Hindi mapuputol ang menu kahit iisa lang ang card (o nasa dulo ng listahan):
+  // dinadagdagan saglit ang puwang sa baba ng column, tapos sini-scroll para kita.
+  function fitMenu(menu, list) {
+    if (!list) return;
+    // Tapusin muna ang galaw ng card (hal. kaka-filter lang) para tama ang sukat
+    menu.closest(".qcard").getAnimations().forEach((a) => a.finish());
+    const over = menu.getBoundingClientRect().bottom - list.getBoundingClientRect().bottom + 12;
+    if (over > 0) {
+      const base = parseFloat(getComputedStyle(list).paddingBottom) || 0;
+      list.style.paddingBottom = base + over + "px";
+    }
+    menu.scrollIntoView({ block: "nearest" });
   }
 
   function closeMenu({ returnFocus = false } = {}) {
     if (!openMenu) return;
-    const { kebab, menu } = openMenu;
+    const { kebab, menu, list } = openMenu;
     openMenu = null;
+    if (list) list.style.paddingBottom = "";
     menu.hidden = true;
     kebab.setAttribute("aria-expanded", "false");
     const card = kebab.closest(".qcard");
@@ -1547,8 +1505,6 @@ function hideRankup() {
 
 if (rankupModal) rankupModal.addEventListener("click", hideRankup);
 
-rankupModal.addEventListener("click", hideRankup);
-
   // ---------- dialogs (popups: Add/Edit, Details, Delete) ----------
 
   let activeModal = null;
@@ -1655,7 +1611,8 @@ rankupModal.addEventListener("click", hideRankup);
   }
 
   function updateXpReadout(bump) {
-    qXp.textContent = "+" + XP_BY_PRIORITY[getChoice("qPriority") || "medium"] + " XP";
+    qXp.textContent =
+      "+" + XP_BY_PRIORITY[getChoice("qPriority") || "medium"] + " XP";
     if (bump && !reduceMotion.matches) restartAnimation(qXp, "bump");
   }
 
@@ -1670,6 +1627,7 @@ rankupModal.addEventListener("click", hideRankup);
   }
   // Naka-highlight yung "Today / Tomorrow / Next week" kung yun ang petsa
   function syncQuickDue() {
+    syncDueButton();
     quickDue.forEach((b) => {
       const on = qDue.value === isoOffset(Number(b.dataset.due));
       b.classList.toggle("on", on);
@@ -1683,18 +1641,23 @@ rankupModal.addEventListener("click", hideRankup);
     qSubmit.textContent = q ? "Save changes" : "Add quest";
     qTitle.value = q ? q.title : "";
     qDesc.value = q ? q.desc : "";
-    setChoice("qCat", q ? q.cat : state.filter !== "all" ? state.filter : "work");
+    setChoice(
+      "qCat",
+      q ? q.cat : state.filter !== "all" ? state.filter : "work",
+    );
     setChoice("qPriority", q ? q.priority : "medium");
     qDue.value = q ? q.due : todayIso();
     // Bawal pumili ng lumang petsa. Pero kung luma na ang due date ng ine-edit,
     // puwede pa rin itong iwan (yun lang, hindi ibang lumang petsa).
     qDue.min = q && q.due && q.due < todayIso() ? q.due : todayIso();
-    qDue.max = MAX_DUE;
+    // Kung lampas na sa 1 taon ang due date ng ine-edit (lumang data), puwede pa ring iwan
+    qDue.max = q && q.due && q.due > maxDue() ? q.due : maxDue();
     showDueError(null);
     showTitleError(false);
     updateXpReadout(false);
     updateCounts();
     syncQuickDue();
+    closeCal(false);
     openModal(questModal, qTitle, returnEl);
     growDesc(); // pagkatapos lumabas, para tama ang sukat
   }
@@ -1703,22 +1666,22 @@ rankupModal.addEventListener("click", hideRankup);
     qDueErr.textContent = msg || "";
     qDueErr.classList.toggle("show", !!msg);
     qDue.setAttribute("aria-invalid", msg ? "true" : "false");
+    dueBtn.setAttribute("aria-invalid", msg ? "true" : "false");
   }
 
   // null = okay ang petsa; kung hindi, yung error message
   function dueProblem(due) {
-    if (!due) return null; // puwedeng walang due date
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(due) || due > MAX_DUE)
-      return "Pick a date before 2100.";
+    if (!due) return "Pick a due date."; // kailangan ng petsa ang bawat quest
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return "Pick a valid date.";
     const keepingOld = editing && due === editing.due;
-    if (due < todayIso() && !keepingOld)
-      return "Pick today or a later date.";
+    if (due < todayIso() && !keepingOld) return "Pick today or a later date.";
+    if (due > maxDue() && !keepingOld) return "Pick a date within the next year.";
     return null;
   }
 
-  questForm.querySelectorAll('input[name="qPriority"]').forEach((r) =>
-    r.addEventListener("change", () => updateXpReadout(true)),
-  );
+  questForm
+    .querySelectorAll('input[name="qPriority"]')
+    .forEach((r) => r.addEventListener("change", () => updateXpReadout(true)));
   qTitle.addEventListener("input", () => {
     if (qTitle.value.trim()) showTitleError(false);
     updateCounts();
@@ -1746,6 +1709,219 @@ rankupModal.addEventListener("click", hideRankup);
     }),
   );
 
+  // ---------- calendar (sariling date picker, parang Asana / planner) ----------
+  // Button na may petsa → calendar na may ‹ › na arrows at mga araw. Pindutin ang
+  // "September 2026" = grid ng mga buwan (sariling gawa, hindi <select>, para
+  // gumana ang custom cursor at pareho ang itsura). Bawal ang lumang araw at
+  // lampas 1 taon. Keyboard: arrows = lipat, Enter = pili, Esc = balik / sara.
+  const dueBtn = $("qDueBtn");
+  const dueBtnText = $("qDueText");
+  const duePop = $("qDuePop");
+  const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  let viewY = 0;
+  let viewM = 0;
+  let pickMonth = false; // true = grid ng buwan ang nakikita
+  let pickYear = 0; // taon na pinapakita sa grid ng buwan
+  const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+
+  function dueLabel(iso) {
+    if (!iso) return "Pick a date";
+    const d = parseIso(iso);
+    return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+  function syncDueButton() {
+    dueBtnText.textContent = dueLabel(qDue.value);
+    dueBtn.classList.toggle("empty", !qDue.value);
+  }
+  function dueAllowed(iso) {
+    if (editing && iso === editing.due) return true; // lumang petsa ng ine-edit
+    return iso >= todayIso() && iso <= maxDue();
+  }
+  function setDue(iso) {
+    qDue.value = iso;
+    qDue.dispatchEvent(new Event("input"));
+    syncDueButton();
+  }
+
+  // Pinakauna at pinakahuling puwedeng buwan (bilang: taon * 12 + buwan)
+  const monthIndex = (y, m) => y * 12 + m;
+  function monthRange() {
+    const minD = parseIso(todayIso());
+    const maxD = parseIso(maxDue());
+    return {
+      lo: monthIndex(minD.getFullYear(), minD.getMonth()),
+      hi: monthIndex(maxD.getFullYear(), maxD.getMonth()),
+    };
+  }
+
+  function calHead(label, prevOff, nextOff) {
+    const unit = pickMonth ? "year" : "month";
+    return `
+      <div class="dp-head">
+        <button type="button" class="dp-nav" data-nav="-1" aria-label="Previous ${unit}"${prevOff ? " disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button type="button" class="dp-title" aria-expanded="${pickMonth}" aria-label="${pickMonth ? "Back to days" : "Choose month"}, ${label}">${label}${CHEVRON}</button>
+        <button type="button" class="dp-nav" data-nav="1" aria-label="Next ${unit}"${nextOff ? " disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>`;
+  }
+
+  function renderCal(focusIso) {
+    const { lo, hi } = monthRange();
+    const cur = monthIndex(viewY, viewM);
+
+    if (pickMonth) {
+      // Grid ng 12 buwan ng pickYear (abo ang hindi puwede)
+      let months = "";
+      for (let m = 0; m < 12; m++) {
+        const i = monthIndex(pickYear, m);
+        const cls = [i === lo ? "now" : "", i === cur ? "sel" : ""].join(" ").trim();
+        const ok = i >= lo && i <= hi;
+        months += `<button type="button" class="dp-mon ${cls}" data-month="${i}"${ok ? "" : " disabled"} tabindex="${i === focusIso ? 0 : -1}" aria-label="${MONTHS_LONG[m]} ${pickYear}"${i === cur ? ' aria-pressed="true"' : ""}>${MONTHS[m]}</button>`;
+      }
+      duePop.innerHTML =
+        calHead(String(pickYear), pickYear <= Math.floor(lo / 12), pickYear >= Math.floor(hi / 12)) +
+        `<div class="dp-months">${months}</div>`;
+      return;
+    }
+
+    const first = new Date(viewY, viewM, 1);
+    const today = todayIso();
+    let days = "";
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(viewY, viewM, 1 - first.getDay() + i);
+      const iso = isoFor(d);
+      const cls = [
+        d.getMonth() !== viewM ? "out" : "",
+        iso === today ? "today" : "",
+        iso === qDue.value ? "sel" : "",
+      ].join(" ").trim();
+      days += `<button type="button" class="dp-day ${cls}" data-day="${iso}"${dueAllowed(iso) ? "" : " disabled"} tabindex="${iso === focusIso ? 0 : -1}" aria-label="${dueLabel(iso)}"${iso === qDue.value ? ' aria-pressed="true"' : ""}>${d.getDate()}</button>`;
+    }
+    duePop.innerHTML =
+      calHead(`${MONTHS_LONG[viewM]} ${viewY}`, cur <= lo, cur >= hi) +
+      `<div class="dp-week" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="dp-grid">${days}</div>`;
+  }
+
+  // Lipat sa grid ng buwan (o pabalik sa mga araw)
+  function showMonths(on) {
+    pickMonth = on;
+    if (on) {
+      pickYear = viewY;
+      const i = monthIndex(viewY, viewM);
+      renderCal(i);
+      duePop.querySelector(`[data-month="${i}"]`).focus();
+    } else {
+      renderCal("");
+      duePop.querySelector(".dp-title").focus();
+    }
+  }
+
+  function focusDay(iso) {
+    const btn = duePop.querySelector(`[data-day="${iso}"]`);
+    if (btn && !btn.disabled) btn.focus();
+    else {
+      const any = duePop.querySelector(".dp-day:not(:disabled)");
+      if (any) any.focus();
+    }
+  }
+  function openCal() {
+    const base = qDue.value && dueAllowed(qDue.value) ? qDue.value : todayIso();
+    const d = parseIso(base);
+    viewY = d.getFullYear();
+    viewM = d.getMonth();
+    pickMonth = false;
+    duePop.hidden = false;
+    dueBtn.setAttribute("aria-expanded", "true");
+    renderCal(base);
+    // Buksan pataas kung kulang ang espasyo sa baba
+    duePop.classList.remove("up");
+    if (duePop.getBoundingClientRect().bottom > window.innerHeight - 8) duePop.classList.add("up");
+    focusDay(base);
+  }
+  function closeCal(returnFocus) {
+    if (duePop.hidden) return;
+    duePop.hidden = true;
+    dueBtn.setAttribute("aria-expanded", "false");
+    if (returnFocus) dueBtn.focus();
+  }
+  function showMonth(y, m, focusIso) {
+    viewY = y;
+    viewM = m;
+    renderCal(focusIso);
+    focusDay(focusIso);
+  }
+
+  dueBtn.addEventListener("click", () => (duePop.hidden ? openCal() : closeCal(true)));
+  duePop.addEventListener("click", (e) => {
+    const day = e.target.closest("[data-day]");
+    const nav = e.target.closest("[data-nav]");
+    const mon = e.target.closest("[data-month]");
+    if (e.target.closest(".dp-title")) {
+      showMonths(!pickMonth);
+    } else if (mon && !mon.disabled) {
+      // Napili ang buwan: balik sa mga araw ng buwang iyon
+      const i = Number(mon.dataset.month);
+      viewY = Math.floor(i / 12);
+      viewM = i % 12;
+      pickMonth = false;
+      renderCal(qDue.value);
+      focusDay(qDue.value);
+    } else if (day && !day.disabled) {
+      setDue(day.dataset.day);
+      closeCal(true);
+    } else if (nav && !nav.disabled && pickMonth) {
+      pickYear += Number(nav.dataset.nav);
+      renderCal("");
+      duePop.querySelector(`[data-nav="${nav.dataset.nav}"]`).focus();
+    } else if (nav && !nav.disabled) {
+      const d = new Date(viewY, viewM + Number(nav.dataset.nav), 1);
+      viewY = d.getFullYear();
+      viewM = d.getMonth();
+      renderCal("");
+      duePop.querySelector(`[data-nav="${nav.dataset.nav}"]`).focus();
+    }
+  });
+  duePop.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.stopPropagation(); // isara lang ang calendar, hindi ang buong popup
+      e.preventDefault();
+      if (pickMonth) showMonths(false); // galing sa grid ng buwan: balik sa mga araw
+      else closeCal(true);
+      return;
+    }
+    // Grid ng buwan: ← → = 1 buwan, ↑ ↓ = 3 buwan (isang row)
+    const mon = e.target.closest("[data-month]");
+    const monStep = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[e.key];
+    if (mon && monStep) {
+      e.preventDefault();
+      const { lo, hi } = monthRange();
+      const i = Number(mon.dataset.month) + monStep;
+      if (i < lo || i > hi) return;
+      if (Math.floor(i / 12) !== pickYear) {
+        pickYear = Math.floor(i / 12);
+        renderCal(i);
+      }
+      duePop.querySelector(`[data-month="${i}"]`).focus();
+      return;
+    }
+    const day = e.target.closest("[data-day]");
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    if (!day || !step) return;
+    e.preventDefault();
+    const d = parseIso(day.dataset.day);
+    d.setDate(d.getDate() + step);
+    const iso = isoFor(d);
+    if (!dueAllowed(iso)) return;
+    if (d.getMonth() !== viewM || d.getFullYear() !== viewY) showMonth(d.getFullYear(), d.getMonth(), iso);
+    else focusDay(iso);
+  });
+  // Click sa labas = sara. composedPath: tama pa rin kahit na-redraw na ang calendar
+  // (hal. pinindot ang "September 2026" o ‹ ›, wala na sa page ang lumang button).
+  const dueWrap = dueBtn.closest(".dp-wrap");
+  document.addEventListener("click", (e) => {
+    if (!duePop.hidden && !e.composedPath().includes(dueWrap)) closeCal(false);
+  });
+
   questForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const title = qTitle.value.trim();
@@ -1753,7 +1929,7 @@ rankupModal.addEventListener("click", hideRankup);
     showTitleError(!title);
     showDueError(dueMsg);
     if (!title || dueMsg) {
-      (!title ? qTitle : qDue).focus();
+      (!title ? qTitle : dueBtn).focus();
       return;
     }
 
