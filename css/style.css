@@ -5772,7 +5772,12 @@ body.profile-page {
   overflow: hidden;
   padding: 8px 14px;
   color: var(--ink);
-  background: linear-gradient(180deg, #a2f1ea 0%, var(--teal) 60%, #4fcdc1 100%);
+  background: linear-gradient(
+    180deg,
+    #a2f1ea 0%,
+    var(--teal) 60%,
+    #4fcdc1 100%
+  );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     inset 0 -2px 0 rgba(20, 90, 84, 0.25),
@@ -6890,6 +6895,411 @@ button.np-item.unread {
   overflow-wrap: anywhere;
 }
 
+/* ---------- Profile (Step 9): totoong data ---------- */
+.p-head .avatar-box.has-avatar {
+  overflow: hidden;
+  padding: 0;
+}
+.p-head .avatar-box.has-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.data-msg .msg-error[hidden],
+.empty-state[hidden] {
+  display: none;
+}
+.data-msg .msg-error.ok {
+  color: var(--green);
+}
+
+/* ---------- Tasks: level card sa taas ng board (Step 9) ---------- */
+/* Title sa kaliwa, player strip sa kanan (kapantay ng "+ Add quest") */
+.board-page .board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 24px; /* para hindi matakpan ng music button (naka-fixed sa kanan-taas) */
+}
+.board-page .board-head > .board-player {
+  order: 2; /* nasa unahan sa HTML, pero sa kanan ipinapakita */
+}
+@media (max-width: 760px) {
+  /* Makitid: patong-patong, title muna tapos strip (buong lapad) */
+  .board-page .board-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+  .board-page .board-head > .board-player {
+    width: 100%;
+  }
+}
+.board-player {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(420px, 100%);
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.bp-avatar {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+.bp-main {
+  flex: 1;
+  min-width: 0;
+}
+.bp-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bp-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  color: var(--cream);
+}
+.bp-level,
+.bp-level b {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #e0b13d;
+}
+.bp-level b.pop {
+  display: inline-block;
+  animation: levelPop 0.6s ease;
+}
+.board-player .acct-bar {
+  margin: 9px 0 7px;
+}
+.bp-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+@media (max-width: 560px) {
+  .board-player {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+/* Done card: petsa sa unang linya (gaya ng due date), "Completed" sa puwesto ng button
+   para pareho ang laki sa To Do / Doing cards */
+.qcard.is-done .due.done-when {
+  color: var(--green);
+}
+.qactions.done-row {
+  justify-content: flex-end;
+  min-height: 28px;
+}
+.done-tag {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Notification: bagong rank (teal) */
+.np-ico.teal {
+  background: rgba(111, 227, 217, 0.13);
+  color: var(--teal);
+}
+.np-chip.teal {
+  background: rgba(111, 227, 217, 0.12);
+  color: var(--teal);
+}
+
+/* Done cards: kasing-laki ng To do / Doing cards (may puwang kung saan ang buttons) */
+/* Done cards: pareho ang spacing ng To do / Doing (chips diretso sa ilalim ng description) */
+
+/* Profile: iisang XP bar style sa buong site (blue → lime) */
+.profile-page .xp-card .xp-fill {
+  background: linear-gradient(90deg, #498bbf, #d7ff4a);
+}
+
+/* Profile: "Total quests" naka-align sa mga numero ng category */
+.profile-page .bar-sum.bar-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--p-line, var(--border));
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--p-text, var(--cream));
+}
+
+/* ---------- Calendar (Add / Edit quest due date) ---------- */
+.dp-wrap {
+  position: relative;
+}
+.dp-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--cream);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.dp-trigger:hover {
+  border-color: #33405a;
+}
+.dp-trigger:focus-visible,
+.dp-trigger[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(111, 227, 217, 0.18);
+}
+.dp-trigger[aria-invalid="true"] {
+  border-color: #ff8fa3;
+}
+.dp-trigger.empty span {
+  color: #5d6680;
+}
+.dp-trigger svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dp {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 10;
+  width: 296px;
+  padding: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+.dp.up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.dp[hidden] {
+  display: none;
+}
+.dp-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.dp-nav {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--cream);
+  cursor: pointer;
+}
+.dp-nav:hover:not(:disabled) {
+  border-color: #33405a;
+}
+.dp-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.dp-nav svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* "September 2026 ⌄": pindot = grid ng buwan (hindi <select>, para gumana ang cursor) */
+.dp-title {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--cream);
+  cursor: pointer;
+}
+.dp-title:hover {
+  border-color: #33405a;
+}
+.dp-title svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s;
+}
+.dp-title[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+/* Grid ng buwan: 3 x 4, kasing-taas ng mga araw para hindi gumalaw ang calendar */
+.dp-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 6px;
+  min-height: 253px;
+}
+.dp-mon {
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--cream);
+  cursor: pointer;
+}
+.dp-mon:hover:not(:disabled) {
+  background: var(--border);
+}
+.dp-mon.now {
+  box-shadow: inset 0 0 0 1px var(--teal);
+  color: var(--teal);
+  font-weight: 700;
+}
+.dp-mon.sel {
+  background: var(--green);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: none;
+}
+.dp-mon:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.dp-week,
+.dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.dp-week span {
+  padding: 6px 0;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.dp-day {
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--cream);
+  cursor: pointer;
+}
+.dp-day:hover:not(:disabled) {
+  background: var(--border);
+}
+.dp-day.out {
+  color: #5d6680;
+}
+.dp-day.today {
+  box-shadow: inset 0 0 0 1px var(--teal);
+  color: var(--teal);
+  font-weight: 700;
+}
+.dp-day.sel {
+  background: var(--green);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: none;
+}
+.dp-day:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+.dp-day:focus-visible,
+.dp-mon:focus-visible,
+.dp-title:focus-visible,
+.dp-link:focus-visible,
+.dp-nav:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+.dp-foot {
+  display: none; /* wala nang "Today" sa calendar (nasa quick picks na) */
+}
+.dp-link {
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green);
+  cursor: pointer;
+}
+.dp-link[data-clear] {
+  color: var(--text-dim);
+}
+.dp-link:hover {
+  text-decoration: underline;
+}
+@media (max-width: 560px) {
+  .dp-trigger {
+    width: 100%;
+  }
+  .dp {
+    width: min(296px, calc(100vw - 72px));
+  }
+}
+
 
 .rankup {
   position: fixed;
@@ -6984,6 +7394,200 @@ button.np-item.unread {
   }
 }
 
+/* ---------- Footer ng Home sa lahat ng page (walang "Create free account") ----------
+   Parehong .cta-footer (pixel art na unti-unting lumalabas), pero may sariling taas
+   para kita pa rin ang art kahit walang CTA sa ibabaw. */
+.cta-footer.site-footer {
+  margin-top: auto; /* nasa baba pa rin kahit maikli ang page */
+  background: transparent; /* tuloy ang kulay ng page (hal. Profile) */
+}
+.cta-footer.site-footer footer {
+  padding-top: 150px;
+}
+@media (max-width: 560px) {
+  .cta-footer.site-footer footer {
+    padding-top: 110px;
+  }
+}
+
+/* Player strip: streak (apoy + ilang araw). Abo kapag 0 */
+.bp-streak {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  background: rgba(240, 138, 60, 0.12);
+  font-size: 12px;
+  font-weight: 700;
+  color: #f08a3c;
+}
+.bp-streak svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+.bp-streak.off {
+  background: rgba(155, 163, 181, 0.1);
+  color: var(--text-dim);
+}
+.bp-streak.pop {
+  animation: levelPop 0.6s ease;
+}
+
+@media (max-width: 560px) {
+  /* Phone: pangalan + streak sa taas, level sa sariling linya (para buo ang pangalan) */
+  .bp-top {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  .bp-level {
+    width: 100%;
+  }
+}
+
+/* ---------- Profile: Quests by category (Month / Year, parang GitHub) ----------
+   Isang row bawat category, isang square bawat araw o buwan. Kulay = kulay ng
+   category chips sa Tasks; mas maliwanag = mas marami. */
+.cg-rows {
+  margin-top: 10px;
+}
+.cg-row {
+  display: grid;
+  grid-template-columns: 76px 1fr 32px;
+  align-items: center;
+  margin-top: 7px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.cg-count {
+  text-align: right;
+}
+.cg-cells {
+  display: grid;
+  gap: 3px;
+}
+.cg-cell {
+  display: block;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--p-track);
+}
+.cg-cells.year .cg-cell {
+  height: 16px;
+  border-radius: 3px;
+}
+.cg-cell.future {
+  opacity: 0.4;
+}
+.cg-row.cg-axis {
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--p-muted);
+}
+.cg-axis-days {
+  display: flex;
+  justify-content: space-between;
+}
+.cg-axis-months {
+  display: grid;
+  gap: 3px;
+  text-align: center;
+}
+.cg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 14px;
+  font-size: 11.5px;
+  color: var(--p-muted);
+}
+.cg-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--p-text);
+}
+.cg-key i,
+.cg-scale i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.cg-scale {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+}
+.cg-scale span {
+  margin: 0 4px;
+}
+.cg-scale .l0 {
+  background: var(--p-track);
+}
+.cg-scale .l1 {
+  background: rgba(232, 234, 240, 0.35);
+}
+.cg-scale .l2 {
+  background: rgba(232, 234, 240, 0.65);
+}
+.cg-scale .l3 {
+  background: rgba(232, 234, 240, 0.95);
+}
+@media (max-width: 560px) {
+  .cg-row {
+    grid-template-columns: 66px 1fr 28px;
+  }
+  .cg-cells {
+    gap: 2px;
+  }
+}
+
+/* ---------- Custom cursor (Cursorly) ----------
+   Ang nav.js ang naglalagay ng .has-custom-cursor kapag gumana ang cursor.
+   Walang cursor ng Windows kahit saan (buttons, links, inputs), kaya iisang
+   cursor lang ang kita. Kapag hindi nag-load ang Cursorly, normal na cursor. */
+html.has-custom-cursor,
+html.has-custom-cursor *,
+html.has-custom-cursor *::before,
+html.has-custom-cursor *::after {
+  cursor: none !important;
+}
+
+/* ---------- Profile: iisang typography scale (pareho ng Tasks) ----------
+   32 pixel title · 28 malaking numero · 16 card title at subtitle ng page ·
+   14 laman ng listahan · 13 label ng row · 12 maliliit na label */
+.profile-page h1.pixel.board-title {
+  font-size: 32px; /* pareho ng "Quest Board" */
+  letter-spacing: normal;
+}
+.profile-page .p-head .page-kicker {
+  font-size: 16px; /* pareho ng subtitle ng Quest Board */
+}
+.profile-page .chip {
+  font-size: 12px; /* pareho ng filter chips sa Tasks */
+  font-weight: 700;
+}
+.profile-page .week-chart .col .day,
+.cg-row.cg-axis,
+.cg-legend,
+.profile-page .b-progress {
+  font-size: 12px;
+}
+@media (max-width: 560px) {
+  .profile-page h1.pixel.board-title {
+    font-size: 26px;
+  }
+}
+
+/* Abigail: ilaw sa likod ng Quest Board */
+
 main.container.board-page {
   position: relative;
 }
@@ -7000,3 +7604,22 @@ main.container.board-page::before {
   pointer-events: none;
 }
 
+/* ---------- Profile: Recent activity, walang bakanteng puwang ----------
+   Desktop: kasing-taas ng "Quests by category" ang card, kaya pinupuno ng listahan
+   ang buong card (scroll kapag marami). Phone (patong-patong): dating taas. */
+.profile-page .activity-list {
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #2b3648 transparent;
+}
+@media (min-width: 769px) {
+  .profile-page .extra-grid > .card:has(.activity-list) {
+    display: flex;
+    flex-direction: column;
+  }
+  .profile-page .activity-list {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none;
+  }
+}
