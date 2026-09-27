@@ -1,182 +1,4 @@
-// =====================================================================
-// BACKGROUND MUSIC (Home at About)
-// - Naka-OFF pagdating. Ikaw ang magbubukas gamit ang button sa kanan-taas.
-// - Hover (o keyboard focus) sa button = lalabas ang volume slider sa kaliwa.
-// - Tuloy-tuloy sa Home ↔ About: tinatandaan sa session na 'to kung naka-on
-//   at kung nasaan na yung kanta. Ang volume, tinatandaan kahit bukas pa.
-// - Sa About walang music HTML, kaya dito na ginagawa yung audio at button.
-// =====================================================================
-
-// near the top of js/app.js
-const cursor = Cursorly.init({
-    cursor: 23, // Index of the cursor icon (default: 0)
-    effect: { name: "trail", color: "rainbow" } // Effect name and color are required
-});
-
-(function () {
-  
-  const VOLUME_KEY = "questify.music.volume"; // localStorage (0 hanggang 1)
-  const STATE_KEY = "questify.music.state"; // sessionStorage: { on, time }
-  const base = document.currentScript
-    ? document.currentScript.src.replace(/js\/app\.js.*$/, "")
-    : "";
-
-  function load(storage, key) {
-    try {
-      return JSON.parse(window[storage].getItem(key));
-    } catch (err) {
-      return null;
-    }
-  }
-  function save(storage, key, value) {
-    try {
-      window[storage].setItem(key, JSON.stringify(value));
-    } catch (err) {
-      /* naka-block ang storage: gagana pa rin, hindi lang matatandaan */
-    }
-  }
-
-  let audio = document.getElementById("bg-music");
-  let btn = document.getElementById("music-toggle");
-  if (!audio) {
-    audio = document.createElement("audio");
-    audio.id = "bg-music";
-    audio.loop = true;
-    audio.preload = "auto";
-    audio.src = base + "assets/audio/bg-music.mp3";
-    document.body.appendChild(audio);
-  }
-  if (!btn) {
-    btn = document.createElement("button");
-    btn.type = "button";
-    btn.id = "music-toggle";
-    btn.className = "music-btn";
-    btn.innerHTML =
-      '<svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>' +
-      '<svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
-    document.body.appendChild(btn);
-  }
-  btn.setAttribute("aria-label", "Background music");
-
-  // Button + volume slider sa iisang lalagyan (para hindi mawala ang hover sa pagitan)
-  const ctl = document.createElement("div");
-  ctl.className = "music-ctl";
-  btn.before(ctl);
-  ctl.appendChild(btn);
-  ctl.insertAdjacentHTML(
-    "afterbegin",
-    `<div class="music-pop">
-      <div class="music-pop-in">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
-        <input type="range" id="musicVolume" min="0" max="100" step="5" aria-label="Music volume">
-        <span class="music-pct" aria-hidden="true"></span>
-      </div>
-    </div>`,
-  );
-  const slider = ctl.querySelector("#musicVolume");
-  const pct = ctl.querySelector(".music-pct");
-
-  const saved = load("localStorage", VOLUME_KEY);
-  audio.volume = typeof saved === "number" && saved >= 0 && saved <= 1 ? saved : 0.6;
-
-  function showVolume() {
-    const p = Math.round(audio.volume * 100);
-    slider.value = p;
-    slider.style.setProperty("--v", p + "%");
-    slider.setAttribute("aria-valuetext", p + " percent");
-    pct.textContent = p + "%";
-  }
-  function showOn(on) {
-    btn.setAttribute("aria-pressed", String(on));
-    btn.title = on ? "Pause music" : "Play music";
-  }
-  // "wanted" = pinili ng user na naka-on (kahit na-block pa ng browser ang tunog)
-  let wanted = false;
-  function saveState() {
-    save("sessionStorage", STATE_KEY, {
-      on: wanted,
-      time: audio.currentTime || 0,
-    });
-  }
-
-  // Puwedeng i-block ng browser ang tunog hangga't wala pang click sa page.
-  async function play() {
-    wanted = true;
-    if (audio.volume === 0) {
-      audio.volume = 0.6;
-      showVolume();
-    }
-    try {
-      await audio.play();
-      return true;
-    } catch (err) {
-      showOn(false);
-      return false;
-    }
-  }
-
-  audio.addEventListener("play", () => {
-    showOn(true);
-    saveState();
-  });
-  audio.addEventListener("pause", () => {
-    showOn(false);
-    saveState();
-  });
-
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (audio.paused) play();
-    else {
-      wanted = false;
-      audio.pause();
-    }
-  });
-
-  slider.addEventListener("input", () => {
-    audio.volume = slider.value / 100;
-    save("localStorage", VOLUME_KEY, audio.volume);
-    showVolume();
-    // Tinaas ang volume habang naka-off = gusto nang marinig. Sa 0 = patay.
-    if (audio.volume > 0 && audio.paused) play();
-    if (audio.volume === 0 && !audio.paused) {
-      wanted = false;
-      audio.pause();
-    }
-  });
-
-  // Tandaan kung nasaan na yung kanta bago umalis sa page
-  window.addEventListener("pagehide", saveState);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") saveState();
-  });
-
-  showVolume();
-  showOn(false);
-
-  // Galing sa kabilang page na naka-on ang music: ituloy.
-  const state = load("sessionStorage", STATE_KEY);
-  if (state && state.on) {
-    const resume = () => {
-      if (state.time) audio.currentTime = state.time;
-      play().then((ok) => {
-        if (ok) return;
-        // Na-block ng browser: ituloy sa unang click o pindot sa page
-        // (pero hindi sa music button mismo, siya na ang bahala doon).
-        const onFirst = (e) => {
-          if (ctl.contains(e.target)) return;
-          document.removeEventListener("pointerdown", onFirst);
-          document.removeEventListener("keydown", onFirst);
-          play();
-        };
-        document.addEventListener("pointerdown", onFirst);
-        document.addEventListener("keydown", onFirst);
-      });
-    };
-    if (audio.readyState >= 1) resume();
-    else audio.addEventListener("loadedmetadata", resume, { once: true });
-  }
-})();
+// Background music: nasa js/nav.js na (para gumana sa lahat ng page).
 
 // Level-up animation
 (function () {
@@ -580,7 +402,13 @@ const cursor = Cursorly.init({
   const FEEDBACK_KEY = "questify.feedback";
   const REF_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const WORDS = ["", "Poor", "Fair", "Good", "Great", "Excellent"];
-  const TAGS = ["Quest board", "XP and levels", "Design", "Music", "Easy to use"];
+  const TAGS = [
+    "Quest board",
+    "XP and levels",
+    "Design",
+    "Music",
+    "Easy to use",
+  ];
   const MAX_COMMENT = 500;
   const MONTHS_LONG = [
     "January",
@@ -600,12 +428,20 @@ const cursor = Cursorly.init({
     String(s).replace(
       /[&<>"']/g,
       (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
     );
   const icon = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
-  const ICON_ALERT = '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>';
+  const ICON_ALERT =
+    '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>';
   const ICON_CHECK = '<path d="M5 12.5l4.5 4.5L19 7.5"/>';
-  const ICON_LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+  const ICON_LOCK =
+    '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
   const ICON_COPY =
     '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>';
   const STAR_PATH =
@@ -644,7 +480,8 @@ const cursor = Cursorly.init({
   err.id = "ratingErr";
   err.setAttribute("role", "alert");
   err.hidden = true;
-  err.innerHTML = icon(ICON_ALERT) + "<span>Choose a rating from 1 to 5 stars.</span>";
+  err.innerHTML =
+    icon(ICON_ALERT) + "<span>Choose a rating from 1 to 5 stars.</span>";
   rate.after(err);
 
   function showError(on) {
@@ -677,11 +514,16 @@ const cursor = Cursorly.init({
   const tagBtns = [...tagBlock.querySelectorAll(".fb-tag")];
   tagBtns.forEach((b) =>
     b.addEventListener("click", () =>
-      b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")),
+      b.setAttribute(
+        "aria-pressed",
+        String(b.getAttribute("aria-pressed") !== "true"),
+      ),
     ),
   );
   const chosenTags = () =>
-    tagBtns.filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.textContent);
+    tagBtns
+      .filter((b) => b.getAttribute("aria-pressed") === "true")
+      .map((b) => b.textContent);
 
   // --- Comment: "(optional)", bilang ng letra, at paalala ---
   commentLabel.insertAdjacentHTML("beforeend", " <small>optional</small>");
@@ -694,7 +536,8 @@ const cursor = Cursorly.init({
   comment.after(help);
   comment.setAttribute("aria-describedby", "fbHelp");
   const count = help.querySelector(".fb-count");
-  const updateCount = () => (count.textContent = `${comment.value.length} / ${MAX_COMMENT}`);
+  const updateCount = () =>
+    (count.textContent = `${comment.value.length} / ${MAX_COMMENT}`);
   comment.addEventListener("input", updateCount);
 
   // --- Footer: privacy note sa kaliwa, button sa kanan ---
@@ -746,7 +589,10 @@ const cursor = Cursorly.init({
   function showReceipt(entry) {
     const d = new Date(entry.at);
     const starsHtml = [1, 2, 3, 4, 5]
-      .map((v) => `<svg viewBox="0 0 24 24" class="${v <= entry.rating ? "" : "off"}" aria-hidden="true">${STAR_PATH}</svg>`)
+      .map(
+        (v) =>
+          `<svg viewBox="0 0 24 24" class="${v <= entry.rating ? "" : "off"}" aria-hidden="true">${STAR_PATH}</svg>`,
+      )
       .join("");
     const card = document.createElement("div");
     card.className = "feedback-form fb-receipt";
