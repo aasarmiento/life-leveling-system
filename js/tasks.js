@@ -47,12 +47,18 @@ document.addEventListener("DOMContentLoaded", function () {
   };
   const DRAG_THRESHOLD = 6;
   const LONG_PRESS_MS = 350;
-  const UNDO_MS = 6000;
+  // Pinakahuling puwedeng due date (para walang year 20260 na mali ang type)
+  const MAX_DUE = "2099-12-31";
   // Ilang card lang ang pinapakita per column bago lumabas yung "Show all".
   const COLUMN_LIMIT = 10;
   // Pangalan ng save sa localStorage. Binabasa rin 'to ng js/nav.js para sa Level
   // pill ng Dashboard / Profile / About.
-  const STORE_KEY = "questify.board.v1";
+  // Bawat account may sariling board (galing sa nav.js). Demo = "questify.board.v1".
+  const ACCOUNT = window.questifyAccount || {
+    boardKey: "questify.board.v1",
+    isDemo: true,
+  };
+  const STORE_KEY = ACCOUNT.boardKey;
   const MONTHS = [
     "Jan",
     "Feb",
@@ -272,7 +278,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // XP ledger = listahan ng lahat ng nakuhang XP. Pag nag-delete ng quest, hindi
   // nababawas yung XP. Yung Undo lang pagkatapos ng "Mark done" ang nagbabawas.
-  const startingXp = () => [{ id: null, xp: STARTING_XP }];
+  // Demo: nagsisimula sa 1,450 XP (Level 12). Bagong account: 0 XP (Level 1).
+  const startingXp = () => (ACCOUNT.isDemo ? [{ id: null, xp: STARTING_XP }] : []);
 
   // ---------- saving (localStorage = maliit na storage ng browser) ----------
 
@@ -325,9 +332,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Pagbukas ng page: kunin yung naka-save. Kung wala, sample quests.
+  // Pagbukas ng page: kunin yung naka-save. Kung wala: sample quests para sa
+  // demo account, at walang laman para sa bagong account.
   const saved = loadBoard();
-  let quests = saved ? saved.quests : sampleQuests();
+  let quests = saved ? saved.quests : ACCOUNT.isDemo ? sampleQuests() : [];
   let bankedXp = saved ? saved.xp : startingXp();
   if (saved) {
     const highest = Math.max(
@@ -367,9 +375,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const emptyReset = $("emptyReset");
   const emptyAdd = $("emptyAdd");
   const announcer = $("announcer");
-  const toast = $("toast");
-  const toastText = $("toastText");
-  const toastAction = $("toastAction");
 
   const sortBtn = $("sortBtn");
   const sortValue = $("sortValue");
@@ -388,19 +393,37 @@ document.addEventListener("DOMContentLoaded", function () {
   const qTitle = $("qTitle");
   const qTitleErr = $("qTitleErr");
   const qDesc = $("qDesc");
-  const qCat = $("qCat");
-  const qPriority = $("qPriority");
+  const qTitleCount = $("qTitleCount");
+  const qDescCount = $("qDescCount");
+  const quickDue = [...questForm.querySelectorAll("[data-due]")];
+  // Category at Priority = radio buttons (pills), hindi na dropdown
+  const getChoice = (name) => {
+    const on = questForm.querySelector(`input[name="${name}"]:checked`);
+    return on ? on.value : "";
+  };
+  const setChoice = (name, value) => {
+    questForm.querySelectorAll(`input[name="${name}"]`).forEach((r) => {
+      r.checked = r.value === value;
+    });
+  };
   const qDue = $("qDue");
+  const qDueErr = $("qDueErr");
   const qXp = $("qXp");
   const qSubmit = $("qSubmit");
 
   const detailModal = $("detailModal");
   const detailClose = $("detailClose");
 
-  const deleteModal = $("deleteModal");
-  const delText = $("delText");
-  const delCancel = $("delCancel");
-  const delConfirm = $("delConfirm");
+  // Iisang confirm popup para sa Mark done, Undo done at Delete
+  const confirmModal = $("confirmModal");
+  const cmIco = $("cmIco");
+  const cmTitle = $("cmTitle");
+  const cmText = $("cmText");
+  const cmQuest = $("cmQuest");
+  const cmMeta = $("cmMeta");
+  const cmXp = $("cmXp");
+  const cmCancel = $("cmCancel");
+  const cmOk = $("cmOk");
 
   // ---------- helpers (maliliit na tools na paulit-ulit gamitin) ----------
 
@@ -426,49 +449,14 @@ document.addEventListener("DOMContentLoaded", function () {
     announcer.textContent = message;
   }
 
-  // ---------- toast (yung maliit na message sa baba, may Undo minsan) ----------
-
-  let toastTimer = null;
-  let toastRun = null;
-
-  function showToast(message, { tone = "alert", action = null } = {}) {
-    toast.dataset.tone = tone;
-    toastText.textContent = message;
-    toastRun = action ? action.run : null;
-    toastAction.hidden = !action;
-    if (action) toastAction.textContent = action.label;
-    toast.hidden = false;
-    if (!reduceMotion.matches) restartAnimation(toast, "toast");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, action ? UNDO_MS : 5000);
+  // ---------- toast (maliit na message sa baba-kanan) ----------
+  // Galing sa nav.js (window.questifyToast) para pare-pareho sa buong site.
+  // Wala nang Undo button at timer dito: nasa 3-dot menu na ang Undo.
+  // announce: false kasi may sariling announcer ang page na 'to.
+  function showToast(opts) {
+    if (window.questifyToast)
+      window.questifyToast(Object.assign({ announce: false }, opts));
   }
-
-  function hideToast() {
-    toast.hidden = true;
-    toastRun = null;
-  }
-
-  toast.addEventListener("click", (e) => {
-    const run = e.target.closest("#toastAction") ? toastRun : null;
-    hideToast();
-    if (run) run();
-  });
-
-  // Ctrl+Z = Undo, basta hindi ka nagta-type sa isang input.
-  document.addEventListener("keydown", (e) => {
-    if (
-      !toastRun ||
-      e.key.toLowerCase() !== "z" ||
-      !(e.ctrlKey || e.metaKey) ||
-      e.shiftKey
-    )
-      return;
-    if (e.target.closest("input, textarea, select")) return;
-    e.preventDefault();
-    const run = toastRun;
-    hideToast();
-    run();
-  });
 
   // ---------- filtering + sorting (search, category chips, Sort) ----------
 
@@ -558,18 +546,39 @@ document.addEventListener("DOMContentLoaded", function () {
     return isOverdue(q) ? "Was due " + shortDate(q.due) : shortDate(q.due);
   }
 
+  // Maliliit na icon sa 3-dot menu
+  const MENU_ICON = {
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>',
+    back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+    undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    delete: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  };
+  const menuItem = (action, label, icon, extra = "", cls = "") =>
+    `<button type="button" role="menuitem"${cls ? ` class="${cls}"` : ""} data-action="${action}"><svg viewBox="0 0 24 24" aria-hidden="true">${MENU_ICON[icon]}</svg>${label}${extra}</button>`;
+
+  // 3-dot menu, iba bawat column:
+  //   To do: Edit · Delete
+  //   Doing: Move back to To do · Edit · Delete
+  //   Done:  Undo done (−XP) · Delete
   function menuHtml(q, title) {
-    const edit =
-      q.status === "done"
-        ? ""
-        : '<button type="button" role="menuitem" data-action="edit">Edit</button>';
+    let items = "";
+    if (q.status === "doing")
+      items += menuItem("back", "Move back to To do", "back");
+    if (q.status === "done")
+      items += menuItem(
+        "undo",
+        "Undo done",
+        "undo",
+        `<em aria-hidden="true">−${q.earned} XP</em>`,
+      );
+    else items += menuItem("edit", "Edit", "edit");
+    items +=
+      '<hr role="separator">' +
+      menuItem("delete", "Delete", "delete", "", "danger");
     return `
       <div class="qcard-menu">
         <button type="button" class="kebab" data-action="menu" aria-haspopup="menu" aria-expanded="false" aria-label="Options for ${title}"></button>
-        <div class="qmenu" role="menu" hidden>
-          ${edit}
-          <button type="button" role="menuitem" class="danger" data-action="delete">Delete</button>
-        </div>
+        <div class="qmenu" role="menu" hidden>${items}</div>
       </div>`;
   }
 
@@ -719,7 +728,7 @@ document.addEventListener("DOMContentLoaded", function () {
       emptyReset.textContent = "Show all quests";
     } else {
       emptyTitle.textContent = "Your board is empty";
-      emptyText.textContent = "Add a quest to get started.";
+      emptyText.textContent = "Add your first quest to start earning XP.";
       emptyReset.hidden = true;
     }
   }
@@ -924,11 +933,10 @@ document.addEventListener("DOMContentLoaded", function () {
     announce(`Started "${q.title}". It moved to Doing.`);
   }
 
-  // "Mark done": lipat sa Done + dagdag XP sa ledger + toast na may Undo.
-  // `rankBefore` = tinatandaan yung dating pwesto para maibalik kung mag-Undo.
+  // "Mark done" (pagkatapos i-confirm sa popup): lipat sa Done + dagdag XP sa ledger.
+  // Wala nang Undo sa toast: nasa 3-dot menu na ng card ("Undo done").
   function completeQuest(q) {
     const levelBefore = Number(levelPill.dataset.level);
-    const rankBefore = q.rank;
     q.status = "done";
     q.completed = Date.now();
     q.earned = XP_BY_PRIORITY[q.priority];
@@ -939,13 +947,22 @@ document.addEventListener("DOMContentLoaded", function () {
     focusCard(q.id, "kebab");
 
     const levelNow = Number(levelPill.dataset.level);
-    const levelUp = levelNow > levelBefore ? ` Level ${levelNow}!` : "";
-    showToast(`Marked "${q.title}" done. +${q.earned} XP.${levelUp}`, {
-      tone: "success",
-      action: { label: "Undo", run: () => undoComplete(q, rankBefore) },
-    });
+    const leveledUp = levelNow > levelBefore;
+    showToast(
+      leveledUp
+        ? {
+            tone: "lv",
+            title: `Level ${levelNow} reached`,
+            text: `${q.title} · +${q.earned} XP`,
+          }
+        : {
+            tone: "ok",
+            title: "Quest completed",
+            text: `${q.title} · +${q.earned} XP`,
+          },
+    );
     announce(
-      `Completed "${q.title}". Plus ${q.earned} XP.${levelUp} Undo is available for a few seconds, or press Control Z.`,
+      `Completed "${q.title}". Plus ${q.earned} XP.${leveledUp ? ` Level ${levelNow}!` : ""} You can undo it from the quest's menu.`,
     );
     // Para sa notifications (nav.js): "Quest done" at, kung umakyat, "Level up"
     document.dispatchEvent(
@@ -961,23 +978,53 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
-  // Undo: ibabalik sa Doing (sa dating pwesto) at babawiin yung XP.
-  function undoComplete(q, rankBefore) {
+  // "Undo done" (3-dot menu ng Done, may confirm): babalik sa taas ng Doing
+  // at babawiin yung XP na nakuha dito.
+  function undoDone(q) {
     if (q.status !== "done" || !quests.includes(q)) return;
     const i = bankedXp.findLastIndex((entry) => entry.id === q.id);
-    const lost = i > -1 ? bankedXp.splice(i, 1)[0].xp : 0;
-    q.status = "doing";
+    let lost;
+    if (i > -1) {
+      lost = bankedXp.splice(i, 1)[0].xp;
+    } else {
+      // Sample quests: kasama na ang XP nila sa panimulang 1,450 (walang sariling
+      // linya sa ledger), kaya magbabawas tayo ng hiwalay na linya.
+      lost = q.earned || 0;
+      bankedXp.push({ id: null, xp: -lost });
+    }
+    moveToColumnTop(q, "doing");
     q.earned = null;
     q.completed = null;
-    q.rank = rankBefore;
+    // Kung late na 'to dati, huwag nang ulitin yung "overdue" na toast
+    if (isOverdue(q)) knownOverdue.add(q.id);
     render({ highlight: q.id });
     paintLevel(-lost);
     focusCard(q.id);
-    announce(`Undone. "${q.title}" is back in Doing.`);
+    showToast({
+      tone: "info",
+      icon: "undo",
+      title: "Moved back to Doing",
+      text: `${q.title} · −${lost} XP`,
+    });
+    announce(`"${q.title}" is back in Doing. Minus ${lost} XP.`);
     // Binawi: tanggalin din yung notifications ng quest na 'to
     document.dispatchEvent(
       new CustomEvent("questify:quest-undo", { detail: { id: q.id } }),
     );
+  }
+
+  // "Move back to To do" (3-dot menu ng Doing): walang XP na gumagalaw, kaya walang confirm
+  function moveBackToTodo(q) {
+    moveToColumnTop(q, "todo");
+    render({ highlight: q.id });
+    focusCard(q.id);
+    showToast({
+      tone: "info",
+      icon: "back",
+      title: "Moved back to To do",
+      text: q.title,
+    });
+    announce(`"${q.title}" moved back to To do.`);
   }
 
   // ---------- overdue nudge (paalala pag late na yung quest) ----------
@@ -988,8 +1035,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!list.length) return;
     showToast(
       list.length === 1
-        ? `"${list[0].title}" is overdue.`
-        : `${list.length} quests are overdue. They're marked in red.`,
+        ? {
+            tone: "err",
+            title: "Quest overdue",
+            text: `${list[0].title} was due ${shortDate(list[0].due)}.`,
+            announce: true, // walang announce() dito, kaya ang toast ang magsasabi
+          }
+        : {
+            tone: "err",
+            title: `${list.length} quests are overdue`,
+            text: "They're marked in red on your board.",
+            announce: true,
+          },
     );
   }
 
@@ -1070,7 +1127,7 @@ document.addEventListener("DOMContentLoaded", function () {
         startQuest(q);
         break;
       case "done":
-        completeQuest(q);
+        openConfirm("done", q, btn);
         break;
       case "menu":
         toggleMenu(btn);
@@ -1079,9 +1136,17 @@ document.addEventListener("DOMContentLoaded", function () {
         closeMenu();
         openQuestModal(q, kebab);
         break;
+      case "back":
+        closeMenu();
+        moveBackToTodo(q);
+        break;
+      case "undo":
+        closeMenu();
+        openConfirm("undo", q, kebab);
+        break;
       case "delete":
         closeMenu();
-        openDeleteModal(q, kebab);
+        openConfirm("delete", q, kebab);
         break;
     }
   });
@@ -1484,7 +1549,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  [questModal, detailModal, deleteModal].forEach((modal) => {
+  [questModal, detailModal, confirmModal].forEach((modal) => {
     let pressedBackdrop = false;
     modal.addEventListener("mousedown", (e) => {
       pressedBackdrop = e.target === modal;
@@ -1507,7 +1572,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (e.key !== "Tab") return;
     const focusables = [
-      ...activeModal.querySelectorAll("button, input, select"),
+      ...activeModal.querySelectorAll("button, input, select, textarea"),
     ].filter((el) => !el.disabled && el.offsetParent !== null);
     const firstEl = focusables[0];
     const lastEl = focusables[focusables.length - 1];
@@ -1563,8 +1628,26 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateXpReadout(bump) {
-    qXp.textContent = "+" + XP_BY_PRIORITY[qPriority.value] + " XP";
+    qXp.textContent = "+" + XP_BY_PRIORITY[getChoice("qPriority") || "medium"] + " XP";
     if (bump && !reduceMotion.matches) restartAnimation(qXp, "bump");
+  }
+
+  // Bilang ng letra (hal. "13 / 60") at paglaki ng description box habang nagta-type
+  function updateCounts() {
+    qTitleCount.textContent = `${qTitle.value.length} / ${qTitle.maxLength}`;
+    qDescCount.textContent = `${qDesc.value.length} / ${qDesc.maxLength}`;
+  }
+  function growDesc() {
+    qDesc.style.height = "auto";
+    qDesc.style.height = Math.min(qDesc.scrollHeight + 2, 200) + "px";
+  }
+  // Naka-highlight yung "Today / Tomorrow / Next week" kung yun ang petsa
+  function syncQuickDue() {
+    quickDue.forEach((b) => {
+      const on = qDue.value === isoOffset(Number(b.dataset.due));
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
   }
 
   function openQuestModal(q, returnEl) {
@@ -1573,33 +1656,87 @@ document.addEventListener("DOMContentLoaded", function () {
     qSubmit.textContent = q ? "Save changes" : "Add quest";
     qTitle.value = q ? q.title : "";
     qDesc.value = q ? q.desc : "";
-    qCat.value = q ? q.cat : state.filter !== "all" ? state.filter : "work";
-    qPriority.value = q ? q.priority : "medium";
+    setChoice("qCat", q ? q.cat : state.filter !== "all" ? state.filter : "work");
+    setChoice("qPriority", q ? q.priority : "medium");
     qDue.value = q ? q.due : todayIso();
+    // Bawal pumili ng lumang petsa. Pero kung luma na ang due date ng ine-edit,
+    // puwede pa rin itong iwan (yun lang, hindi ibang lumang petsa).
+    qDue.min = q && q.due && q.due < todayIso() ? q.due : todayIso();
+    qDue.max = MAX_DUE;
+    showDueError(null);
     showTitleError(false);
     updateXpReadout(false);
+    updateCounts();
+    syncQuickDue();
     openModal(questModal, qTitle, returnEl);
+    growDesc(); // pagkatapos lumabas, para tama ang sukat
   }
 
-  qPriority.addEventListener("change", () => updateXpReadout(true));
+  function showDueError(msg) {
+    qDueErr.textContent = msg || "";
+    qDueErr.classList.toggle("show", !!msg);
+    qDue.setAttribute("aria-invalid", msg ? "true" : "false");
+  }
+
+  // null = okay ang petsa; kung hindi, yung error message
+  function dueProblem(due) {
+    if (!due) return null; // puwedeng walang due date
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(due) || due > MAX_DUE)
+      return "Pick a date before 2100.";
+    const keepingOld = editing && due === editing.due;
+    if (due < todayIso() && !keepingOld)
+      return "Pick today or a later date.";
+    return null;
+  }
+
+  questForm.querySelectorAll('input[name="qPriority"]').forEach((r) =>
+    r.addEventListener("change", () => updateXpReadout(true)),
+  );
   qTitle.addEventListener("input", () => {
     if (qTitle.value.trim()) showTitleError(false);
+    updateCounts();
   });
+  qDesc.addEventListener("input", () => {
+    updateCounts();
+    growDesc();
+  });
+  // Enter / Shift + Enter = bagong linya (normal sa textarea). Ctrl/Cmd + Enter = save.
+  questForm.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      questForm.requestSubmit();
+    }
+  });
+  qDue.addEventListener("input", () => {
+    showDueError(null);
+    syncQuickDue();
+  });
+  quickDue.forEach((b) =>
+    b.addEventListener("click", () => {
+      qDue.value = isoOffset(Number(b.dataset.due));
+      showDueError(null);
+      syncQuickDue();
+    }),
+  );
 
   questForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const title = qTitle.value.trim();
-    if (!title) {
-      showTitleError(true);
-      qTitle.focus();
+    const dueMsg = dueProblem(qDue.value);
+    showTitleError(!title);
+    showDueError(dueMsg);
+    if (!title || dueMsg) {
+      (!title ? qTitle : qDue).focus();
       return;
     }
 
     const data = {
       title,
       desc: qDesc.value.trim(),
-      cat: CATEGORY_LABEL[qCat.value] ? qCat.value : "work",
-      priority: XP_BY_PRIORITY[qPriority.value] ? qPriority.value : "medium",
+      cat: CATEGORY_LABEL[getChoice("qCat")] ? getChoice("qCat") : "work",
+      priority: XP_BY_PRIORITY[getChoice("qPriority")]
+        ? getChoice("qPriority")
+        : "medium",
       due: qDue.value,
     };
 
@@ -1637,30 +1774,88 @@ document.addEventListener("DOMContentLoaded", function () {
     checkOverdue({ rerender: false });
   });
 
-  // Delete
+  // ---------- confirm popup (Mark done, Undo done, Delete) ----------
+  // Isang popup, iba-iba lang ang laman. Pinapakita yung quest mismo at yung XP,
+  // para malinaw kung ano ang mangyayari (hindi generic na "Are you sure?").
 
-  let deleting = null;
+  const CONFIRM_ICON = {
+    done: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    undo: MENU_ICON.undo,
+    delete: MENU_ICON.delete,
+  };
+  let confirming = null;
 
-  function openDeleteModal(q, returnEl) {
-    deleting = q;
-    delText.textContent =
-      `"${q.title}" will be removed from your board. ` +
-      (q.status === "done"
-        ? "This can't be undone, and its XP stays earned."
-        : "This can't be undone.");
-    openModal(deleteModal, delCancel, returnEl);
+  function openConfirm(kind, q, returnEl) {
+    confirming = { kind, q };
+    const xp = shownXp(q);
+    const c = {
+      done: {
+        tone: "lime",
+        title: "Mark this quest as done?",
+        text: "It moves to Done and the XP is added to your total. You can undo it later from the quest's menu.",
+        ok: "Mark done",
+        okClass: "btn-lime",
+        xp: `+${xp} XP`,
+        xpClass: "",
+      },
+      undo: {
+        tone: "teal",
+        title: "Move this quest back to Doing?",
+        text: "The XP you earned from it will be taken off your total.",
+        ok: "Undo done",
+        okClass: "btn-teal",
+        xp: `−${xp} XP`,
+        xpClass: "lost",
+      },
+      delete: {
+        tone: "rose",
+        title: "Delete this quest?",
+        text:
+          q.status === "done"
+            ? "It will be removed from your board. This can't be undone, and its XP stays earned."
+            : "It will be removed from your board. This can't be undone.",
+        ok: "Delete quest",
+        okClass: "btn-rose",
+        xp: q.status === "done" ? `+${xp} XP earned` : `+${xp} XP`,
+        xpClass: "muted",
+      },
+    }[kind];
+
+    cmIco.className = "cm-ico " + c.tone;
+    cmIco.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${CONFIRM_ICON[kind]}</svg>`;
+    cmTitle.textContent = c.title;
+    cmText.textContent = c.text;
+    cmQuest.textContent = q.title;
+    cmMeta.innerHTML =
+      `<span class="chip chip-${q.cat}">${CATEGORY_LABEL[q.cat]}</span>` +
+      esc(
+        q.status === "done"
+          ? doneLabel(q.completed)
+          : PRIORITY_LABEL[q.priority] + " priority",
+      );
+    cmXp.textContent = c.xp;
+    cmXp.className = "cm-xp " + c.xpClass;
+    cmOk.textContent = c.ok;
+    cmOk.className = c.okClass + " fx";
+    // Delete = hindi na maibabalik, kaya sa Cancel ang focus. Yung iba, sa main button.
+    openModal(confirmModal, kind === "delete" ? cmCancel : cmOk, returnEl);
   }
 
-  delConfirm.addEventListener("click", () => {
-    if (!deleting) return;
-    const title = deleting.title;
-    quests.splice(quests.indexOf(deleting), 1);
-    knownOverdue.delete(deleting.id);
-    deleting = null;
+  cmOk.addEventListener("click", () => {
+    if (!confirming) return;
+    const { kind, q } = confirming;
+    confirming = null;
     closeModal({ restoreFocus: false });
-    render();
-    addBtn.focus();
-    announce(`Deleted "${title}".`);
+    if (!quests.includes(q)) return;
+    if (kind === "done") completeQuest(q);
+    else if (kind === "undo") undoDone(q);
+    else {
+      quests.splice(quests.indexOf(q), 1);
+      knownOverdue.delete(q.id);
+      render();
+      addBtn.focus();
+      announce(`Deleted "${q.title}".`);
+    }
   });
 
   // ---------- toolbar (search, filter chips, Add quest) ----------
@@ -1710,10 +1905,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ---------- start (unang takbo pagbukas ng page) ----------
 
+  // Galing sa notification (bell): buksan ang details ng quest na 'yon
+  function openFromNotification(id) {
+    const q = findQuest(id);
+    if (!q) {
+      showToast({
+        tone: "info",
+        title: "This quest was deleted",
+        text: "It's no longer on your board.",
+        announce: true,
+      });
+      return;
+    }
+    openDetail(q, $("notifBtn") || addBtn);
+  }
+  document.addEventListener("questify:open-quest", (e) =>
+    openFromNotification(e.detail.id),
+  );
+
   paintLevel();
   syncControls();
   syncSort();
   render({ animate: false });
-  nudge(quests.filter(isOverdue));
+
+  // tasks.html?quest=q9 (click sa notification mula sa ibang page)
+  const fromNotif = new URLSearchParams(location.search).get("quest");
+  if (fromNotif) {
+    history.replaceState(null, "", location.pathname + location.hash);
+    openFromNotification(fromNotif);
+  } else {
+    nudge(quests.filter(isOverdue));
+  }
   notifyOverdue(quests.filter(isOverdue));
 });
