@@ -32,10 +32,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const STATUSES = ["todo", "doing", "done"];
   const STATUS_LABEL = { todo: "To do", doing: "Doing", done: "Done" };
   const COLUMN_EMPTY = {
-    todo: "Nothing queued.",
-    doing: "Nothing in progress.",
-    done: "Nothing finished yet.",
-  };
+  todo: "No quests here yet — add one to begin your journey.",
+  doing: "No quests in motion. Start one from To Do.",
+  done: "No victories logged yet. Complete a quest to see it here.",
+};
   // Bawat sort may sariling default na direction (hal. Due date = pinakamalapit muna).
   // Sa To do at Doing lang gumagana yung sort; ang Done ay laging pinakabago sa taas.
   const SORTS = {
@@ -606,7 +606,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const title = esc(q.title);
     const action =
       q.status === "todo"
-        ? '<button type="button" class="btn-gold fx" data-action="start">Start</button>'
+        ? '<button type="button" class="btn-gold fx" data-action="start">Begin Quest</button>'
         : '<button type="button" class="btn-lime fx" data-action="done">Mark done</button>';
     return `
       <article class="qcard can-drag${overdue ? " is-overdue" : ""}" data-id="${q.id}">
@@ -618,7 +618,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="meta">
           <span class="chip chip-${q.cat}">${CATEGORY_LABEL[q.cat]}</span>
           <span class="xp" title="${PRIORITY_LABEL[q.priority]} priority">+${shownXp(q)} XP</span>
-          ${overdue ? '<span class="badge-overdue">Overdue</span>' : ""}
+          ${overdue ? '<span class="badge-overdue">Quest Overdue</span>' : ""}
           <span class="due">${dueText(q)}</span>
         </div>
         <div class="qactions">${action}</div>
@@ -1038,8 +1038,8 @@ function completeQuest(q) {
       list.length === 1
         ? {
             tone: "err",
-            title: "Quest overdue",
-            text: `${list[0].title} was due ${shortDate(list[0].due)}.`,
+            title: "Quest Overdue",
+            title: `${list.length} quests have failed`,
             announce: true, // walang announce() dito, kaya ang toast ang magsasabi
           }
         : {
@@ -1523,12 +1523,13 @@ function completeQuest(q) {
     );
   });
 
-  const rankupModal = $("rankupModal");
-const rankupName = $("rankupName");
-const rankupSub = $("rankupSub");
+const rankupModal = $("rankupModal");
+const rankupName = rankupModal ? $("rankupName") : null;
+const rankupSub = rankupModal ? $("rankupSub") : null;
 let rankupTimer = null;
 
 function showRankup(level, total) {
+  if (!rankupModal) return; // safety: does nothing if the modal HTML is missing
   rankupName.textContent = "Level " + level;
   rankupSub.textContent = xpLabel(total) + " total";
   rankupModal.classList.add("show");
@@ -1538,10 +1539,13 @@ function showRankup(level, total) {
 }
 
 function hideRankup() {
+  if (!rankupModal) return;
   rankupModal.classList.remove("show");
   rankupModal.setAttribute("aria-hidden", "true");
   clearTimeout(rankupTimer);
 }
+
+if (rankupModal) rankupModal.addEventListener("click", hideRankup);
 
 rankupModal.addEventListener("click", hideRankup);
 
@@ -1613,7 +1617,7 @@ rankupModal.addEventListener("click", hideRankup);
   function openDetail(q, returnEl) {
     const overdue = isOverdue(q);
     const status = $("dStatus");
-    status.textContent = STATUS_LABEL[q.status] + (overdue ? " · Overdue" : "");
+    status.textContent = STATUS_LABEL[q.status] + (overdue ? " · Quest Overdue" : "");
     status.className = `detail-status status-${q.status}${overdue ? " is-overdue" : ""}`;
     $("dTitle").textContent = q.title;
 
