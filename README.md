@@ -19,7 +19,7 @@ A simple browser-based dashboard allows users to create and complete tasks, earn
 * Clean and responsive design
 
 ## Tech Stack
-The tech stack consists of HTML, CSS, and Vanilla JavaScript for the frontend, and Node.js with Express.js for the backend.
+The tech stack consists of HTML, CSS, and Vanilla JavaScript for the frontend, and Node.js with Express.js for the backend (to follow - MS2).
 
 
 ## Development timeline 
