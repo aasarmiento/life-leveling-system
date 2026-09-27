@@ -6,7 +6,15 @@
 //   at kung nasaan na yung kanta. Ang volume, tinatandaan kahit bukas pa.
 // - Sa About walang music HTML, kaya dito na ginagawa yung audio at button.
 // =====================================================================
+
+// near the top of js/app.js
+const cursor = Cursorly.init({
+    cursor: 23, // Index of the cursor icon (default: 0)
+    effect: { name: "trail", color: "rainbow" } // Effect name and color are required
+});
+
 (function () {
+  
   const VOLUME_KEY = "questify.music.volume"; // localStorage (0 hanggang 1)
   const STATE_KEY = "questify.music.state"; // sessionStorage: { on, time }
   const base = document.currentScript
@@ -979,3 +987,4 @@
     if (e.key === "Escape") closeTeamModal();
   });
 })();
+

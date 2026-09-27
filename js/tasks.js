@@ -934,50 +934,51 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // "Mark done" (pagkatapos i-confirm sa popup): lipat sa Done + dagdag XP sa ledger.
-  // Wala nang Undo sa toast: nasa 3-dot menu na ng card ("Undo done").
-  function completeQuest(q) {
-    const levelBefore = Number(levelPill.dataset.level);
-    q.status = "done";
-    q.completed = Date.now();
-    q.earned = XP_BY_PRIORITY[q.priority];
-    bankedXp.push({ id: q.id, xp: q.earned });
-    knownOverdue.delete(q.id);
-    render({ highlight: q.id });
-    paintLevel(q.earned);
-    focusCard(q.id, "kebab");
+// Wala nang Undo sa toast: nasa 3-dot menu na ng card ("Undo done").
+function completeQuest(q) {
+  const levelBefore = Number(levelPill.dataset.level);
+  q.status = "done";
+  q.completed = Date.now();
+  q.earned = XP_BY_PRIORITY[q.priority];
+  bankedXp.push({ id: q.id, xp: q.earned });
+  knownOverdue.delete(q.id);
+  render({ highlight: q.id });
+  paintLevel(q.earned);
+  focusCard(q.id, "kebab");
 
-    const levelNow = Number(levelPill.dataset.level);
-    const leveledUp = levelNow > levelBefore;
-    showToast(
-      leveledUp
-        ? {
-            tone: "lv",
-            title: `Level ${levelNow} reached`,
-            text: `${q.title} · +${q.earned} XP`,
-          }
-        : {
-            tone: "ok",
-            title: "Quest completed",
-            text: `${q.title} · +${q.earned} XP`,
-          },
-    );
-    announce(
-      `Completed "${q.title}". Plus ${q.earned} XP.${leveledUp ? ` Level ${levelNow}!` : ""} You can undo it from the quest's menu.`,
-    );
-    // Para sa notifications (nav.js): "Quest done" at, kung umakyat, "Level up"
-    document.dispatchEvent(
-      new CustomEvent("questify:quest-done", {
-        detail: {
-          id: q.id,
-          title: q.title,
-          xp: q.earned,
-          level: levelNow,
-          leveledUp: levelNow > levelBefore,
+  const levelNow = Number(levelPill.dataset.level);
+  const leveledUp = levelNow > levelBefore;
+  const toNext = XP_PER_LEVEL - (totalXp() % XP_PER_LEVEL);
+
+  showToast(
+    leveledUp
+      ? {
+          tone: "lv",
+          title: `Level ${levelNow} reached`,
+          text: `${q.title} · +${q.earned} XP`,
+        }
+      : {
+          tone: "ok",
+          title: `+${q.earned} XP — Level up in ${toNext} XP!`,
+          text: q.title,
         },
-      }),
-    );
-  }
-
+  );
+  announce(
+    `Completed "${q.title}". Plus ${q.earned} XP.${leveledUp ? ` Level ${levelNow}!` : ""} You can undo it from the quest's menu.`,
+  );
+  if (leveledUp) showRankup(levelNow, totalXp());
+  document.dispatchEvent(
+    new CustomEvent("questify:quest-done", {
+      detail: {
+        id: q.id,
+        title: q.title,
+        xp: q.earned,
+        level: levelNow,
+        leveledUp: levelNow > levelBefore,
+      },
+    }),
+  );
+}
   // "Undo done" (3-dot menu ng Done, may confirm): babalik sa taas ng Doing
   // at babawiin yung XP na nakuha dito.
   function undoDone(q) {
@@ -1521,6 +1522,28 @@ document.addEventListener("DOMContentLoaded", function () {
       `${SORTS[state.sort].label}, ${state.dir === "asc" ? "ascending" : "descending"}.`,
     );
   });
+
+  const rankupModal = $("rankupModal");
+const rankupName = $("rankupName");
+const rankupSub = $("rankupSub");
+let rankupTimer = null;
+
+function showRankup(level, total) {
+  rankupName.textContent = "Level " + level;
+  rankupSub.textContent = xpLabel(total) + " total";
+  rankupModal.classList.add("show");
+  rankupModal.setAttribute("aria-hidden", "false");
+  clearTimeout(rankupTimer);
+  rankupTimer = setTimeout(hideRankup, 2200);
+}
+
+function hideRankup() {
+  rankupModal.classList.remove("show");
+  rankupModal.setAttribute("aria-hidden", "true");
+  clearTimeout(rankupTimer);
+}
+
+rankupModal.addEventListener("click", hideRankup);
 
   // ---------- dialogs (popups: Add/Edit, Details, Delete) ----------
 
