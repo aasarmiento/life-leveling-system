@@ -69,7 +69,12 @@
     alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.01"/>',
   };
-  const TOAST_DEFAULT_ICON = { ok: "check", lv: "star", info: "info", err: "alert" };
+  const TOAST_DEFAULT_ICON = {
+    ok: "check",
+    lv: "star",
+    info: "info",
+    err: "alert",
+  };
   const svgIcon = (d) =>
     `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
   let toastEl = null;
@@ -108,7 +113,9 @@
     toastEl.setAttribute("role", tone === "err" ? "alert" : "status");
     toastEl.dataset.tone = tone;
     toastEl.querySelector(".qtoast-ico").innerHTML = svgIcon(
-      TOAST_ICON[icon] || TOAST_ICON[TOAST_DEFAULT_ICON[tone]] || TOAST_ICON.info,
+      TOAST_ICON[icon] ||
+        TOAST_ICON[TOAST_DEFAULT_ICON[tone]] ||
+        TOAST_ICON.info,
     );
     toastEl.querySelector(".qtoast-body b").textContent = title;
     const small = toastEl.querySelector(".qtoast-body span");
@@ -282,7 +289,11 @@
         text: `${m[1]} ${n.text.replace(/^Was/, "was")}.`,
       });
     }
-    if (n.type === "levelup" && (m = /Level (\d+)/.exec(n.title)) && /^Level up!/.test(n.title)) {
+    if (
+      n.type === "levelup" &&
+      (m = /Level (\d+)/.exec(n.title)) &&
+      /^Level up!/.test(n.title)
+    ) {
       const rank = n.text.replace(/^New rank: /, "");
       return Object.assign({}, n, {
         title: `Level ${m[1]} reached`,
@@ -508,7 +519,9 @@
           const id = item.dataset.openQuest;
           saveNotifs(
             loadNotifs().map((n) =>
-              n.id === item.dataset.notifId ? Object.assign(n, { read: true }) : n,
+              n.id === item.dataset.notifId
+                ? Object.assign(n, { read: true })
+                : n,
             ),
           );
           paintNotifs();
@@ -547,7 +560,8 @@
     }
 
     // "a Master" / "an Adventurer"
-    const withArticle = (word) => (/^[aeiou]/i.test(word) ? "an " : "a ") + word;
+    const withArticle = (word) =>
+      (/^[aeiou]/i.test(word) ? "an " : "a ") + word;
 
     document.addEventListener("questify:quest-done", (e) => {
       const d = e.detail;
@@ -748,7 +762,11 @@
             return;
           }
         }
-        savePlayer({ name: player.name, email: player.email, avatar: player.avatar });
+        savePlayer({
+          name: player.name,
+          email: player.email,
+          avatar: player.avatar,
+        });
         write(SIGNED_IN_KEY, "1");
         location.href = target;
       } finally {
@@ -845,8 +863,7 @@
       (input.closest(".in-wrap") || input).after(p);
     }
     p.innerHTML =
-      svgIcon(TOAST_ICON.alert) +
-      `<span>${allowLink ? msg : esc(msg)}</span>`;
+      svgIcon(TOAST_ICON.alert) + `<span>${allowLink ? msg : esc(msg)}</span>`;
     input.setAttribute("aria-describedby", p.id);
   }
 

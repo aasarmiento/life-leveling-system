@@ -279,7 +279,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // XP ledger = listahan ng lahat ng nakuhang XP. Pag nag-delete ng quest, hindi
   // nababawas yung XP. Yung Undo lang pagkatapos ng "Mark done" ang nagbabawas.
   // Demo: nagsisimula sa 1,450 XP (Level 12). Bagong account: 0 XP (Level 1).
-  const startingXp = () => (ACCOUNT.isDemo ? [{ id: null, xp: STARTING_XP }] : []);
+  const startingXp = () =>
+    ACCOUNT.isDemo ? [{ id: null, xp: STARTING_XP }] : [];
 
   // ---------- saving (localStorage = maliit na storage ng browser) ----------
 
@@ -1628,7 +1629,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateXpReadout(bump) {
-    qXp.textContent = "+" + XP_BY_PRIORITY[getChoice("qPriority") || "medium"] + " XP";
+    qXp.textContent =
+      "+" + XP_BY_PRIORITY[getChoice("qPriority") || "medium"] + " XP";
     if (bump && !reduceMotion.matches) restartAnimation(qXp, "bump");
   }
 
@@ -1656,7 +1658,10 @@ document.addEventListener("DOMContentLoaded", function () {
     qSubmit.textContent = q ? "Save changes" : "Add quest";
     qTitle.value = q ? q.title : "";
     qDesc.value = q ? q.desc : "";
-    setChoice("qCat", q ? q.cat : state.filter !== "all" ? state.filter : "work");
+    setChoice(
+      "qCat",
+      q ? q.cat : state.filter !== "all" ? state.filter : "work",
+    );
     setChoice("qPriority", q ? q.priority : "medium");
     qDue.value = q ? q.due : todayIso();
     // Bawal pumili ng lumang petsa. Pero kung luma na ang due date ng ine-edit,
@@ -1684,14 +1689,13 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(due) || due > MAX_DUE)
       return "Pick a date before 2100.";
     const keepingOld = editing && due === editing.due;
-    if (due < todayIso() && !keepingOld)
-      return "Pick today or a later date.";
+    if (due < todayIso() && !keepingOld) return "Pick today or a later date.";
     return null;
   }
 
-  questForm.querySelectorAll('input[name="qPriority"]').forEach((r) =>
-    r.addEventListener("change", () => updateXpReadout(true)),
-  );
+  questForm
+    .querySelectorAll('input[name="qPriority"]')
+    .forEach((r) => r.addEventListener("change", () => updateXpReadout(true)));
   qTitle.addEventListener("input", () => {
     if (qTitle.value.trim()) showTitleError(false);
     updateCounts();
