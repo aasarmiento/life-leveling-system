@@ -69,7 +69,8 @@
   const pct = ctl.querySelector(".music-pct");
 
   const saved = load("localStorage", VOLUME_KEY);
-  audio.volume = typeof saved === "number" && saved >= 0 && saved <= 1 ? saved : 0.6;
+  audio.volume =
+    typeof saved === "number" && saved >= 0 && saved <= 1 ? saved : 0.6;
 
   function showVolume() {
     const p = Math.round(audio.volume * 100);
@@ -572,7 +573,13 @@
   const FEEDBACK_KEY = "questify.feedback";
   const REF_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const WORDS = ["", "Poor", "Fair", "Good", "Great", "Excellent"];
-  const TAGS = ["Quest board", "XP and levels", "Design", "Music", "Easy to use"];
+  const TAGS = [
+    "Quest board",
+    "XP and levels",
+    "Design",
+    "Music",
+    "Easy to use",
+  ];
   const MAX_COMMENT = 500;
   const MONTHS_LONG = [
     "January",
@@ -592,12 +599,20 @@
     String(s).replace(
       /[&<>"']/g,
       (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
     );
   const icon = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
-  const ICON_ALERT = '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>';
+  const ICON_ALERT =
+    '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>';
   const ICON_CHECK = '<path d="M5 12.5l4.5 4.5L19 7.5"/>';
-  const ICON_LOCK = '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+  const ICON_LOCK =
+    '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
   const ICON_COPY =
     '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>';
   const STAR_PATH =
@@ -636,7 +651,8 @@
   err.id = "ratingErr";
   err.setAttribute("role", "alert");
   err.hidden = true;
-  err.innerHTML = icon(ICON_ALERT) + "<span>Choose a rating from 1 to 5 stars.</span>";
+  err.innerHTML =
+    icon(ICON_ALERT) + "<span>Choose a rating from 1 to 5 stars.</span>";
   rate.after(err);
 
   function showError(on) {
@@ -669,11 +685,16 @@
   const tagBtns = [...tagBlock.querySelectorAll(".fb-tag")];
   tagBtns.forEach((b) =>
     b.addEventListener("click", () =>
-      b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")),
+      b.setAttribute(
+        "aria-pressed",
+        String(b.getAttribute("aria-pressed") !== "true"),
+      ),
     ),
   );
   const chosenTags = () =>
-    tagBtns.filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.textContent);
+    tagBtns
+      .filter((b) => b.getAttribute("aria-pressed") === "true")
+      .map((b) => b.textContent);
 
   // --- Comment: "(optional)", bilang ng letra, at paalala ---
   commentLabel.insertAdjacentHTML("beforeend", " <small>optional</small>");
@@ -686,7 +707,8 @@
   comment.after(help);
   comment.setAttribute("aria-describedby", "fbHelp");
   const count = help.querySelector(".fb-count");
-  const updateCount = () => (count.textContent = `${comment.value.length} / ${MAX_COMMENT}`);
+  const updateCount = () =>
+    (count.textContent = `${comment.value.length} / ${MAX_COMMENT}`);
   comment.addEventListener("input", updateCount);
 
   // --- Footer: privacy note sa kaliwa, button sa kanan ---
@@ -738,7 +760,10 @@
   function showReceipt(entry) {
     const d = new Date(entry.at);
     const starsHtml = [1, 2, 3, 4, 5]
-      .map((v) => `<svg viewBox="0 0 24 24" class="${v <= entry.rating ? "" : "off"}" aria-hidden="true">${STAR_PATH}</svg>`)
+      .map(
+        (v) =>
+          `<svg viewBox="0 0 24 24" class="${v <= entry.rating ? "" : "off"}" aria-hidden="true">${STAR_PATH}</svg>`,
+      )
       .join("");
     const card = document.createElement("div");
     card.className = "feedback-form fb-receipt";
