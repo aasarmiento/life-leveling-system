@@ -671,8 +671,69 @@
   const video = document.getElementById("mascotVideo");
   if (!wrap || !video) return;
 
-  video.addEventListener("error", () => wrap.classList.add("is-fallback"));
-  video.play().catch(() => wrap.classList.add("is-fallback"));
+  // Backup image lang kapag sira talaga ang video. Kung naantala lang ng browser
+  // ang autoplay (background tab, battery saver), subukan ulit at ibalik ang video.
+  const showVideo = () => wrap.classList.remove("is-fallback");
+  const showImage = () => wrap.classList.add("is-fallback");
+  video.addEventListener("error", showImage);
+  video.addEventListener("playing", showVideo);
+  const retry = () => video.play().catch(() => {});
+  video.play().catch(() => {
+    showImage();
+    video.addEventListener("canplay", retry, { once: true });
+    document.addEventListener("pointerdown", retry, { once: true });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) retry();
+    });
+  });
+})();
+
+/* ABOUT: pixel stars sa hero + totoong level sa "Level up" step */
+(function initAboutExtras() {
+  const stars = document.getElementById("abStars");
+  if (stars) {
+    // parehong puwesto tuwing bukas (hindi random), maliliit na pixel squares
+    let seed = 11;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    let html = "";
+    for (let i = 0; i < 110; i++) {
+      const x = Math.floor((rnd() * 1440) / 4) * 4;
+      const y = Math.floor((rnd() * 400) / 4) * 4;
+      const size = rnd() > 0.88 ? 4 : 2;
+      html += `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="#dfe3f5" opacity="${(0.15 + rnd() * 0.45).toFixed(2)}"/>`;
+    }
+    [[250, 100], [1200, 80], [1080, 320], [340, 340]].forEach(([x, y]) => {
+      html += `<g fill="#c6ef2e" opacity="0.5"><rect x="${x}" y="${y - 6}" width="3" height="15"/><rect x="${x - 6}" y="${y}" width="15" height="3"/></g>`;
+    });
+    stars.innerHTML = html;
+  }
+
+  // "Level up" step: kapag naka-sign in, ipakita ang TOTOONG level mo
+  // (parehong board na sine-save ng Tasks). Guest = halimbawa lang.
+  const bar = document.getElementById("abLoopBar");
+  const acc = window.questifyAccount;
+  let signedIn = false;
+  try {
+    signedIn = localStorage.getItem("questify.signedIn") === "1";
+  } catch (err) {
+    signedIn = false;
+  }
+  if (!bar || !acc || !signedIn) return;
+  let total = acc.isDemo ? 1450 : 0;
+  try {
+    const board = JSON.parse(localStorage.getItem(acc.boardKey));
+    if (board && Array.isArray(board.xp)) total = board.xp.reduce((sum, e) => sum + (Number(e.xp) || 0), 0);
+  } catch (err) {
+    /* walang board pa: default */
+  }
+  const XP_PER_LEVEL = 125;
+  const level = Math.floor(total / XP_PER_LEVEL) + 1;
+  const into = total % XP_PER_LEVEL;
+  bar.querySelector("span").style.width = (into / XP_PER_LEVEL) * 100 + "%";
+  bar.setAttribute("aria-valuenow", String(into));
+  bar.setAttribute("aria-label", `Your XP into Level ${level + 1}`);
+  document.getElementById("abLoopLevel").textContent = `Your level: ${level}`;
+  document.getElementById("abLoopXp").textContent = `${into} / ${XP_PER_LEVEL} XP`;
 })();
 
 /*
@@ -773,20 +834,24 @@
     },
   ];
 
-  function teamCardHTML(m) {
+  // Isang card blueprint (OOP): pinupuno ng data ng bawat member.
+  // Sa card, unang role lang (hal. "UI/UX Designer"); buo sa profile popup.
+  function teamCardHTML(m, slot) {
     return `
-      <div class="team2-bust-wrap">
-        <img class="team2-bust" src="${m.image}" alt="">
+      <div class="ab-tc-ph">
+        <img src="${m.image}" alt="">
+        <span class="ab-tc-slot pixel">P${slot}</span>
       </div>
-      <div class="team2-body">
-        <p class="team2-name">${m.name}</p>
-        <p class="team2-role">${m.role}</p>
-        <p class="team2-desc">${m.desc}</p>
-        <p class="team2-worked">Worked on: ${m.workedShort}</p>
-        <button class="team2-view-btn" type="button" tabindex="-1">View profile</button>
+      <div class="ab-tc-b">
+        <p class="ab-tc-name">${m.name}</p>
+        <p class="ab-tc-role">${m.role.split(" | ")[0]}</p>
+        <p class="ab-tc-desc">${m.desc}</p>
+        <p class="ab-tc-worked">Worked on: ${m.workedShort}</p>
       </div>
+      <span class="ab-tc-view">View profile</span>
     `;
   }
+  let lastCard = null;
 
   function openTeamModal(id) {
   const m = TEAM_MEMBERS.find((x) => x.id === id);
@@ -825,24 +890,35 @@
 
   document.getElementById("team2-overlay").classList.add("active");
   document.body.style.overflow = "hidden";
+  // keyboard: focus sa Close, para gumana agad ang Enter/Esc
+  const close = document.querySelector(".team2-modal-close");
+  if (close) close.focus();
 }
 
   function closeTeamModal() {
-    document.getElementById("team2-overlay").classList.remove("active");
+    const overlay = document.getElementById("team2-overlay");
+    if (!overlay.classList.contains("active")) return;
+    overlay.classList.remove("active");
     document.body.style.overflow = "";
+    if (lastCard) lastCard.focus(); // balik sa card na binuksan
   }
 
   // render cards
-  TEAM_MEMBERS.forEach((m) => {
+  TEAM_MEMBERS.forEach((m, i) => {
     const card = document.createElement("article");
-    card.className = "team2-card";
-    card.innerHTML = teamCardHTML(m);
+    card.className = "ab-tc";
+    card.innerHTML = teamCardHTML(m, i + 1);
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
-    card.addEventListener("click", () => openTeamModal(m.id));
+    card.setAttribute("aria-label", `${m.name}, ${m.role}. View profile`);
+    card.addEventListener("click", () => {
+      lastCard = card;
+      openTeamModal(m.id);
+    });
     card.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
+        lastCard = card;
         openTeamModal(m.id);
       }
     });
@@ -859,5 +935,21 @@ if (closeBtn) closeBtn.addEventListener("click", closeTeamModal);
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeTeamModal();
+  });
+
+  // Tab = paikot lang sa loob ng popup habang bukas (Close + mga link)
+  document.getElementById("team2-overlay").addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const items = [...document.querySelectorAll(".team2-modal-close, .team2-modal-links a:not([hidden])")];
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 })();
