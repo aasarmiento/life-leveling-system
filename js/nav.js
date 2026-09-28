@@ -1445,10 +1445,16 @@
 
   // ---------- CUSTOM CURSOR (Cursorly, galing kay Abigail) ----------
   // Nandito (hindi sa app.js) para gumana sa lahat ng page, kasama Tasks at Profile.
-  // Kailangan ng <script src=".../cursorly.min.js"> sa <head> ng page.
-  // Kung hindi nag-load (hal. offline), normal na cursor lang at tuloy ang site.
+  // Kailangan ng <script src=".../cursorly.min.js"> sa <head> ng page
+  // (naka-lock sa version 1.0.5, para hindi masira pag may bagong labas).
+  // Normal na cursor lang (at tuloy ang site) kapag:
+  //  - hindi nag-load ang Cursorly (hal. offline)
+  //  - touch screen ang gamit (phone/tablet: walang mouse, sayang sa battery)
+  //  - naka-"reduce motion" ang device (ayaw ng gumagalaw na trail)
   function setupCursor() {
     if (!window.Cursorly) return;
+    const mq = (q) => window.matchMedia && window.matchMedia(q).matches;
+    if (mq("(pointer: coarse)") || mq("(prefers-reduced-motion: reduce)")) return;
     try {
       const cur = window.Cursorly.init({
         cursor: 23, // index ng cursor icon
