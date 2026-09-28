@@ -1,15 +1,13 @@
 // =====================================================================
 // PROFILE (pages/profile.html) — GUIDE PARA SA TEAM
 // ---------------------------------------------------------------------
-// Pinupuno ang design ni Abigail gamit ang TOTOONG data ng naka-sign in:
-// yung board na sine-save ng Tasks page (tasks.js). Walang ginagalaw sa
-// layout; papalitan lang ang mga sample na numero at text.
-//   - Level, rank, XP bar, "XP to Level N"
-//   - Quests done, completion %, day streak, quests this week
-//   - Quests by category, recent activity
-//   - XP chart (7 days / 30 days / All time)
-//   - Current rank, badges
-//   - Your data: Export (download backup) at Import (ibalik mula sa backup)
+// Pinupuno ang Profile gamit ang TOTOONG data ng naka-sign in: yung board na
+// sine-save ng Tasks page (tasks.js).
+//   - Hero: avatar, level badge, rank, streak, XP bar, quests done / completion / this week
+//   - Quests by category (Month / Year), Quest log
+//   - XP chart (7 days / 30 days / All time) + summary
+//   - Climb the ranks, Trophy shelf (badges)
+//   - Save file: Export (download backup) at Import (ibalik mula sa backup)
 // =====================================================================
 document.addEventListener("DOMContentLoaded", function () {
   const XP_PER_LEVEL = 125; // pareho sa tasks.js at nav.js
@@ -88,34 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const toNext = XP_PER_LEVEL - into;
   const player = loadPlayer();
 
-  // ---------- header ----------
-  const h1 = $(".p-head h1");
-  if (h1 && player.name) h1.textContent = player.name;
-  const lvl = $(".p-head .lvl");
-  if (lvl) lvl.textContent = `Level ${level} · ${rank}`;
-  const avatarBox = $(".p-head .avatar-box");
-  if (avatarBox) {
-    const which = player.avatar === "gold" ? "gold" : "lime";
-    avatarBox.innerHTML = `<img src="../assets/avatars/avatar-${which}-slime-256.png" alt="">`;
-    avatarBox.classList.add("has-avatar");
-  }
-
-  // ---------- XP bar ----------
-  const xpCard = $(".xp-card");
-  if (xpCard) {
-    xpCard.querySelector("h2").textContent = `XP into Level ${level + 1}`;
-    const track = xpCard.querySelector(".xp-track");
-    track.setAttribute("aria-valuemax", String(XP_PER_LEVEL));
-    track.setAttribute("aria-valuenow", String(into));
-    track.setAttribute("aria-label", `XP into Level ${level + 1}`);
-    xpCard.querySelector(".xp-fill").style.width = (into / XP_PER_LEVEL) * 100 + "%";
-    const facts = xpCard.querySelectorAll(".xp-facts span");
-    if (facts[0]) facts[0].textContent = `${fmt(total)} XP`;
-    if (facts[1]) facts[1].textContent = `${done.length} quest${done.length === 1 ? "" : "s"} done`;
-    if (facts[2]) facts[2].textContent = `${toNext} XP to Level ${level + 1}`;
-  }
-
-  // ---------- stat cards ----------
+  // ---------- stats na gamit ng hero at ng ibang card ----------
   // Streak = ilang sunod-sunod na araw (hanggang ngayon o kahapon) na may natapos na quest
   function streakDays() {
     const days = new Set(done.map((q) => dayStart(q.completed)));
@@ -132,16 +103,40 @@ document.addEventListener("DOMContentLoaded", function () {
   const weekAgo = dayStart(Date.now()) - 6 * DAY_MS;
   const thisWeek = done.filter((q) => q.completed >= weekAgo);
   const completion = quests.length ? Math.round((done.length / quests.length) * 100) : 0;
-  const stats = document.querySelectorAll(".stat-card .val");
-  const statVals = [
-    fmt(done.length),
-    completion + "%",
-    `${streak} day${streak === 1 ? "" : "s"}`,
-    fmt(thisWeek.length),
-  ];
-  stats.forEach((el, i) => {
-    if (statVals[i] !== undefined) el.textContent = statVals[i];
-  });
+  const setText = (sel, text) => {
+    const el = $(sel);
+    if (el) el.textContent = text;
+  };
+
+  // ---------- player hero (Summit camp) ----------
+  setText("#pName", player.name || "Player");
+  const avatar = $("#pAvatar");
+  if (avatar) avatar.src = `../assets/avatars/avatar-${player.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+  setText("#pBadge", level);
+  const rankChip = $("#pRank");
+  if (rankChip) {
+    rankChip.dataset.rank = rank.toLowerCase();
+    rankChip.querySelector("span").textContent = rank;
+  }
+  setText("#pLevel", `Level ${level}`);
+  const streakChip = $("#pStreak");
+  if (streakChip) {
+    streakChip.querySelector("span").textContent = streak ? `${streak}-day streak` : "No streak yet";
+    streakChip.classList.toggle("off", streak === 0);
+    streakChip.setAttribute("aria-label", streak ? `Day streak: ${streak} day${streak === 1 ? "" : "s"}` : "No day streak yet");
+  }
+  const track = $("#pTrack");
+  if (track) {
+    track.setAttribute("aria-valuemax", String(XP_PER_LEVEL));
+    track.setAttribute("aria-valuenow", String(into));
+    track.setAttribute("aria-label", `XP into Level ${level + 1}`);
+    track.querySelector(".xp-fill").style.width = (into / XP_PER_LEVEL) * 100 + "%";
+  }
+  setText("#pXp", `${fmt(total)} XP`);
+  setText("#pNext", `${toNext} XP to Level ${level + 1}`);
+  setText("#pDone", fmt(done.length));
+  setText("#pRate", completion + "%");
+  setText("#pWeek", fmt(thisWeek.length));
 
   // ---------- quests by category (Month / Year, parang GitHub) ----------
   // Isang row bawat category, isang square bawat araw (Month) o bawat buwan (Year).
@@ -300,6 +295,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const sum = bs.reduce((s, b) => s + b.xp, 0);
     const max = Math.max(...bs.map((b) => b.xp));
     const peak = max > 0 ? bs.find((b) => b.xp === max) : null;
+    // Summary tiles sa ilalim ng chart
+    const per = range === "all" ? { n: bs.length, avg: "Monthly average", best: "Best month" }
+      : range === 30 ? { n: 30, avg: "Daily average", best: "Best 6 days" }
+      : { n: 7, avg: "Daily average", best: "Best day" };
+    setText("#wSum", fmt(sum));
+    setText("#wSumLab", range === 7 ? "XP this week" : range === 30 ? "XP in 30 days" : "XP in 6 months");
+    setText("#wAvg", fmt(Math.round(sum / per.n)));
+    setText("#wAvgLab", per.avg);
+    setText("#wBest", peak ? (range === 30 ? peak.label : peak.label.toUpperCase()) : "–");
+    setText("#wBestLab", peak ? `${per.best} · +${fmt(peak.xp)} XP` : "No XP yet");
     weekCard.querySelector("h2").textContent = RANGE_TITLE[range];
     weekCard.querySelector(".week-head .page-kicker").textContent = sum
       ? `${fmt(sum)} XP earned. ${peak.long} was the peak.`
@@ -331,13 +336,34 @@ document.addEventListener("DOMContentLoaded", function () {
     paintChart(7);
   }
 
-  // ---------- ranks ----------
-  document.querySelectorAll(".rank-badge-grid .rank-list .rank").forEach((li) => {
-    const on = li.querySelector("span").textContent.trim() === rank;
-    li.classList.toggle("current", on);
-    if (on) li.setAttribute("aria-current", "true");
-    else li.removeAttribute("aria-current");
+  // ---------- climb the ranks (rank cards ng Home) ----------
+  const road = document.querySelectorAll(".rank-road .rank");
+  const curIndex = RANKS.findIndex((r) => r.name === rank);
+  road.forEach((li, i) => {
+    li.classList.toggle("done", i < curIndex);
+    li.classList.toggle("current", i === curIndex);
+    li.querySelector(".you")?.remove();
+    if (i === curIndex) {
+      li.setAttribute("aria-current", "true");
+      li.insertAdjacentHTML("afterbegin", '<span class="you pixel" aria-hidden="true">YOU</span>');
+    } else li.removeAttribute("aria-current");
   });
+  const nextRank = RANKS[curIndex + 1];
+  const rnTrack = $("#rnTrack");
+  setText("#rnFrom", rank);
+  if (rnTrack) {
+    const pct = nextRank
+      ? ((total - RANKS[curIndex].xp) / (nextRank.xp - RANKS[curIndex].xp)) * 100
+      : 100;
+    rnTrack.querySelector(".xp-fill").style.width = Math.max(0, Math.min(100, pct)) + "%";
+    rnTrack.setAttribute("aria-valuenow", String(Math.round(pct)));
+  }
+  const rnTo = $("#rnTo");
+  if (rnTo) {
+    rnTo.innerHTML = nextRank
+      ? `<b>${fmt(nextRank.xp - total)} XP</b> to ${nextRank.name}`
+      : "<b>Top rank</b> reached";
+  }
 
   // ---------- badges (totoong progress) ----------
   const badgeBox = $(".badges");
@@ -350,32 +376,31 @@ document.addEventListener("DOMContentLoaded", function () {
       { name: "Early bird", have: earlyBirds, need: 5, unit: "quests done before 9 AM" },
       { name: "Century", have: done.length, need: 100, unit: "quests" },
     ];
+    const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>';
+    const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
     badgeBox.innerHTML = BADGES.map((b) => {
       const have = Math.min(b.have, b.need);
       if (b.have >= b.need) {
-        return `<div class="badge earned"><div class="badge-top"><span class="b-ico" aria-hidden="true">★</span><span class="b-name">${b.name}</span></div><span class="b-status">Earned</span></div>`;
+        return `<div class="badge earned"><span class="b-ico">${STAR}</span><span class="b-name">${b.name}</span><span class="b-status">Earned</span></div>`;
       }
-      return `<div class="badge locked"><div class="badge-top"><span class="b-ico" aria-hidden="true">🔒</span><span class="b-name">${b.name}</span></div>
-        <div class="mini-track" role="progressbar" aria-valuemin="0" aria-valuemax="${b.need}" aria-valuenow="${have}" aria-label="${b.name} progress"><div class="mini-fill" style="width: ${(have / b.need) * 100}%"></div></div>
-        <span class="b-progress">${fmt(have)} of ${fmt(b.need)} ${b.unit}</span></div>`;
+      // Progress bar: parehong bilugang bar ng level (blue -> lime)
+      const pct = (have / b.need) * 100;
+      return `<div class="badge locked"><span class="b-ico">${LOCK}</span><span class="b-name">${b.name}</span>
+        <span class="b-progress">${fmt(have)} of ${fmt(b.need)} ${b.unit}</span>
+        <div class="b-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${b.need}" aria-valuenow="${have}" aria-label="${b.name} progress"><span style="width:${pct}%"></span></div></div>`;
     }).join("");
+    const earned = BADGES.filter((b) => b.have >= b.need).length;
+    setText("#trophyCount", `${earned} of ${BADGES.length} earned`);
   }
 
   // ---------- empty state (bagong account) ----------
   const empty = $(".empty-state");
-  if (empty) {
-    const label = empty.querySelector(".empty-label");
-    if (label) label.remove(); // note lang ito sa design, hindi para sa user
-  }
-  // Yung "Screen reader table: ..." sa ilalim ng chart ay note din sa design
-  const chartNote = $(".chart-note");
-  if (chartNote) chartNote.remove();
-  if (empty) {
-    empty.hidden = done.length > 0;
-  }
+  if (empty) empty.hidden = done.length > 0;
 
   // ---------- your data: Export / Import ----------
   const dataCard = $(".data-card");
+  setText("#saveName", player.name || "Player");
+  setText("#saveMeta", `Level ${level} · ${rank} · ${quests.length} quest${quests.length === 1 ? "" : "s"} · ${fmt(total)} XP`);
   if (dataCard) {
     const [exportBtn, importBtn] = dataCard.querySelectorAll(".data-actions button");
     const errMsg = dataCard.querySelector(".msg-error");
@@ -449,6 +474,6 @@ document.addEventListener("DOMContentLoaded", function () {
       };
       reader.readAsText(file);
     });
-    if (hint) hint.textContent = "Import checks the file first. It replaces this account's board.";
+    if (hint) hint.textContent = "Export downloads a backup of your quests and XP. Import checks the file first, then replaces this account's board.";
   }
 });

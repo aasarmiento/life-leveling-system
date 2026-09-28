@@ -63,18 +63,34 @@
     <main class="container board-page">
       <!-- Paalala: lahat ng id at data-* dito ay ginagamit ng js/tasks.js.
        Kung papalitan, palitan din sa JS para hindi masira. -->
+      <!-- Arena header: dungeon art sa likod (CSS), title + scoreboard sa kaliwa,
+           player sa kanan. Pinupuno at ina-update ng tasks.js (pareho ng dati ang mga id). -->
       <div class="board-head">
-        <!-- Player strip: avatar, pangalan, level at XP (pareho ng Profile). Pinupuno at ina-update ng tasks.js -->
+        <div class="bh-left">
+          <h1 class="pixel board-title">Quest Board</h1>
+          <p class="page-kicker">
+            Work, learning, and health, sorted so they can move.
+          </p>
+          <div class="board-counters" aria-label="Quest summary">
+            <div class="bc-tile red"><b class="pixel" id="cOverdue">0</b><span>Overdue</span></div>
+            <div class="bc-tile gold"><b class="pixel" id="cToday">0</b><span>Due today</span></div>
+            <div class="bc-tile lime"><b class="pixel" id="cWeek">0</b><span>Done this week</span></div>
+          </div>
+        </div>
         <div class="board-player" aria-label="Your player">
-          <img class="bp-avatar" id="bAvatar" src="../assets/avatars/avatar-lime-slime-256.png" alt="" />
+          <div class="bp-frame">
+            <img class="bp-avatar" id="bAvatar" src="../assets/avatars/avatar-lime-slime-256.png" alt="" />
+            <span class="bp-badge pixel" id="bBadge" aria-hidden="true">1</span>
+          </div>
           <div class="bp-main">
+            <b class="bp-name pixel" id="bName">Player</b>
             <div class="bp-top">
-              <b class="bp-name" id="bName">Player</b>
+              <span class="rank-chip" id="bRankChip" data-rank="novice"><i aria-hidden="true"></i><span id="bRank">Novice</span></span>
+              <span class="bp-level"><b id="bLevel">Level 1</b></span>
               <span class="bp-streak off" id="bStreak" title="Day streak: days in a row with a completed quest">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3.4 4.8 5.6 4.8 10.4a4.8 4.8 0 0 1-9.6 0c0-2.2 1.1-3.9 2.4-5 .2 1.7 1 2.8 2.2 3.3-.6-3 0-6 .2-8.7z" /></svg>
-                <span id="bStreakText">0 days</span>
+                <span id="bStreakText">No streak yet</span>
               </span>
-              <span class="bp-level"><b id="bLevel">Level 1</b> · <span id="bRank">Novice</span></span>
             </div>
             <div class="acct-bar"><span class="level-fill" id="bFill"></span></div>
             <div class="bp-foot">
@@ -82,12 +98,6 @@
               <span id="bNext">125 XP to Level 2</span>
             </div>
           </div>
-        </div>
-        <div>
-          <h1 class="pixel board-title">Quest Board</h1>
-          <p class="page-kicker">
-            Work, learning, and health, sorted so they can move.
-          </p>
         </div>
       </div>
 

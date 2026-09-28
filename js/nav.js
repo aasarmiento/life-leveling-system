@@ -826,9 +826,25 @@
     });
     // Undo: tanggalin ang "Quest done" / "Level up" ng quest na binawi (hindi ang "Overdue")
     document.addEventListener("questify:quest-undo", (e) => {
+      // Pagkatapos ng Undo, bumaba ang XP: tanggalin din ang "Level N reached" at
+      // "New rank" na hindi na totoo (hal. Master pa sa bell pero Veteran na ngayon)
+      const total = savedXp();
+      const levelNow = levelFor(total);
+      const rankNow = RANKS.findIndex((r) => r.name === rankFor(total));
+      const stillTrue = (n) => {
+        if (n.type === "levelup") {
+          const m = /Level (\d+)/.exec(n.title || "");
+          return !m || Number(m[1]) <= levelNow;
+        }
+        if (n.type === "rankup") {
+          const i = RANKS.findIndex((r) => (n.title || "").endsWith(r.name));
+          return i === -1 || i <= rankNow;
+        }
+        return true;
+      };
       saveNotifs(
         loadNotifs().filter(
-          (n) => n.quest !== e.detail.id || n.type === "overdue",
+          (n) => (n.quest !== e.detail.id || n.type === "overdue") && stillTrue(n),
         ),
       );
       paintNotifs();
