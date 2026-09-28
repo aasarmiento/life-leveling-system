@@ -1265,14 +1265,17 @@
   // =====================================================================
   // BACKGROUND MUSIC (lahat ng page, kasama Sign in at Create account)
   // - Tumutugtog pagka-click o pindot mo sa page (bawal sa browser ang tunog
-  //   bago ka mag-interact). Laging ganito sa bawat page, kahit pinatay mo
-  //   ito sa ibang page (gusto ni Abigail, para ma-engage ang bisita).
+  //   bago ka mag-interact).
+  // - Pinatay mo = patay sa buong pagbisita sa tab na ito (lahat ng page).
+  //   Bagong bisita / bagong tab = tutugtog ulit sa unang click (gusto ni
+  //   Abigail, para ma-engage ang bisita). Kaya sessionStorage, hindi localStorage.
   // - Tuloy-tuloy paglipat ng page: tinatandaan kung nasaan na yung kanta.
   // - Hover (o keyboard focus) sa button = volume slider sa kaliwa.
   // - Walang music HTML sa ibang page, kaya dito ginagawa yung audio at button.
   // =====================================================================
   const MUSIC_KEY = "questify.music"; // localStorage: { volume }
   const MUSIC_TIME_KEY = "questify.music.time"; // sessionStorage: nasaan na yung kanta
+  const MUSIC_OFF_KEY = "questify.music.off"; // sessionStorage: pinatay sa tab na ito
 
   function setupMusic() {
     let prefs = {};
@@ -1355,15 +1358,29 @@
         return false;
       }
     }
-    // Pinatay mo = patay lang sa page na ito (hindi na tinatandaan).
-    // Sa susunod na page, tutugtog ulit sa unang click.
-    let offHere = false;
+    // Pinatay mo = tatandaan habang bukas ang tab (sessionStorage).
+    // Bagong tab o bagong bisita = malinis ulit, tutugtog sa unang click.
+    function isOff() {
+      try {
+        return sessionStorage.getItem(MUSIC_OFF_KEY) === "1";
+      } catch (err) {
+        return false;
+      }
+    }
+    function setOff(off) {
+      try {
+        if (off) sessionStorage.setItem(MUSIC_OFF_KEY, "1");
+        else sessionStorage.removeItem(MUSIC_OFF_KEY);
+      } catch (err) {
+        /* okay lang */
+      }
+    }
     function turnOff() {
-      offHere = true;
+      setOff(true);
       audio.pause();
     }
     function turnOn() {
-      offHere = false;
+      setOff(false);
       play();
     }
 
@@ -1394,13 +1411,14 @@
     showVolume();
     showOn(false);
     savePrefs(); // tanggalin ang lumang "off" sa naka-save
+    if (isOff()) return; // pinatay sa tab na ito: hintayin na lang na i-on ulit sa button
 
     // Bawal ng browser ang tunog bago mag-interact, kaya tutugtog sa unang
     // click o pindot sa page (hindi sa music button mismo, siya na ang bahala doon).
     const onFirst = (e) => {
       if (ctl.contains(e.target)) return;
       stopWaiting();
-      if (!offHere && audio.paused) play();
+      if (!isOff() && audio.paused) play();
     };
     const stopWaiting = () => {
       document.removeEventListener("pointerdown", onFirst, true);
