@@ -117,3 +117,86 @@ life-leveling-system/
    ```bash
    git clone https://github.com/aasarmiento/life-leveling-system.git
    cd life-leveling-system
+2. Open with any static server (recommended: **VS Code Live Server**) or simply open `index.html` in a modern browser.
+3. **Demo account** (pre-loaded with 16 sample quests):
+   - Email: `alex@gmail.com`
+   - Password: `12345678`
+
+> New accounts start with an empty board at Level 1.
+
+---
+
+## 🧪 Tested Flows (Summary)
+
+| Flow                                                      | Result            |
+|-----------------------------------------------------------|-------------------|
+| Sign in → land on Quest Board                             | Pass              |
+| Open Tasks / Profile while signed out → redirect + notice | Pass              |
+| Create account + avatar selection                         | Pass              |
+| Drag cards (mouse / touch / keyboard)                     | Pass              |
+| Mark done → XP + notifications → Undo                     | Pass              |
+| Refresh → data persists                                   | Pass              |
+| Blocked localStorage (private window)                     | Graceful fallback |
+| XSS attempt                                               | Escaped correctly |
+| 375 px / 768 px layouts                                   | Usable            |
+
+---
+
+## 👥 Team
+
+| Member                    | Role                          | Main Contributions |
+|---------------------------|-------------------------------|--------------------|
+| **Abigail Ann Sarmiento** | UI/UX Design, Repo Owner      | Figma, Home, About, Profile & Sign-in design, design tokens |
+| **Christian Allen Soriano** | Project Manager             | Quest Board, shared header, auth flow, player card, notifications, docs |
+| **Sire Ermond Manalo**    | GitHub Lead                   | Repository, merges, bug hunting, code quality |
+| **Jeremiah Alzona**       | Documentation                 | Development logs, worksheet, written docs |
+| **Rowel Jepsani**         | Documentation / Tester        | Research, consolidated report, testing, final push |
+
+**Mentors:**  
+- Aldrin John Tamayo  
+- Sir Hanz Cruz
+
+---
+
+## 📅 Milestone 1 Timeline
+
+| Week | Focus |
+|------|-------|
+| 1    | Ideation & group formation |
+| 2    | Semantic HTML skeleton |
+| 3    | CSS design system + realignment |
+| 4–5  | JavaScript behavior + full audit |
+| 6    | Shared header, auth, notifications, integration & testing |
+
+---
+
+##  What's Next (Milestone 2+)
+
+- Real authentication + backend (Node.js / Express)
+- Database + multi-device sync
+- Live Profile data fully connected
+- Compact phone menu
+- Settings page
+- Feedback form → backend
+- Screen-reader & cross-browser formal testing
+
+---
+
+##  License & Academic Notice
+
+This project was developed as a student coursework deliverable for Mapúa-Malayan Digital College (MMDC).  
+The template and structure follow institutional guidelines.  
+Unauthorized commercial use, redistribution, or claiming ownership of the original template is prohibited.
+
+---
+
+## 📎Quick Links
+
+- **Live Site:** https://aasarmiento.github.io/life-leveling-system/index.html  
+- **Repository:** https://github.com/aasarmiento/life-leveling-system  
+- **Figma:** https://www.figma.com/design/AJTHmDxEK733yLdHtsNm3P/Questify  
+
+---
+
+**Questify** — Make progress visible. Level up your life.
+   
