@@ -146,7 +146,7 @@
   const section = document.querySelector(".progress-section");
   if (section) observer.observe(section);
 })();
-// Quest cards – select one and play its video
+// Quest cards – hover (or focus/tap) to select one and play its video
 (function () {
   const items = document.querySelectorAll(".quest-item");
   if (!items.length) return;
@@ -156,7 +156,9 @@
     items[0].classList.add("selected");
   }
 
-  function select(item) {
+   function select(item) {
+    if (item.classList.contains("selected")) return; // already playing, don't restart it
+
     items.forEach((i) => {
       i.classList.remove("selected");
       const v = i.querySelector("video");
@@ -172,13 +174,9 @@
   }
 
   items.forEach((item) => {
-    item.addEventListener("click", () => select(item));
-    item.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        select(item);
-      }
-    });
+    item.addEventListener("mouseenter", () => select(item)); // desktop hover
+    item.addEventListener("focus", () => select(item));      // keyboard (Tab)
+    item.addEventListener("click", () => select(item));      // touch / tap fallback
   });
 })();
 
@@ -684,23 +682,28 @@
   if (!grid) return; // not on the about page
 
   const TEAM_MEMBERS = [
-    {
-      id: "abigail",
-      name: "Abigail Ann Sarmiento",
-      role: "UI/UX design",
-      image: "../assets/icons/06-about/gail.jpg",
-      desc: "Shapes how Questify looks and feels across every page, from the landing screen to the quest board.",
-      workedShort: "Landing page, style guide, component layout",
-      bio: "A designer student/ video editor / Ai prompt engineer who treats interfaces like game HUDsclear feedback, readable progress, and no wasted clicks. Abigail keeps the visual system consistent so the product feels like one world instead of five different pages.",
-      hobbies:
-        "Pixel art, strength training, baking, hiking, writing short game design notes",
-      favorite:
-        "The level-up moment when the bar fills and the rank finally changes",
-      games: "League of Legends, Dota 2, Ragnarok , Valorant",
-      quote: "If progress is invisible, people stop believing it happened.",
-      github: "https://github.com/aasarmiento",
-      linkedin: "aasarmiento",
-    },
+   {
+  id: "abigail",
+  name: "Abigail Ann Sarmiento",
+  role: "UI/UX Designer | Multimedia Artist | Video Editor",
+  image: "../assets/icons/06-about/gail.jpg",
+  desc: "Shapes how Questify looks and feels across every page, from the landing screen to the quest board.",
+  workedShort: "Landing page, style guide, component layout",
+  bio:
+    "Abigail is a UI/UX designer with a decade of experience in multimedia production. She has worked across graphic design, motion graphics, video editing, and e-commerce visuals. She holds a degree in Multimedia Arts , so she understands how a design looks and how it gets built.\n\n" +
+    "Her approach to interfaces comes from games like League of Legends . Good game HUDs show you where you stand, what just happened, and what to do next, all without slowing you down. Abigail applies the same thinking to products: clear feedback, visible progress, and no wasted clicks. She also keeps the visual system consistent, so a product feels like one world instead of five different pages.\n\n" +
+    "She has delivered 300+ projects for international clients and has held Top Rated status on Upwork for 8 consecutive years. Her recent work includes short-form video and motion content for Alibaba Group through Hashi Media",
+  hobbies:
+    "Pixel art, strength training, baking, hiking, and writing short game design notes. Pixel art keeps her attentive to detail, and training and hiking have taught her that progress comes from steady, repeated effort. That idea carries into her design work.",
+  favorite:
+    "The level-up moment, when the bar fills and the rank finally changes. She designs for that feeling: people should always be able to see that their effort is counting.",
+  games: "League of Legends, Dota 2, Ragnarok, Valorant",
+  quote: "If progress is invisible, people stop believing it happened.",
+  github: "https://github.com/aasarmiento",
+  linkedin: "", // paste full https://linkedin.com/in/... link; empty hides the button
+  portfolio: "https://gaily-dev.github.io/Portfolio-website/",
+  behance: "https://behance.net/abigailannS",
+},
     {
       id: "christian",
       name: "Christian Allen Soriano",
@@ -756,12 +759,15 @@
       desc: "Owns the repository, reviews merges, and keeps the main branch stable for the whole team.",
       workedShort: "Repo setup, merge reviews, branch hygiene",
       bio: "Treats version control like a party raid: clear roles, clean commits, and no one merging chaos into main. Sire makes sure student work stays recoverable, reviewable, and ready to present.",
-      hobbies: "Building PCs, running, badminton, video editing",
-      favorite: "A clean merge with zero conflicts after a long feature branch",
-      games: "League of Legends, Counter-Strike 2, Rocket League",
-      quote: "Commit small, commit often, and leave the main branch playable.",
-      github: "#",
-      linkedin: "#",
+      hobbies:
+        "Reading, playing tactical turn-based RPGs, tinkering with emulation on Linux, playing tabletop games with friends and playing with Mighty (dog)",
+      favorite: "Conflict-free merges and structured commit logs",
+      games:
+        "Fire Emblem, Final Fantasy Tactics, Magic the Gathering, Suikoden series",
+      quote:
+        "Keep commits clear, workflows organized, and code presentation-ready.",
+      github: "https://github.com/semanalo23",
+      linkedin: "https://www.linkedin.com/in/semanalo23",
     },
   ];
 
@@ -781,23 +787,43 @@
   }
 
   function openTeamModal(id) {
-    const m = TEAM_MEMBERS.find((x) => x.id === id);
-    if (!m) return;
+  const m = TEAM_MEMBERS.find((x) => x.id === id);
+  if (!m) return;
 
-    document.getElementById("team2-modal-bust").src = m.image;
-    document.getElementById("team2-modal-name").textContent = m.name;
-    document.getElementById("team2-modal-role").textContent = m.role;
-    document.getElementById("team2-modal-bio").textContent = m.bio;
-    document.getElementById("team2-modal-hobbies").textContent = m.hobbies;
-    document.getElementById("team2-modal-favorite").textContent = m.favorite;
-    document.getElementById("team2-modal-games").textContent = m.games;
-    document.getElementById("team2-modal-quote").textContent = m.quote;
-    document.getElementById("team2-modal-github").href = m.github;
-    document.getElementById("team2-modal-linkedin").href = m.linkedin;
+  document.getElementById("team2-modal-bust").src = m.image;
+  document.getElementById("team2-modal-name").textContent = m.name;
+  document.getElementById("team2-modal-role").textContent = m.role;
 
-    document.getElementById("team2-overlay").classList.add("active");
-    document.body.style.overflow = "hidden";
+  // Bio: each blank-line-separated block becomes its own paragraph
+  const bioEl = document.getElementById("team2-modal-bio");
+  bioEl.innerHTML = "";
+  m.bio.split("\n\n").forEach((text) => {
+    const p = document.createElement("p");
+    p.textContent = text;
+    bioEl.appendChild(p);
+  });
+
+  document.getElementById("team2-modal-hobbies").textContent = m.hobbies;
+  document.getElementById("team2-modal-favorite").textContent = m.favorite;
+  document.getElementById("team2-modal-games").textContent = m.games;
+  document.getElementById("team2-modal-quote").textContent = m.quote;
+
+  // Links: hide any link the member doesn't have
+  function setLink(elId, url) {
+    const a = document.getElementById(elId);
+    if (!a) return;
+    const valid = url && url !== "#";
+    a.href = valid ? url : "#";
+    a.hidden = !valid;
   }
+  setLink("team2-modal-github", m.github);
+  setLink("team2-modal-linkedin", m.linkedin);
+  setLink("team2-modal-portfolio", m.portfolio);
+  setLink("team2-modal-behance", m.behance);
+
+  document.getElementById("team2-overlay").classList.add("active");
+  document.body.style.overflow = "hidden";
+}
 
   function closeTeamModal() {
     document.getElementById("team2-overlay").classList.remove("active");
@@ -822,8 +848,8 @@
   });
 
   // close handlers
-  const closeBtn = document.getElementById("team2-modal-close");
-  if (closeBtn) closeBtn.addEventListener("click", closeTeamModal);
+ const closeBtn = document.querySelector(".team2-modal-close");
+if (closeBtn) closeBtn.addEventListener("click", closeTeamModal);
 
   document.getElementById("team2-overlay").addEventListener("click", (e) => {
     if (e.target.id === "team2-overlay") closeTeamModal();
@@ -833,4 +859,3 @@
     if (e.key === "Escape") closeTeamModal();
   });
 })();
-
