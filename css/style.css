@@ -4917,6 +4917,20 @@ section {
   box-shadow: 0 0 0 1px var(--a-lime);
   outline: none;
 }
+/* Chrome autofill (naka-save na email/password): pinipinturahan ng Chrome na
+   light blue ang field, kaya hindi na mabasa ang puting text at "Show".
+   Tinatakpan ng malaking inset shadow na kulay ng field natin. */
+.auth-page .auth-card input:-webkit-autofill,
+.auth-page .auth-card input:-webkit-autofill:hover,
+.auth-page .auth-card input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--a-white);
+  caret-color: var(--a-white);
+  box-shadow: 0 0 0 1000px var(--a-deep) inset;
+  transition: background-color 9999s ease-out 0s;
+}
+.auth-page .auth-card input:-webkit-autofill:focus {
+  box-shadow: 0 0 0 1000px var(--a-deep) inset, 0 0 0 1px var(--a-lime);
+}
 .auth-page .auth-card .in-wrap:has(.show-btn) input {
   padding-right: 64px;
 }
@@ -7354,6 +7368,28 @@ body.profile-page {
   .cg-cells {
     gap: 2px;
   }
+}
+
+
+/* ---------- Sign out confirm popup (nav.js, lahat ng page) ----------
+   Parehong .modal.cm ng Mark done; walang tinted na icon box (feedback ni Abigail) */
+/* nasa ibabaw ng header (z-index 100), para hindi mapindot ang nav habang bukas */
+.modal-back.so-back {
+  z-index: 200;
+}
+.so-modal h2 {
+  margin-top: 4px;
+  padding-right: 40px;
+}
+.cm-quest.so-player {
+  justify-content: flex-start;
+}
+.so-player img {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  image-rendering: pixelated;
 }
 
 /* =====================================================================
