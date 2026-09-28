@@ -510,13 +510,13 @@ document.addEventListener("DOMContentLoaded", function () {
       <article class="qcard can-drag${overdue ? " is-overdue" : ""}" data-id="${q.id}">
         <div class="qcard-head">
           <h3 class="qcard-title"><button type="button" class="qcard-open" data-action="open" aria-haspopup="dialog" aria-describedby="dragHelp">${title}</button></h3>
+          ${overdue ? '<span class="badge-overdue">Quest Overdue</span>' : ""}
           <div class="qcard-tools">${menuHtml(q, title)}</div>
         </div>
         ${q.desc ? `<p class="cap">${esc(q.desc)}</p>` : ""}
         <div class="meta">
           <span class="chip chip-${q.cat}">${CATEGORY_LABEL[q.cat]}</span>
           <span class="xp" title="${PRIORITY_LABEL[q.priority]} priority">+${shownXp(q)} XP</span>
-          ${overdue ? '<span class="badge-overdue">Quest Overdue</span>' : ""}
           <span class="due">${dueText(q)}</span>
         </div>
         <div class="qactions">${action}</div>
@@ -571,8 +571,22 @@ document.addEventListener("DOMContentLoaded", function () {
     if (highlight) revealInList(highlight);
     updateFades();
     paintStreak();
+    paintCounters();
     saveBoard();
     if (before) play(before, highlight);
+  }
+
+  // Scoreboard sa arena header: buong board (hindi apektado ng search o filter)
+  function paintCounters() {
+    const today = todayIso();
+    const weekAgo = parseIso(isoOffset(-6)).getTime();
+    const set = (id, n) => {
+      const el = $(id);
+      if (el) el.textContent = n;
+    };
+    set("cOverdue", quests.filter(isOverdue).length);
+    set("cToday", quests.filter((q) => q.status !== "done" && q.due === today).length);
+    set("cWeek", quests.filter((q) => q.status === "done" && q.completed >= weekAgo).length);
   }
 
   // Streak sa player strip: ilang sunod-sunod na araw (hanggang ngayon o kahapon)
@@ -593,13 +607,13 @@ document.addEventListener("DOMContentLoaded", function () {
       n++;
       d.setDate(d.getDate() - 1);
     }
-    const text = `${n} day${n === 1 ? "" : "s"}`;
+    const text = n ? `${n}-day streak` : "No streak yet";
     // "pop" lang kapag tumaas (hindi sa pagbukas ng page)
     if (lastStreak !== null && n > lastStreak) restartAnimation(el, "pop");
     lastStreak = n;
     $("bStreakText").textContent = text;
     el.classList.toggle("off", n === 0);
-    el.setAttribute("aria-label", `Day streak: ${text}`);
+    el.setAttribute("aria-label", n ? `Day streak: ${n} day${n === 1 ? "" : "s"}` : "No day streak yet");
   }
 
   // I-scroll yung list ng column (hindi yung buong page) para kita yung card na kakalipat lang.
@@ -821,6 +835,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (bLevel) {
       bLevel.textContent = "Level " + level;
       bRank.textContent = rankFor(total);
+      const chip = $("bRankChip");
+      if (chip) chip.dataset.rank = rankFor(total).toLowerCase();
+      const badge = $("bBadge");
+      if (badge) badge.textContent = level;
       bNext.textContent = `${XP_PER_LEVEL - (total % XP_PER_LEVEL)} XP to Level ${level + 1}`;
       if (!change || reduceMotion.matches) bXp.textContent = xpLabel(total);
     }
@@ -849,6 +867,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }, 600);
       restartAnimation(levelNum, "pop");
       if (bLevel) restartAnimation(bLevel, "pop");
+      if ($("bBadge")) restartAnimation($("bBadge"), "pop");
     } else if (level < prevLevel) {
       // Undo na nagpababa ng level: ubusin yung bar, tapos ipakita ulit yung laman ng dating level.
       setFill(0);
