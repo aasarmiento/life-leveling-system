@@ -8,11 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-      rel="stylesheet" />
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="../css/style.css" />
     <script src="../js/nav.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/iamashruu/cursorly.js@1.0.5/dist/cursorly.min.js"></script>
-
   </head>
   <body>
     <!-- Shared header (pareho sa lahat ng page).
@@ -72,27 +72,50 @@
             Work, learning, and health, sorted so they can move.
           </p>
           <div class="board-counters" aria-label="Quest summary">
-            <div class="bc-tile red"><b class="pixel" id="cOverdue">0</b><span>Overdue</span></div>
-            <div class="bc-tile gold"><b class="pixel" id="cToday">0</b><span>Due today</span></div>
-            <div class="bc-tile lime"><b class="pixel" id="cWeek">0</b><span>Done this week</span></div>
+            <div class="bc-tile red">
+              <b class="pixel" id="cOverdue">0</b><span>Overdue</span>
+            </div>
+            <div class="bc-tile gold">
+              <b class="pixel" id="cToday">0</b><span>Due today</span>
+            </div>
+            <div class="bc-tile lime">
+              <b class="pixel" id="cWeek">0</b><span>Done this week</span>
+            </div>
           </div>
         </div>
         <div class="board-player" aria-label="Your player">
           <div class="bp-frame">
-            <img class="bp-avatar" id="bAvatar" src="../assets/avatars/avatar-lime-slime-256.png" alt="" />
+            <img
+              class="bp-avatar"
+              id="bAvatar"
+              src="../assets/avatars/avatar-lime-slime-256.png"
+              alt=""
+            />
             <span class="bp-badge pixel" id="bBadge" aria-hidden="true">1</span>
           </div>
           <div class="bp-main">
             <b class="bp-name pixel" id="bName">Player</b>
             <div class="bp-top">
-              <span class="rank-chip" id="bRankChip" data-rank="novice"><i aria-hidden="true"></i><span id="bRank">Novice</span></span>
+              <span class="rank-chip" id="bRankChip" data-rank="novice"
+                ><i aria-hidden="true"></i><span id="bRank">Novice</span></span
+              >
               <span class="bp-level"><b id="bLevel">Level 1</b></span>
-              <span class="bp-streak off" id="bStreak" title="Day streak: days in a row with a completed quest">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3.4 4.8 5.6 4.8 10.4a4.8 4.8 0 0 1-9.6 0c0-2.2 1.1-3.9 2.4-5 .2 1.7 1 2.8 2.2 3.3-.6-3 0-6 .2-8.7z" /></svg>
+              <span
+                class="bp-streak off"
+                id="bStreak"
+                title="Day streak: days in a row with a completed quest"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 2.5c.6 3.4 4.8 5.6 4.8 10.4a4.8 4.8 0 0 1-9.6 0c0-2.2 1.1-3.9 2.4-5 .2 1.7 1 2.8 2.2 3.3-.6-3 0-6 .2-8.7z"
+                  />
+                </svg>
                 <span id="bStreakText">No streak yet</span>
               </span>
             </div>
-            <div class="acct-bar"><span class="level-fill" id="bFill"></span></div>
+            <div class="acct-bar">
+              <span class="level-fill" id="bFill"></span>
+            </div>
             <div class="bp-foot">
               <span id="bXp">0 XP</span>
               <span id="bNext">125 XP to Level 2</span>
@@ -562,15 +585,19 @@
       </div>
     </div>
     <div class="rankup" id="rankupModal" aria-hidden="true">
-  <div class="rankup-card" role="status">
-    <span class="rankup-kicker">Level Up</span>
-    <div class="rankup-badge">
-      <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3L21 9l-5 4.6L17.5 21 12 17.6 6.5 21 8 13.6 3 9l6.1-.7z"/></svg>
+      <div class="rankup-card" role="status">
+        <span class="rankup-kicker">Level Up</span>
+        <div class="rankup-badge">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2l2.9 6.3L21 9l-5 4.6L17.5 21 12 17.6 6.5 21 8 13.6 3 9l6.1-.7z"
+            />
+          </svg>
+        </div>
+        <h2 class="rankup-name" id="rankupName">Level 13</h2>
+        <p class="rankup-sub" id="rankupSub">1,560 XP total</p>
+      </div>
     </div>
-    <h2 class="rankup-name" id="rankupName">Level 13</h2>
-    <p class="rankup-sub" id="rankupSub">1,560 XP total</p>
-  </div>
-</div>
     <!-- Toast: ginagawa na ng nav.js (window.questifyToast), baba-kanan ng screen -->
 
     <!-- Footer: pareho ng Home (may pixel art), walang "Create free account" -->
@@ -579,7 +606,10 @@
         <a class="footer-logo" href="../index.html">QUESTIFY</a>
         <div class="footer-info">
           <p><strong>Web Systems and Technology</strong></p>
-          <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
+          <p>
+            Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona |
+            Rowel Jepsani | Sire Manalo
+          </p>
         </div>
         <div>© 2026 Questify</div>
       </footer>

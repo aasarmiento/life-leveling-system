@@ -24,15 +24,49 @@ document.addEventListener("DOMContentLoaded", function () {
     { key: "growth", label: "Learning", cls: "learning" },
     { key: "health", label: "Health", cls: "health" },
   ];
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MONTHS = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const DAYS_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const DAYS_LONG = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
   const DAY_MS = 86400000;
 
-  const ACCOUNT = window.questifyAccount || { boardKey: "questify.board.v1", isDemo: true };
+  const ACCOUNT = window.questifyAccount || {
+    boardKey: "questify.board.v1",
+    isDemo: true,
+  };
   const $ = (s) => document.querySelector(s);
   const esc = (s) =>
-    String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    String(s).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
   const fmt = (n) => n.toLocaleString("en-US");
   const pad = (n) => String(n).padStart(2, "0");
   const dayStart = (ms) => {
@@ -102,7 +136,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const streak = streakDays();
   const weekAgo = dayStart(Date.now()) - 6 * DAY_MS;
   const thisWeek = done.filter((q) => q.completed >= weekAgo);
-  const completion = quests.length ? Math.round((done.length / quests.length) * 100) : 0;
+  const completion = quests.length
+    ? Math.round((done.length / quests.length) * 100)
+    : 0;
   const setText = (sel, text) => {
     const el = $(sel);
     if (el) el.textContent = text;
@@ -111,7 +147,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- player hero (Summit camp) ----------
   setText("#pName", player.name || "Player");
   const avatar = $("#pAvatar");
-  if (avatar) avatar.src = `../assets/avatars/avatar-${player.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+  if (avatar)
+    avatar.src = `../assets/avatars/avatar-${player.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
   setText("#pBadge", level);
   const rankChip = $("#pRank");
   if (rankChip) {
@@ -121,16 +158,24 @@ document.addEventListener("DOMContentLoaded", function () {
   setText("#pLevel", `Level ${level}`);
   const streakChip = $("#pStreak");
   if (streakChip) {
-    streakChip.querySelector("span").textContent = streak ? `${streak}-day streak` : "No streak yet";
+    streakChip.querySelector("span").textContent = streak
+      ? `${streak}-day streak`
+      : "No streak yet";
     streakChip.classList.toggle("off", streak === 0);
-    streakChip.setAttribute("aria-label", streak ? `Day streak: ${streak} day${streak === 1 ? "" : "s"}` : "No day streak yet");
+    streakChip.setAttribute(
+      "aria-label",
+      streak
+        ? `Day streak: ${streak} day${streak === 1 ? "" : "s"}`
+        : "No day streak yet",
+    );
   }
   const track = $("#pTrack");
   if (track) {
     track.setAttribute("aria-valuemax", String(XP_PER_LEVEL));
     track.setAttribute("aria-valuenow", String(into));
     track.setAttribute("aria-label", `XP into Level ${level + 1}`);
-    track.querySelector(".xp-fill").style.width = (into / XP_PER_LEVEL) * 100 + "%";
+    track.querySelector(".xp-fill").style.width =
+      (into / XP_PER_LEVEL) * 100 + "%";
   }
   setText("#pXp", `${fmt(total)} XP`);
   setText("#pNext", `${toNext} XP to Level ${level + 1}`);
@@ -144,9 +189,26 @@ document.addEventListener("DOMContentLoaded", function () {
   // napupuno habang lumilipas ang araw, at bagong grid pagpasok ng bagong buwan.
   const catCard = $(".extra-grid .card");
   if (catCard) {
-    const CAT_RGB = { work: "216, 178, 74", growth: "143, 169, 192", health: "176, 80, 95" };
+    const CAT_RGB = {
+      work: "216, 178, 74",
+      growth: "143, 169, 192",
+      health: "176, 80, 95",
+    };
     const LEVEL_ALPHA = [0, 0.45, 0.75, 1];
-    const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const MONTHS_LONG = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     let catView = "month";
 
     catCard.classList.add("cat-card");
@@ -183,8 +245,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (ci >= 0) counts[ci][isMonth ? d.getDate() - 1 : d.getMonth()]++;
       });
       // Liwanag: Month = 1, 2, 3+ quests sa isang araw; Year = 1-5, 6-12, 13+ sa isang buwan
-      const level = (v) => (!v ? 0 : isMonth ? Math.min(v, 3) : v <= 5 ? 1 : v <= 12 ? 2 : 3);
-      const slotName = (i) => (isMonth ? `${MONTHS[m]} ${i + 1}` : `${MONTHS_LONG[i]}`);
+      const level = (v) =>
+        !v ? 0 : isMonth ? Math.min(v, 3) : v <= 5 ? 1 : v <= 12 ? 2 : 3;
+      const slotName = (i) =>
+        isMonth ? `${MONTHS[m]} ${i + 1}` : `${MONTHS_LONG[i]}`;
 
       let total = 0;
       const rows = CATS.map((c, ci) => {
@@ -194,7 +258,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const cells = row
           .map((v, i) => {
             const cls = i > nowSlot ? "cg-cell future" : "cg-cell";
-            const bg = v ? ` style="background:rgba(${CAT_RGB[c.key]}, ${LEVEL_ALPHA[level(v)]})"` : "";
+            const bg = v
+              ? ` style="background:rgba(${CAT_RGB[c.key]}, ${LEVEL_ALPHA[level(v)]})"`
+              : "";
             return `<i class="${cls}"${bg} title="${slotName(i)}: ${v} ${c.label} quest${v === 1 ? "" : "s"}"></i>`;
           })
           .join("");
@@ -210,11 +276,13 @@ document.addEventListener("DOMContentLoaded", function () {
         : `<div class="cg-axis-months" style="grid-template-columns:repeat(12,1fr)">${MONTHS.map((mn) => `<span>${mn[0]}</span>`).join("")}</div>`;
 
       catCard.querySelector(".cg-rows").innerHTML =
-        rows + `<div class="cg-row cg-axis"><span></span>${axis}<span></span></div>`;
+        rows +
+        `<div class="cg-row cg-axis"><span></span>${axis}<span></span></div>`;
       catCard.querySelector(".cg-kicker").textContent = isMonth
         ? `${MONTHS_LONG[m]} ${y}, one square per day.`
         : `${y}, one square per month.`;
-      catCard.querySelector(".cg-total-label").textContent = `Completed in ${isMonth ? MONTHS_LONG[m] : y}`;
+      catCard.querySelector(".cg-total-label").textContent =
+        `Completed in ${isMonth ? MONTHS_LONG[m] : y}`;
       catCard.querySelector(".cg-total").textContent = fmt(total);
     }
 
@@ -259,7 +327,12 @@ document.addEventListener("DOMContentLoaded", function () {
       return Array.from({ length: 7 }, (_, i) => {
         const start = today - (6 - i) * DAY_MS;
         const d = new Date(start);
-        return { start, end: start + DAY_MS, label: DAYS[d.getDay()], long: DAYS_LONG[d.getDay()] };
+        return {
+          start,
+          end: start + DAY_MS,
+          label: DAYS[d.getDay()],
+          long: DAYS_LONG[d.getDay()],
+        };
       });
     }
     if (range === 30) {
@@ -281,30 +354,60 @@ document.addEventListener("DOMContentLoaded", function () {
     return Array.from({ length: 6 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
       const e = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-      const long = d.toLocaleString("en-US", { month: "long", year: "numeric" });
-      return { start: d.getTime(), end: e.getTime(), label: MONTHS[d.getMonth()], long };
+      const long = d.toLocaleString("en-US", {
+        month: "long",
+        year: "numeric",
+      });
+      return {
+        start: d.getTime(),
+        end: e.getTime(),
+        label: MONTHS[d.getMonth()],
+        long,
+      };
     });
   }
-  const RANGE_TITLE = { 7: "XP this week", 30: "XP in the last 30 days", all: "XP over time" };
+  const RANGE_TITLE = {
+    7: "XP this week",
+    30: "XP in the last 30 days",
+    all: "XP over time",
+  };
   function paintChart(range) {
     if (!weekCard) return;
     const bs = buckets(range === "all" ? "all" : range).map((b) => ({
       ...b,
-      xp: done.filter((q) => q.completed >= b.start && q.completed < b.end).reduce((s, q) => s + (q.earned || 0), 0),
+      xp: done
+        .filter((q) => q.completed >= b.start && q.completed < b.end)
+        .reduce((s, q) => s + (q.earned || 0), 0),
     }));
     const sum = bs.reduce((s, b) => s + b.xp, 0);
     const max = Math.max(...bs.map((b) => b.xp));
     const peak = max > 0 ? bs.find((b) => b.xp === max) : null;
     // Summary tiles sa ilalim ng chart
-    const per = range === "all" ? { n: bs.length, avg: "Monthly average", best: "Best month" }
-      : range === 30 ? { n: 30, avg: "Daily average", best: "Best 6 days" }
-      : { n: 7, avg: "Daily average", best: "Best day" };
+    const per =
+      range === "all"
+        ? { n: bs.length, avg: "Monthly average", best: "Best month" }
+        : range === 30
+          ? { n: 30, avg: "Daily average", best: "Best 6 days" }
+          : { n: 7, avg: "Daily average", best: "Best day" };
     setText("#wSum", fmt(sum));
-    setText("#wSumLab", range === 7 ? "XP this week" : range === 30 ? "XP in 30 days" : "XP in 6 months");
+    setText(
+      "#wSumLab",
+      range === 7
+        ? "XP this week"
+        : range === 30
+          ? "XP in 30 days"
+          : "XP in 6 months",
+    );
     setText("#wAvg", fmt(Math.round(sum / per.n)));
     setText("#wAvgLab", per.avg);
-    setText("#wBest", peak ? (range === 30 ? peak.label : peak.label.toUpperCase()) : "–");
-    setText("#wBestLab", peak ? `${per.best} · +${fmt(peak.xp)} XP` : "No XP yet");
+    setText(
+      "#wBest",
+      peak ? (range === 30 ? peak.label : peak.label.toUpperCase()) : "–",
+    );
+    setText(
+      "#wBestLab",
+      peak ? `${per.best} · +${fmt(peak.xp)} XP` : "No XP yet",
+    );
     weekCard.querySelector("h2").textContent = RANGE_TITLE[range];
     weekCard.querySelector(".week-head .page-kicker").textContent = sum
       ? `${fmt(sum)} XP earned. ${peak.long} was the peak.`
@@ -345,7 +448,10 @@ document.addEventListener("DOMContentLoaded", function () {
     li.querySelector(".you")?.remove();
     if (i === curIndex) {
       li.setAttribute("aria-current", "true");
-      li.insertAdjacentHTML("afterbegin", '<span class="you pixel" aria-hidden="true">YOU</span>');
+      li.insertAdjacentHTML(
+        "afterbegin",
+        '<span class="you pixel" aria-hidden="true">YOU</span>',
+      );
     } else li.removeAttribute("aria-current");
   });
   const nextRank = RANKS[curIndex + 1];
@@ -353,9 +459,11 @@ document.addEventListener("DOMContentLoaded", function () {
   setText("#rnFrom", rank);
   if (rnTrack) {
     const pct = nextRank
-      ? ((total - RANKS[curIndex].xp) / (nextRank.xp - RANKS[curIndex].xp)) * 100
+      ? ((total - RANKS[curIndex].xp) / (nextRank.xp - RANKS[curIndex].xp)) *
+        100
       : 100;
-    rnTrack.querySelector(".xp-fill").style.width = Math.max(0, Math.min(100, pct)) + "%";
+    rnTrack.querySelector(".xp-fill").style.width =
+      Math.max(0, Math.min(100, pct)) + "%";
     rnTrack.setAttribute("aria-valuenow", String(Math.round(pct)));
   }
   const rnTo = $("#rnTo");
@@ -368,16 +476,30 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- badges (totoong progress) ----------
   const badgeBox = $(".badges");
   if (badgeBox) {
-    const earlyBirds = done.filter((q) => new Date(q.completed).getHours() < 9).length;
+    const earlyBirds = done.filter(
+      (q) => new Date(q.completed).getHours() < 9,
+    ).length;
     const BADGES = [
       { name: "Level 10", have: level, need: 10, unit: "levels" },
       { name: "7-day streak", have: streak, need: 7, unit: "days in a row" },
-      { name: "Deep week", have: thisWeek.reduce((s, q) => s + (q.earned || 0), 0), need: 150, unit: "XP in 7 days" },
-      { name: "Early bird", have: earlyBirds, need: 5, unit: "quests done before 9 AM" },
+      {
+        name: "Deep week",
+        have: thisWeek.reduce((s, q) => s + (q.earned || 0), 0),
+        need: 150,
+        unit: "XP in 7 days",
+      },
+      {
+        name: "Early bird",
+        have: earlyBirds,
+        need: 5,
+        unit: "quests done before 9 AM",
+      },
       { name: "Century", have: done.length, need: 100, unit: "quests" },
     ];
-    const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>';
-    const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+    const STAR =
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>';
+    const LOCK =
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
     badgeBox.innerHTML = BADGES.map((b) => {
       const have = Math.min(b.have, b.need);
       if (b.have >= b.need) {
@@ -400,9 +522,14 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- your data: Export / Import ----------
   const dataCard = $(".data-card");
   setText("#saveName", player.name || "Player");
-  setText("#saveMeta", `Level ${level} · ${rank} · ${quests.length} quest${quests.length === 1 ? "" : "s"} · ${fmt(total)} XP`);
+  setText(
+    "#saveMeta",
+    `Level ${level} · ${rank} · ${quests.length} quest${quests.length === 1 ? "" : "s"} · ${fmt(total)} XP`,
+  );
   if (dataCard) {
-    const [exportBtn, importBtn] = dataCard.querySelectorAll(".data-actions button");
+    const [exportBtn, importBtn] = dataCard.querySelectorAll(
+      ".data-actions button",
+    );
     const errMsg = dataCard.querySelector(".msg-error");
     const hint = dataCard.querySelector(".msg-hint");
     const say = (text, bad) => {
@@ -419,7 +546,9 @@ document.addEventListener("DOMContentLoaded", function () {
         exported: new Date().toISOString(),
         board: loadBoard() || { quests: [], xp: [], nextId: 1 },
       };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
       const a = document.createElement("a");
       const d = new Date();
       a.href = URL.createObjectURL(blob);
@@ -439,10 +568,16 @@ document.addEventListener("DOMContentLoaded", function () {
     importBtn.addEventListener("click", () => picker.click());
 
     const validQuest = (q) =>
-      q && typeof q.id === "string" && typeof q.title === "string" && typeof q.desc === "string" &&
-      ["todo", "doing", "done"].includes(q.status) && ["work", "growth", "health"].includes(q.cat) &&
-      ["low", "medium", "high"].includes(q.priority) && typeof q.due === "string" &&
-      typeof q.added === "number" && typeof q.rank === "number";
+      q &&
+      typeof q.id === "string" &&
+      typeof q.title === "string" &&
+      typeof q.desc === "string" &&
+      ["todo", "doing", "done"].includes(q.status) &&
+      ["work", "growth", "health"].includes(q.cat) &&
+      ["low", "medium", "high"].includes(q.priority) &&
+      typeof q.due === "string" &&
+      typeof q.added === "number" &&
+      typeof q.rank === "number";
     picker.addEventListener("change", () => {
       const file = picker.files[0];
       picker.value = "";
@@ -457,8 +592,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         const b = data && data.app === "questify" && data.board;
         const ok =
-          b && Array.isArray(b.quests) && b.quests.every(validQuest) &&
-          Array.isArray(b.xp) && b.xp.every((e) => e && Number.isFinite(e.xp));
+          b &&
+          Array.isArray(b.quests) &&
+          b.quests.every(validQuest) &&
+          Array.isArray(b.xp) &&
+          b.xp.every((e) => e && Number.isFinite(e.xp));
         if (!ok) {
           say("That file isn't a Questify backup. Nothing was changed.", true);
           return;
@@ -469,11 +607,16 @@ document.addEventListener("DOMContentLoaded", function () {
           say("Your browser blocked saving. Nothing was changed.", true);
           return;
         }
-        say(`Imported ${b.quests.length} quest${b.quests.length === 1 ? "" : "s"}. Reloading…`, false);
+        say(
+          `Imported ${b.quests.length} quest${b.quests.length === 1 ? "" : "s"}. Reloading…`,
+          false,
+        );
         setTimeout(() => location.reload(), 900);
       };
       reader.readAsText(file);
     });
-    if (hint) hint.textContent = "Export downloads a backup of your quests and XP. Import checks the file first, then replaces this account's board.";
+    if (hint)
+      hint.textContent =
+        "Export downloads a backup of your quests and XP. Import checks the file first, then replaces this account's board.";
   }
 });

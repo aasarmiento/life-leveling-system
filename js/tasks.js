@@ -32,10 +32,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const STATUSES = ["todo", "doing", "done"];
   const STATUS_LABEL = { todo: "To do", doing: "Doing", done: "Done" };
   const COLUMN_EMPTY = {
-  todo: "No quests here yet — add one to begin your journey.",
-  doing: "No quests in motion. Start one from To Do.",
-  done: "No victories logged yet. Complete a quest to see it here.",
-};
+    todo: "No quests here yet — add one to begin your journey.",
+    doing: "No quests in motion. Start one from To Do.",
+    done: "No victories logged yet. Complete a quest to see it here.",
+  };
   // Bawat sort may sariling default na direction (hal. Due date = pinakamalapit muna).
   // Sa To do at Doing lang gumagana yung sort; ang Done ay laging pinakabago sa taas.
   const SORTS = {
@@ -102,7 +102,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // Laging may taon, hal. "Oct 05, 2026" (para malinaw kung kailan)
   function shortDate(iso) {
     const d = parseIso(iso);
-    return MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear();
+    return (
+      MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear()
+    );
   }
 
   // Pinakamalayong puwedeng due date: 1 taon mula ngayon (parang 1-year planner)
@@ -585,8 +587,15 @@ document.addEventListener("DOMContentLoaded", function () {
       if (el) el.textContent = n;
     };
     set("cOverdue", quests.filter(isOverdue).length);
-    set("cToday", quests.filter((q) => q.status !== "done" && q.due === today).length);
-    set("cWeek", quests.filter((q) => q.status === "done" && q.completed >= weekAgo).length);
+    set(
+      "cToday",
+      quests.filter((q) => q.status !== "done" && q.due === today).length,
+    );
+    set(
+      "cWeek",
+      quests.filter((q) => q.status === "done" && q.completed >= weekAgo)
+        .length,
+    );
   }
 
   // Streak sa player strip: ilang sunod-sunod na araw (hanggang ngayon o kahapon)
@@ -613,7 +622,10 @@ document.addEventListener("DOMContentLoaded", function () {
     lastStreak = n;
     $("bStreakText").textContent = text;
     el.classList.toggle("off", n === 0);
-    el.setAttribute("aria-label", n ? `Day streak: ${n} day${n === 1 ? "" : "s"}` : "No day streak yet");
+    el.setAttribute(
+      "aria-label",
+      n ? `Day streak: ${n} day${n === 1 ? "" : "s"}` : "No day streak yet",
+    );
   }
 
   // I-scroll yung list ng column (hindi yung buong page) para kita yung card na kakalipat lang.
@@ -897,48 +909,48 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // "Mark done" (pagkatapos i-confirm sa popup): lipat sa Done + dagdag XP sa ledger.
-// Wala nang Undo sa toast: nasa 3-dot menu na ng card ("Undo done").
-function completeQuest(q) {
-  const levelBefore = Number(levelPill.dataset.level);
-  q.status = "done";
-  q.completed = Date.now();
-  q.earned = XP_BY_PRIORITY[q.priority];
-  bankedXp.push({ id: q.id, xp: q.earned });
-  knownOverdue.delete(q.id);
-  render({ highlight: q.id });
-  paintLevel(q.earned);
-  focusCard(q.id, "kebab");
+  // Wala nang Undo sa toast: nasa 3-dot menu na ng card ("Undo done").
+  function completeQuest(q) {
+    const levelBefore = Number(levelPill.dataset.level);
+    q.status = "done";
+    q.completed = Date.now();
+    q.earned = XP_BY_PRIORITY[q.priority];
+    bankedXp.push({ id: q.id, xp: q.earned });
+    knownOverdue.delete(q.id);
+    render({ highlight: q.id });
+    paintLevel(q.earned);
+    focusCard(q.id, "kebab");
 
-  const levelNow = Number(levelPill.dataset.level);
-  const leveledUp = levelNow > levelBefore;
-  const toNext = XP_PER_LEVEL - (totalXp() % XP_PER_LEVEL);
-  const rankedUp = rankFor(totalXp()) !== rankFor(totalXp() - q.earned);
+    const levelNow = Number(levelPill.dataset.level);
+    const leveledUp = levelNow > levelBefore;
+    const toNext = XP_PER_LEVEL - (totalXp() % XP_PER_LEVEL);
+    const rankedUp = rankFor(totalXp()) !== rankFor(totalXp() - q.earned);
 
-  // Level up / rank up = may popup na (Level Up dito, Rank Up sa nav.js), kaya walang toast.
-  // Toast lang para sa karaniwang quest.
-  if (!leveledUp && !rankedUp) {
-    showToast({
-      tone: "ok",
-      title: `+${q.earned} XP — Level up in ${toNext} XP!`,
-      text: q.title,
-    });
+    // Level up / rank up = may popup na (Level Up dito, Rank Up sa nav.js), kaya walang toast.
+    // Toast lang para sa karaniwang quest.
+    if (!leveledUp && !rankedUp) {
+      showToast({
+        tone: "ok",
+        title: `+${q.earned} XP — Level up in ${toNext} XP!`,
+        text: q.title,
+      });
+    }
+    announce(
+      `Completed "${q.title}". Plus ${q.earned} XP.${leveledUp ? ` Level ${levelNow}!` : ""} You can undo it from the quest's menu.`,
+    );
+    if (leveledUp) showRankup(levelNow, totalXp());
+    document.dispatchEvent(
+      new CustomEvent("questify:quest-done", {
+        detail: {
+          id: q.id,
+          title: q.title,
+          xp: q.earned,
+          level: levelNow,
+          leveledUp: levelNow > levelBefore,
+        },
+      }),
+    );
   }
-  announce(
-    `Completed "${q.title}". Plus ${q.earned} XP.${leveledUp ? ` Level ${levelNow}!` : ""} You can undo it from the quest's menu.`,
-  );
-  if (leveledUp) showRankup(levelNow, totalXp());
-  document.dispatchEvent(
-    new CustomEvent("questify:quest-done", {
-      detail: {
-        id: q.id,
-        title: q.title,
-        xp: q.earned,
-        level: levelNow,
-        leveledUp: levelNow > levelBefore,
-      },
-    }),
-  );
-}
   // "Undo done" (3-dot menu ng Done, may confirm): babalik sa taas ng Doing
   // at babawiin yung XP na nakuha dito.
   function undoDone(q) {
@@ -1065,8 +1077,14 @@ function completeQuest(q) {
   function fitMenu(menu, list) {
     if (!list) return;
     // Tapusin muna ang galaw ng card (hal. kaka-filter lang) para tama ang sukat
-    menu.closest(".qcard").getAnimations().forEach((a) => a.finish());
-    const over = menu.getBoundingClientRect().bottom - list.getBoundingClientRect().bottom + 12;
+    menu
+      .closest(".qcard")
+      .getAnimations()
+      .forEach((a) => a.finish());
+    const over =
+      menu.getBoundingClientRect().bottom -
+      list.getBoundingClientRect().bottom +
+      12;
     if (over > 0) {
       const base = parseFloat(getComputedStyle(list).paddingBottom) || 0;
       list.style.paddingBottom = base + over + "px";
@@ -1500,29 +1518,29 @@ function completeQuest(q) {
     );
   });
 
-const rankupModal = $("rankupModal");
-const rankupName = rankupModal ? $("rankupName") : null;
-const rankupSub = rankupModal ? $("rankupSub") : null;
-let rankupTimer = null;
+  const rankupModal = $("rankupModal");
+  const rankupName = rankupModal ? $("rankupName") : null;
+  const rankupSub = rankupModal ? $("rankupSub") : null;
+  let rankupTimer = null;
 
-function showRankup(level, total) {
-  if (!rankupModal) return; // safety: does nothing if the modal HTML is missing
-  rankupName.textContent = "Level " + level;
-  rankupSub.textContent = xpLabel(total) + " total";
-  rankupModal.classList.add("show");
-  rankupModal.setAttribute("aria-hidden", "false");
-  clearTimeout(rankupTimer);
-  rankupTimer = setTimeout(hideRankup, 2200);
-}
+  function showRankup(level, total) {
+    if (!rankupModal) return; // safety: does nothing if the modal HTML is missing
+    rankupName.textContent = "Level " + level;
+    rankupSub.textContent = xpLabel(total) + " total";
+    rankupModal.classList.add("show");
+    rankupModal.setAttribute("aria-hidden", "false");
+    clearTimeout(rankupTimer);
+    rankupTimer = setTimeout(hideRankup, 2200);
+  }
 
-function hideRankup() {
-  if (!rankupModal) return;
-  rankupModal.classList.remove("show");
-  rankupModal.setAttribute("aria-hidden", "true");
-  clearTimeout(rankupTimer);
-}
+  function hideRankup() {
+    if (!rankupModal) return;
+    rankupModal.classList.remove("show");
+    rankupModal.setAttribute("aria-hidden", "true");
+    clearTimeout(rankupTimer);
+  }
 
-if (rankupModal) rankupModal.addEventListener("click", hideRankup);
+  if (rankupModal) rankupModal.addEventListener("click", hideRankup);
 
   // ---------- dialogs (popups: Add/Edit, Details, Delete) ----------
 
@@ -1592,7 +1610,8 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
   function openDetail(q, returnEl) {
     const overdue = isOverdue(q);
     const status = $("dStatus");
-    status.textContent = STATUS_LABEL[q.status] + (overdue ? " · Quest Overdue" : "");
+    status.textContent =
+      STATUS_LABEL[q.status] + (overdue ? " · Quest Overdue" : "");
     status.className = `detail-status status-${q.status}${overdue ? " is-overdue" : ""}`;
     $("dTitle").textContent = q.title;
 
@@ -1694,7 +1713,8 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return "Pick a valid date.";
     const keepingOld = editing && due === editing.due;
     if (due < todayIso() && !keepingOld) return "Pick today or a later date.";
-    if (due > maxDue() && !keepingOld) return "Pick a date within the next year.";
+    if (due > maxDue() && !keepingOld)
+      return "Pick a date within the next year.";
     return null;
   }
 
@@ -1736,12 +1756,26 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
   const dueBtn = $("qDueBtn");
   const dueBtnText = $("qDueText");
   const duePop = $("qDuePop");
-  const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const MONTHS_LONG = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
   let viewY = 0;
   let viewM = 0;
   let pickMonth = false; // true = grid ng buwan ang nakikita
   let pickYear = 0; // taon na pinapakita sa grid ng buwan
-  const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  const CHEVRON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 
   function dueLabel(iso) {
     if (!iso) return "Pick a date";
@@ -1792,13 +1826,18 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
       let months = "";
       for (let m = 0; m < 12; m++) {
         const i = monthIndex(pickYear, m);
-        const cls = [i === lo ? "now" : "", i === cur ? "sel" : ""].join(" ").trim();
+        const cls = [i === lo ? "now" : "", i === cur ? "sel" : ""]
+          .join(" ")
+          .trim();
         const ok = i >= lo && i <= hi;
         months += `<button type="button" class="dp-mon ${cls}" data-month="${i}"${ok ? "" : " disabled"} tabindex="${i === focusIso ? 0 : -1}" aria-label="${MONTHS_LONG[m]} ${pickYear}"${i === cur ? ' aria-pressed="true"' : ""}>${MONTHS[m]}</button>`;
       }
       duePop.innerHTML =
-        calHead(String(pickYear), pickYear <= Math.floor(lo / 12), pickYear >= Math.floor(hi / 12)) +
-        `<div class="dp-months">${months}</div>`;
+        calHead(
+          String(pickYear),
+          pickYear <= Math.floor(lo / 12),
+          pickYear >= Math.floor(hi / 12),
+        ) + `<div class="dp-months">${months}</div>`;
       return;
     }
 
@@ -1812,7 +1851,9 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
         d.getMonth() !== viewM ? "out" : "",
         iso === today ? "today" : "",
         iso === qDue.value ? "sel" : "",
-      ].join(" ").trim();
+      ]
+        .join(" ")
+        .trim();
       days += `<button type="button" class="dp-day ${cls}" data-day="${iso}"${dueAllowed(iso) ? "" : " disabled"} tabindex="${iso === focusIso ? 0 : -1}" aria-label="${dueLabel(iso)}"${iso === qDue.value ? ' aria-pressed="true"' : ""}>${d.getDate()}</button>`;
     }
     duePop.innerHTML =
@@ -1854,7 +1895,8 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
     renderCal(base);
     // Buksan pataas kung kulang ang espasyo sa baba
     duePop.classList.remove("up");
-    if (duePop.getBoundingClientRect().bottom > window.innerHeight - 8) duePop.classList.add("up");
+    if (duePop.getBoundingClientRect().bottom > window.innerHeight - 8)
+      duePop.classList.add("up");
     focusDay(base);
   }
   function closeCal(returnFocus) {
@@ -1870,7 +1912,9 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
     focusDay(focusIso);
   }
 
-  dueBtn.addEventListener("click", () => (duePop.hidden ? openCal() : closeCal(true)));
+  dueBtn.addEventListener("click", () =>
+    duePop.hidden ? openCal() : closeCal(true),
+  );
   duePop.addEventListener("click", (e) => {
     const day = e.target.closest("[data-day]");
     const nav = e.target.closest("[data-nav]");
@@ -1904,13 +1948,16 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
     if (e.key === "Escape") {
       e.stopPropagation(); // isara lang ang calendar, hindi ang buong popup
       e.preventDefault();
-      if (pickMonth) showMonths(false); // galing sa grid ng buwan: balik sa mga araw
+      if (pickMonth)
+        showMonths(false); // galing sa grid ng buwan: balik sa mga araw
       else closeCal(true);
       return;
     }
     // Grid ng buwan: ← → = 1 buwan, ↑ ↓ = 3 buwan (isang row)
     const mon = e.target.closest("[data-month]");
-    const monStep = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[e.key];
+    const monStep = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[
+      e.key
+    ];
     if (mon && monStep) {
       e.preventDefault();
       const { lo, hi } = monthRange();
@@ -1924,14 +1971,17 @@ if (rankupModal) rankupModal.addEventListener("click", hideRankup);
       return;
     }
     const day = e.target.closest("[data-day]");
-    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[
+      e.key
+    ];
     if (!day || !step) return;
     e.preventDefault();
     const d = parseIso(day.dataset.day);
     d.setDate(d.getDate() + step);
     const iso = isoFor(d);
     if (!dueAllowed(iso)) return;
-    if (d.getMonth() !== viewM || d.getFullYear() !== viewY) showMonth(d.getFullYear(), d.getMonth(), iso);
+    if (d.getMonth() !== viewM || d.getFullYear() !== viewY)
+      showMonth(d.getFullYear(), d.getMonth(), iso);
     else focusDay(iso);
   });
   // Click sa labas = sara. composedPath: tama pa rin kahit na-redraw na ang calendar
