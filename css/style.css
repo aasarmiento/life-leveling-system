@@ -8416,3 +8416,54 @@ main.container.board-page::before {
     row-gap: 40px;
   }
 }
+
+#team2-modal-bio p { margin: 0 0 12px; }
+#team2-modal-bio p:last-child { margin-bottom: 0; }
+.team2-modal-links a[hidden] { display: none; }
+.team2-modal { max-height: 90vh; overflow-y: auto; }
+
+/* Climb the ranks – hover = same look as the Adventurer card */
+.rank {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.rank::before {
+  transition: height 0.2s ease, top 0.2s ease;
+}
+
+.rank:hover {
+  border-color: var(--green);
+  box-shadow:
+    0 0 0 1px rgba(198, 239, 46, 0.3),
+    0 10px 28px rgba(0, 0, 0, 0.4);
+  transform: translateY(-5px);
+}
+.rank:hover strong {
+  color: var(--green);
+}
+.rank:hover small {
+  color: #d0d6e4;
+  opacity: 1;
+}
+
+/* Adventurer is "current", so let it settle back while you hover a different card */
+.rank-list:hover .rank.current:not(:hover) {
+  border-color: var(--border);
+  box-shadow: none;
+  transform: none;
+}
+.rank-list:hover .rank.current:not(:hover) strong {
+  color: #fff;
+}
+.rank-list:hover .rank.current:not(:hover) small {
+  color: var(--text-dim);
+  opacity: 0.9;
+}
+
+.rank:hover::before {
+  height: 7px;
+  top: -8px;
+}
+
