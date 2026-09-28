@@ -759,12 +759,15 @@
       desc: "Owns the repository, reviews merges, and keeps the main branch stable for the whole team.",
       workedShort: "Repo setup, merge reviews, branch hygiene",
       bio: "Treats version control like a party raid: clear roles, clean commits, and no one merging chaos into main. Sire makes sure student work stays recoverable, reviewable, and ready to present.",
-      hobbies: "Building PCs, running, badminton, video editing",
-      favorite: "A clean merge with zero conflicts after a long feature branch",
-      games: "League of Legends, Counter-Strike 2, Rocket League",
-      quote: "Commit small, commit often, and leave the main branch playable.",
-      github: "#",
-      linkedin: "#",
+      hobbies:
+        "Reading, playing tactical turn-based RPGs, tinkering with emulation on Linux, playing tabletop games with friends and playing with Mighty (dog)",
+      favorite: "Conflict-free merges and structured commit logs",
+      games:
+        "Fire Emblem, Final Fantasy Tactics, Magic the Gathering, Suikoden series",
+      quote:
+        "Keep commits clear, workflows organized, and code presentation-ready.",
+      github: "https://github.com/semanalo23",
+      linkedin: "https://www.linkedin.com/in/semanalo23",
     },
   ];
 
@@ -856,4 +859,3 @@ if (closeBtn) closeBtn.addEventListener("click", closeTeamModal);
     if (e.key === "Escape") closeTeamModal();
   });
 })();
-
