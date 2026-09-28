@@ -2879,7 +2879,6 @@ section {
   text-shadow: 3px 3px 0 #000;
 }
 
-
 .title-accent {
   color: var(--green);
   text-shadow:
@@ -2890,7 +2889,8 @@ section {
 }
 
 @keyframes neonPulse {
-  0%, 100% {
+  0%,
+  100% {
     text-shadow:
       0 0 8px rgba(198, 239, 46, 0.7),
       0 0 20px rgba(198, 239, 46, 0.5),
@@ -2904,7 +2904,6 @@ section {
       0 0 90px rgba(198, 239, 46, 0.35);
   }
 }
-
 
 .section-sub {
   color: var(--text-dim);
@@ -4929,7 +4928,9 @@ section {
   transition: background-color 9999s ease-out 0s;
 }
 .auth-page .auth-card input:-webkit-autofill:focus {
-  box-shadow: 0 0 0 1000px var(--a-deep) inset, 0 0 0 1px var(--a-lime);
+  box-shadow:
+    0 0 0 1000px var(--a-deep) inset,
+    0 0 0 1px var(--a-lime);
 }
 .auth-page .auth-card .in-wrap:has(.show-btn) input {
   padding-right: 64px;
@@ -7370,7 +7371,6 @@ body.profile-page {
   }
 }
 
-
 /* ---------- Sign out confirm popup (nav.js, lahat ng page) ----------
    Parehong .modal.cm ng Mark done; walang tinted na icon box (feedback ni Abigail) */
 /* nasa ibabaw ng header (z-index 100), para hindi mapindot ang nav habang bukas */
@@ -7436,7 +7436,11 @@ body.profile-page {
   width: 560px;
   height: 300px;
   margin-left: -280px;
-  background: radial-gradient(ellipse at 50% 50%, rgba(198, 239, 46, 0.1), rgba(10, 14, 26, 0) 65%);
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(198, 239, 46, 0.1),
+    rgba(10, 14, 26, 0) 65%
+  );
   pointer-events: none;
 }
 .ab-hero-in {

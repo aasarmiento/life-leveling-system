@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="../css/style.css" />
     <script src="../js/nav.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/iamashruu/cursorly.js@1.0.5/dist/cursorly.min.js"></script>
-
   </head>
   <body class="profile-page">
     <!-- Shared header (pareho sa lahat ng page).
@@ -67,26 +66,55 @@
       <div class="p-hero-inner">
         <div class="p-who">
           <div class="p-frame">
-            <img id="pAvatar" src="../assets/avatars/avatar-lime-slime-256.png" alt="" />
+            <img
+              id="pAvatar"
+              src="../assets/avatars/avatar-lime-slime-256.png"
+              alt=""
+            />
             <span class="p-badge pixel" id="pBadge" aria-hidden="true">1</span>
           </div>
           <div class="p-id">
             <h1 class="pixel p-name" id="pName">Player</h1>
             <div class="p-chips">
-              <span class="rank-chip" id="pRank" data-rank="novice"><i aria-hidden="true"></i><span>Novice</span></span>
+              <span class="rank-chip" id="pRank" data-rank="novice"
+                ><i aria-hidden="true"></i><span>Novice</span></span
+              >
               <span class="p-level" id="pLevel">Level 1</span>
-              <span class="bp-streak off" id="pStreak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 3.4 4.8 5.6 4.8 10.4a4.8 4.8 0 0 1-9.6 0c0-2.2 1.1-3.9 2.4-5 .2 1.7 1 2.8 2.2 3.3-.6-3 0-6 .2-8.7z" /></svg><span>No streak yet</span></span>
+              <span class="bp-streak off" id="pStreak"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 2.5c.6 3.4 4.8 5.6 4.8 10.4a4.8 4.8 0 0 1-9.6 0c0-2.2 1.1-3.9 2.4-5 .2 1.7 1 2.8 2.2 3.3-.6-3 0-6 .2-8.7z"
+                  /></svg
+                ><span>No streak yet</span></span
+              >
             </div>
-            <div class="xp-track fat" id="pTrack" role="progressbar" aria-valuemin="0" aria-valuemax="125" aria-valuenow="0" aria-label="XP into Level 2">
+            <div
+              class="xp-track fat"
+              id="pTrack"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="125"
+              aria-valuenow="0"
+              aria-label="XP into Level 2"
+            >
               <div class="xp-fill" style="width: 0%"></div>
             </div>
-            <div class="p-facts"><span id="pXp">0 XP</span><span id="pNext">125 XP to Level 2</span></div>
+            <div class="p-facts">
+              <span id="pXp">0 XP</span
+              ><span id="pNext">125 XP to Level 2</span>
+            </div>
           </div>
         </div>
         <div class="p-counters" aria-label="Your stats">
-          <div class="bc-tile lime"><b class="pixel" id="pDone">0</b><span>Quests done</span></div>
-          <div class="bc-tile blue"><b class="pixel" id="pRate">0%</b><span>Completion</span></div>
-          <div class="bc-tile gold"><b class="pixel" id="pWeek">0</b><span>This week</span></div>
+          <div class="bc-tile lime">
+            <b class="pixel" id="pDone">0</b><span>Quests done</span>
+          </div>
+          <div class="bc-tile blue">
+            <b class="pixel" id="pRate">0%</b><span>Completion</span>
+          </div>
+          <div class="bc-tile gold">
+            <b class="pixel" id="pWeek">0</b><span>This week</span>
+          </div>
         </div>
       </div>
     </section>
@@ -112,16 +140,30 @@
             <p class="page-kicker"></p>
           </div>
           <div class="chips" role="group" aria-label="Chart range">
-            <button type="button" class="chip active" aria-pressed="true">7 days</button>
-            <button type="button" class="chip" aria-pressed="false">30 days</button>
-            <button type="button" class="chip" aria-pressed="false">All time</button>
+            <button type="button" class="chip active" aria-pressed="true">
+              7 days
+            </button>
+            <button type="button" class="chip" aria-pressed="false">
+              30 days
+            </button>
+            <button type="button" class="chip" aria-pressed="false">
+              All time
+            </button>
           </div>
         </div>
         <div class="week-chart"></div>
         <div class="xpw-stats">
-          <div class="lime"><b class="pixel" id="wSum">0</b><span id="wSumLab">XP this week</span></div>
-          <div><b class="pixel" id="wAvg">0</b><span id="wAvgLab">Daily average</span></div>
-          <div><b class="pixel" id="wBest">–</b><span id="wBestLab">Best day</span></div>
+          <div class="lime">
+            <b class="pixel" id="wSum">0</b
+            ><span id="wSumLab">XP this week</span>
+          </div>
+          <div>
+            <b class="pixel" id="wAvg">0</b
+            ><span id="wAvgLab">Daily average</span>
+          </div>
+          <div>
+            <b class="pixel" id="wBest">–</b><span id="wBestLab">Best day</span>
+          </div>
         </div>
       </section>
 
@@ -129,44 +171,82 @@
       <section class="card ranks-card">
         <div class="card-head"><h2>Climb the ranks</h2></div>
         <ol class="rank-road">
-          <li class="rank rank-novice"><strong>Novice</strong><span>0 XP</span></li>
-          <li class="rank rank-apprentice"><strong>Apprentice</strong><span>100 XP</span></li>
-          <li class="rank rank-adventurer"><strong>Adventurer</strong><span>300 XP</span></li>
-          <li class="rank rank-veteran"><strong>Veteran</strong><span>700 XP</span></li>
-          <li class="rank rank-master"><strong>Master</strong><span>1,500 XP</span></li>
+          <li class="rank rank-novice">
+            <strong>Novice</strong><span>0 XP</span>
+          </li>
+          <li class="rank rank-apprentice">
+            <strong>Apprentice</strong><span>100 XP</span>
+          </li>
+          <li class="rank rank-adventurer">
+            <strong>Adventurer</strong><span>300 XP</span>
+          </li>
+          <li class="rank rank-veteran">
+            <strong>Veteran</strong><span>700 XP</span>
+          </li>
+          <li class="rank rank-master">
+            <strong>Master</strong><span>1,500 XP</span>
+          </li>
         </ol>
         <div class="rank-next">
           <span class="rn-from" id="rnFrom">Novice</span>
-          <div class="xp-track" id="rnTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progress to the next rank"><div class="xp-fill"></div></div>
+          <div
+            class="xp-track"
+            id="rnTrack"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            aria-label="Progress to the next rank"
+          >
+            <div class="xp-fill"></div>
+          </div>
           <span class="rn-to" id="rnTo"></span>
         </div>
       </section>
 
       <!-- ============ TROPHY SHELF (badges) ============ -->
       <section class="card trophy-card">
-        <div class="card-head"><h2>Trophy shelf</h2><span class="card-note" id="trophyCount"></span></div>
+        <div class="card-head">
+          <h2>Trophy shelf</h2>
+          <span class="card-note" id="trophyCount"></span>
+        </div>
         <div class="badges"></div>
       </section>
 
       <!-- ============ SAVE FILE (your data: Export / Import) ============ -->
       <section class="card data-card">
-        <div class="card-head"><h2>Save file</h2><span class="card-note">Your data stays in this browser</span></div>
+        <div class="card-head">
+          <h2>Save file</h2>
+          <span class="card-note">Your data stays in this browser</span>
+        </div>
         <div class="save-slot">
           <div class="save-disk" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z" /><path d="M8 4v5h7V4" /><rect x="8" y="13" width="8" height="5" rx="1" /></svg>
+            <svg viewBox="0 0 24 24">
+              <path d="M5 4h11l3 3v13H5z" />
+              <path d="M8 4v5h7V4" />
+              <rect x="8" y="13" width="8" height="5" rx="1" />
+            </svg>
           </div>
           <div class="save-info">
-            <div class="save-title"><span class="save-tag pixel">SLOT 1</span><b id="saveName">Player</b></div>
+            <div class="save-title">
+              <span class="save-tag pixel">SLOT 1</span
+              ><b id="saveName">Player</b>
+            </div>
             <div class="save-meta" id="saveMeta"></div>
           </div>
           <div class="data-actions">
-            <button type="button" class="btn btn-primary">Export my data</button>
+            <button type="button" class="btn btn-primary">
+              Export my data
+            </button>
             <button type="button" class="btn btn-outline">Import data</button>
           </div>
         </div>
         <div class="data-msg">
           <p class="msg-error" role="alert" hidden></p>
-          <p class="msg-hint">Export downloads a backup file of your quests and XP. Import it on another browser to continue.</p>
+          <p class="msg-hint">
+            Export downloads a backup file of your quests and XP. Import it on
+            another browser to continue.
+          </p>
         </div>
       </section>
 
@@ -184,7 +264,10 @@
         <a class="footer-logo" href="../index.html">QUESTIFY</a>
         <div class="footer-info">
           <p><strong>Web Systems and Technology</strong></p>
-          <p>Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona | Rowel Jepsani | Sire Manalo</p>
+          <p>
+            Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona |
+            Rowel Jepsani | Sire Manalo
+          </p>
         </div>
         <div>© 2026 Questify</div>
       </footer>

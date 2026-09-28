@@ -125,7 +125,7 @@
     toastEl.hidden = true;
     void toastEl.offsetWidth;
     toastEl.hidden = false;
-       clearTimeout(toastTimer);
+    clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, 4000);
   };
 
@@ -178,7 +178,9 @@
   // (gaya ng GitHub / Notion). May maliit na toast doon kung bakit (?already=1).
   if (signedIn && /\/(signin|create-account)\.html$/.test(location.pathname)) {
     const next = new URLSearchParams(location.search).get("next");
-    location.replace(BASE + "pages/" + (GUARDED[next] || "tasks.html") + "?already=1");
+    location.replace(
+      BASE + "pages/" + (GUARDED[next] || "tasks.html") + "?already=1",
+    );
     return;
   }
 
@@ -223,7 +225,8 @@
   window.questifyDemoBoard = function () {
     const XP_BY_PRIORITY = { low: 10, medium: 20, high: 30 };
     const pad = (n) => String(n).padStart(2, "0");
-    const isoFor = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const isoFor = (d) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     const isoOffset = (days) => {
       const d = new Date();
       d.setDate(d.getDate() + days);
@@ -386,7 +389,7 @@
     return { quests, xp: [{ id: null, xp: DEMO_XP }], nextId };
   };
 
-    window.questifyDebugShowRankUp = showRankUp; // TEMP: para lang sa testing, tanggalin bago i-launch
+  window.questifyDebugShowRankUp = showRankUp; // TEMP: para lang sa testing, tanggalin bago i-launch
 
   // Total XP = sum ng XP ledger na sine-save ng Tasks page.
   // Kung wala pa: 1,450 sa demo, 0 sa bagong account.
@@ -406,7 +409,7 @@
   const toNext = (total) => XP_PER_LEVEL - (total % XP_PER_LEVEL);
   const pctFor = (total) => ((total % XP_PER_LEVEL) / XP_PER_LEVEL) * 100;
 
-    const RANK_INDEX = (name) => RANKS.findIndex((r) => r.name === name);
+  const RANK_INDEX = (name) => RANKS.findIndex((r) => r.name === name);
   // Natatandaan ang huling rank na nakita, para malaman kung "umakyat" talaga
   // (hindi lang naka-refresh). Nase-set ulit tuwing bukas ng page.
   let currentRank = rankFor(savedXp());
@@ -530,7 +533,12 @@
   }
 
   // Label sa maliit na chip ng bawat notification
-  const NOTIF_CHIP = { done: "Quest", levelup: "Level up", rankup: "Rank up", overdue: "Overdue" };
+  const NOTIF_CHIP = {
+    done: "Quest",
+    levelup: "Level up",
+    rankup: "Rank up",
+    overdue: "Overdue",
+  };
 
   function timeAgo(ms) {
     const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
@@ -751,7 +759,11 @@
       });
       back.addEventListener("click", (e) => {
         if (e.target.closest("[data-so-ok]")) doSignOut();
-        else if (e.target.closest("[data-so-close]") || (pressedBackdrop && e.target === back)) closeSignOut();
+        else if (
+          e.target.closest("[data-so-close]") ||
+          (pressedBackdrop && e.target === back)
+        )
+          closeSignOut();
       });
       // Esc = sara; Tab = paikot lang sa loob ng popup
       back.addEventListener("keydown", (e) => {
@@ -794,7 +806,7 @@
       });
     });
 
-       document.addEventListener("questify:xp", (e) => {
+    document.addEventListener("questify:xp", (e) => {
       const t = e.detail.total;
       const rankName = rankFor(t);
       const rankEl = document.getElementById("levelRank");
@@ -811,7 +823,10 @@
 
       // Rank up lang (hindi rank down, hal. galing sa Undo done).
       // Popup lang dito; ang "Rank up" notification ay nasa questify:quest-done sa baba.
-      if (rankName !== currentRank && RANK_INDEX(rankName) > RANK_INDEX(currentRank)) {
+      if (
+        rankName !== currentRank &&
+        RANK_INDEX(rankName) > RANK_INDEX(currentRank)
+      ) {
         showRankUp(rankName, t);
       }
       currentRank = rankName;
@@ -929,7 +944,8 @@
       };
       saveNotifs(
         loadNotifs().filter(
-          (n) => (n.quest !== e.detail.id || n.type === "overdue") && stillTrue(n),
+          (n) =>
+            (n.quest !== e.detail.id || n.type === "overdue") && stillTrue(n),
         ),
       );
       paintNotifs();
@@ -991,7 +1007,8 @@
       btn.href = BASE + "pages/tasks.html";
       btn.textContent = "Open your Quest Board";
     }
-    if (note) note.textContent = `Pick up where you left off, ${ME.name.split(" ")[0]}.`;
+    if (note)
+      note.textContent = `Pick up where you left off, ${ME.name.split(" ")[0]}.`;
   }
 
   // Home: maliit na toast pagkatapos mag-Sign out
@@ -1454,7 +1471,8 @@
   function setupCursor() {
     if (!window.Cursorly) return;
     const mq = (q) => window.matchMedia && window.matchMedia(q).matches;
-    if (mq("(pointer: coarse)") || mq("(prefers-reduced-motion: reduce)")) return;
+    if (mq("(pointer: coarse)") || mq("(prefers-reduced-motion: reduce)"))
+      return;
     try {
       const cur = window.Cursorly.init({
         cursor: 23, // index ng cursor icon
