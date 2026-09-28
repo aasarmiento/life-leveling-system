@@ -8416,3 +8416,25 @@ main.container.board-page::before {
     row-gap: 40px;
   }
 }
+
+
+/* ---------- Sign out confirm popup (nav.js, lahat ng page) ----------
+   Parehong .modal.cm ng Mark done; walang tinted na icon box (feedback ni Abigail) */
+/* nasa ibabaw ng header (z-index 100), para hindi mapindot ang nav habang bukas */
+.modal-back.so-back {
+  z-index: 200;
+}
+.so-modal h2 {
+  margin-top: 4px;
+  padding-right: 40px;
+}
+.cm-quest.so-player {
+  justify-content: flex-start;
+}
+.so-player img {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  image-rendering: pixelated;
+}

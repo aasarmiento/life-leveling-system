@@ -701,11 +701,96 @@
       if (open) open[0].focus();
     });
 
-    // ---------- 5. SIGN OUT ----------
+    // ---------- 5. SIGN OUT (may confirm popup muna, bug ni Abigail) ----------
+    // Parehong itsura ng confirm popup ng Mark done (.modal.cm), pero ginagawa
+    // dito sa nav.js para gumana sa lahat ng page na may player card.
+    let signOutModal = null;
+    let signOutReturn = null;
+
+    function doSignOut() {
+      write(SIGNED_IN_KEY, null); // flag lang ang binubura, naiiwan ang quests at XP
+      location.href = BASE + "index.html?signedout=1";
+    }
+
+    function closeSignOut() {
+      if (!signOutModal || signOutModal.hidden) return;
+      signOutModal.hidden = true;
+      document.body.classList.remove("modal-open");
+      if (signOutReturn && signOutReturn.isConnected) signOutReturn.focus();
+    }
+
+    function buildSignOut() {
+      const back = document.createElement("div");
+      back.className = "modal-back so-back";
+      back.hidden = true;
+      back.innerHTML = `
+        <div class="modal cm so-modal" role="alertdialog" aria-modal="true" aria-labelledby="soTitle" aria-describedby="soText">
+          <button type="button" class="cm-x" data-so-close aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+          <h2 id="soTitle">Sign out?</h2>
+          <p id="soText">Your quests and XP stay saved on this device. Sign back in anytime to continue.</p>
+          <div class="cm-quest so-player">
+            <img alt="" width="40" height="40">
+            <div><b></b><small></small></div>
+          </div>
+          <div class="modal-actions cm-actions">
+            <button type="button" class="btn-outline fx" data-so-close>Cancel</button>
+            <button type="button" class="btn-rose fx" data-so-ok>Sign out</button>
+          </div>
+        </div>`;
+      // Pangalan at email = textContent (hindi innerHTML), para ligtas
+      back.querySelector(".so-player img").src =
+        `${BASE}assets/avatars/avatar-${player.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+      back.querySelector(".so-player b").textContent = player.name;
+      back.querySelector(".so-player small").textContent = player.email || "";
+
+      let pressedBackdrop = false;
+      back.addEventListener("mousedown", (e) => {
+        pressedBackdrop = e.target === back;
+      });
+      back.addEventListener("click", (e) => {
+        if (e.target.closest("[data-so-ok]")) doSignOut();
+        else if (e.target.closest("[data-so-close]") || (pressedBackdrop && e.target === back)) closeSignOut();
+      });
+      // Esc = sara; Tab = paikot lang sa loob ng popup
+      back.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSignOut();
+          return;
+        }
+        if (e.key !== "Tab") return;
+        const items = [...back.querySelectorAll("button")];
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+      document.body.appendChild(back);
+      return back;
+    }
+
+    function openSignOut() {
+      if (!signOutModal) signOutModal = buildSignOut();
+      signOutReturn = document.getElementById("acctBtn");
+      closeAll();
+      signOutModal.hidden = false;
+      document.body.classList.add("modal-open");
+      // Sa Cancel ang focus, para hindi aksidenteng ma-sign out sa Enter
+      signOutModal.querySelector("[data-so-close].btn-outline").focus();
+    }
+
     document.querySelectorAll("[data-signout]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        write(SIGNED_IN_KEY, null); // flag lang ang binubura, naiiwan ang quests at XP
-        location.href = BASE + "index.html?signedout=1";
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        openSignOut();
       });
     });
 
@@ -1180,12 +1265,13 @@
   // =====================================================================
   // BACKGROUND MUSIC (lahat ng page, kasama Sign in at Create account)
   // - Tumutugtog pagka-click o pindot mo sa page (bawal sa browser ang tunog
-  //   bago ka mag-interact), maliban kung pinatay mo na ito dati.
+  //   bago ka mag-interact). Laging ganito sa bawat page, kahit pinatay mo
+  //   ito sa ibang page (gusto ni Abigail, para ma-engage ang bisita).
   // - Tuloy-tuloy paglipat ng page: tinatandaan kung nasaan na yung kanta.
   // - Hover (o keyboard focus) sa button = volume slider sa kaliwa.
   // - Walang music HTML sa ibang page, kaya dito ginagawa yung audio at button.
   // =====================================================================
-  const MUSIC_KEY = "questify.music"; // localStorage: { off, volume }
+  const MUSIC_KEY = "questify.music"; // localStorage: { volume }
   const MUSIC_TIME_KEY = "questify.music.time"; // sessionStorage: nasaan na yung kanta
 
   function setupMusic() {
@@ -1195,6 +1281,7 @@
     } catch (err) {
       prefs = {};
     }
+    delete prefs.off; // lumang setting ("naka-mute dati"), hindi na ginagamit
     const savePrefs = () => write(MUSIC_KEY, JSON.stringify(prefs));
 
     let audio = document.getElementById("bg-music");
@@ -1268,15 +1355,15 @@
         return false;
       }
     }
-    // Pinatay mo = tatandaan (hindi na tutugtog kahit mag-click ka sa page)
+    // Pinatay mo = patay lang sa page na ito (hindi na tinatandaan).
+    // Sa susunod na page, tutugtog ulit sa unang click.
+    let offHere = false;
     function turnOff() {
-      prefs.off = true;
-      savePrefs();
+      offHere = true;
       audio.pause();
     }
     function turnOn() {
-      prefs.off = false;
-      savePrefs();
+      offHere = false;
       play();
     }
 
@@ -1306,14 +1393,14 @@
 
     showVolume();
     showOn(false);
-    if (prefs.off) return; // pinatay dati: hintayin na lang na i-on ulit
+    savePrefs(); // tanggalin ang lumang "off" sa naka-save
 
     // Bawal ng browser ang tunog bago mag-interact, kaya tutugtog sa unang
     // click o pindot sa page (hindi sa music button mismo, siya na ang bahala doon).
     const onFirst = (e) => {
       if (ctl.contains(e.target)) return;
       stopWaiting();
-      if (!prefs.off && audio.paused) play();
+      if (!offHere && audio.paused) play();
     };
     const stopWaiting = () => {
       document.removeEventListener("pointerdown", onFirst, true);
