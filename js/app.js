@@ -709,14 +709,16 @@
       name: "Christian Allen Soriano",
       role: "Project manager",
       image: "../assets/icons/06-about/team-christian.png",
-      desc: "Keeps scope honest, runs check-ins, and makes sure the team ships what we promised.",
-      workedShort: "Scope plan, task breakdown, weekly reviews",
-      bio: "Balances student deadlines with product deadlines. Christian turns vague ideas into weekly goals and cuts features that sound cool but do not serve the core loop: log effort, earn XP, see the level climb.",
-      hobbies: "Basketball, anime, thrifting, weekend road trips",
-      favorite: "Closing a milestone on time without the team burning out",
-      games: "Mobile Legends, FIFA, Minecraft",
-      quote: "A plan only counts when someone owns the next deadline.",
-      github: "#",
+      desc: "Turn real life into a game worth grinding for anyone who struggles to stay consistent.",
+      workedShort: "Quest Board, sign in, notifications, Profile, project plan",
+      bio:
+        "Student by day, builder by night. Runs an AI content studio, trades crypto for a living, and takes on client projects on the side. Four side quests running at once, double-digit screen time, and no system holding it together.\n\n" +
+        "He noticed he only locked in when effort felt like a game, so he pitched the idea to the team. Questify is for every sidequester out there: log the work, earn the XP, watch the level climb.",
+      hobbies: "Gym, running, basketball, motorcycle rides, hiking and nature trips",
+      favorite: "Turning his own bad habit into a working product",
+      games: "Valorant (retired from the ranked grind). Now grinding real life.",
+      quote: "Be delusional until it works.",
+      github: "https://github.com/chwstnsoriano",
       linkedin: "#",
     },
     {
@@ -732,7 +734,7 @@
         "When the About page finally explains the project in one clear pass",
       games: "Persona 5, Chess.com, Among Us",
       quote: "If it is not written down, it did not really happen.",
-      github: "#",
+      github: "https://github.com/jrmhalzona",
       linkedin: "#",
     },
     {
@@ -748,7 +750,7 @@
         "Finding the right reference on the first try and saving the team an hour",
       games: "Animal Crossing, Overwatch 2, Tetris",
       quote: "Good references save more time than sudden inspiration.",
-      github: "#",
+      github: "https://github.com/oeljep",
       linkedin: "#",
     },
     {
