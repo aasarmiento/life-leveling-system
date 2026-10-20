@@ -1,0 +1,23 @@
+{
+  "name": "life-leveling-system",
+  "version": "1.0.0",
+  "description": "**Conquer your goals, one quest at a time.**",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aasarmiento/life-leveling-system.git"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/aasarmiento/life-leveling-system/issues"
+  },
+  "homepage": "https://github.com/aasarmiento/life-leveling-system#readme",
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}
