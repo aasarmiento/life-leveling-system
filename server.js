@@ -14,7 +14,7 @@ app.use("/pages", express.static(path.join(__dirname, "pages"), { extensions: ["
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
 // Home page
-app.get("/", (req, res) => {
+app.get(["/", "/index.html"], (req, res) => {
   res.sendFile("index.html", {root: __dirname });
 });
 
