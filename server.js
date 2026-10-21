@@ -1,6 +1,9 @@
 const express = require("express");
 const path = require("path");
 
+// open the SQLite database (creates the tables + demo account on first start)
+require("./db/db");
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
