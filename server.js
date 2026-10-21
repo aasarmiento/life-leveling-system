@@ -1,8 +1,12 @@
 const express = require("express");
 const path = require("path");
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+//feedback route module import
+const feedbackRoutes = require("./routes/feedback");
 
 // Parse JSON request bodies
 app.use(express.json());
@@ -15,6 +19,9 @@ app.use("/assets", express.static(path.join(__dirname, "assets")));
 
 //silencing the request for favico - 204
 app.get("/favicon.ico", (req, res) => res.status(204).end());
+
+//mounting the feedback route
+app.use("/api/feedback", feedbackRoutes);
 
 // Home page
 app.get(["/", "/index.html"], (req, res) => {
@@ -30,6 +37,9 @@ app.get("/api/health", (req, res) => {
 app.use((req, res) => {
   res.status(404).sendFile("index.html", { root: __dirname });
 });
+
+// Feedback API
+
 
 app.listen(PORT, () => {
   console.log(`Questify running at http://localhost:${PORT}`);
