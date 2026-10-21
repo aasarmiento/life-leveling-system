@@ -13,6 +13,9 @@ app.use("/js", express.static(path.join(__dirname, "js")));
 app.use("/pages", express.static(path.join(__dirname, "pages"), { extensions: ["html"] }));
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
+//silencing the request for favico - 204
+app.get("/favicon.ico", (req, res) => res.status(204).end());
+
 // Home page
 app.get(["/", "/index.html"], (req, res) => {
   res.sendFile("index.html", {root: __dirname });
@@ -25,7 +28,7 @@ app.get("/api/health", (req, res) => {
 
 // 404 Fallback
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "index.html"));
+  res.status(404).sendFile("index.html", { root: __dirname });
 });
 
 app.listen(PORT, () => {
