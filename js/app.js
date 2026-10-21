@@ -649,6 +649,16 @@
       at: Date.now(),
     };
     saveEntry(entry);
+
+    //send feedback to the express server
+    fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry),
+    }).catch((err) => {
+      console.error("Failed to send feedback to server:", err);
+    });
+    
     showReceipt(entry);
   });
 })();
