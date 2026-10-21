@@ -1,6 +1,7 @@
 // Accounts and sign in on the server (Checkpoint 2).
 //   POST /api/signup   create an account, then sign in      → 201 { token, player }
 //   POST /api/signin   check email + password               → 200 { token, player }
+//                      (5 wrong tries for one email → 429 for 15 minutes)
 //   GET  /api/me       who is signed in (needs the token)   → 200 { player }
 //   POST /api/signout  end this sign in                     → 200 { ok: true }
 // Errors always come back as { error, field }, so the page can show the
@@ -10,6 +11,7 @@ const { db } = require("../db/db");
 const { newSalt, hashPassword, checkPassword } = require("../lib/passwords");
 const { createSession, deleteSession, tokenFrom, requireAuth } = require("../lib/sessions");
 const { checkSignup, checkSignin } = require("../lib/validate");
+const { minutesLocked, recordFail, clearFails, lockedMessage } = require("../lib/limit");
 
 const router = express.Router();
 
@@ -52,13 +54,23 @@ router.post("/signin", (req, res) => {
   if (check.error) return res.status(400).json(check);
   const { email, password } = check.value;
 
+  // 5 wrong tries for this email: blocked for 15 minutes (even with the right password)
+  const locked = minutesLocked(email);
+  if (locked) return res.status(429).json({ error: lockedMessage(locked), field: null });
+
   const user = db.prepare("SELECT id, name, email, avatar, salt, hash FROM users WHERE email = ?").get(email);
   let ok = false;
   if (user) ok = checkPassword(password, user.salt, user.hash);
   else checkPassword(password, DUMMY_SALT, DUMMY_HASH); // same work as a real check, then fail
-  // Same message for a wrong email and a wrong password, on purpose
-  if (!ok) return res.status(401).json({ error: "Email or password is incorrect.", field: null });
+  if (!ok) {
+    recordFail(email); // unknown emails count too, so they look the same as real ones
+    const nowLocked = minutesLocked(email);
+    if (nowLocked) return res.status(429).json({ error: lockedMessage(nowLocked), field: null });
+    // Same message for a wrong email and a wrong password, on purpose
+    return res.status(401).json({ error: "Email or password is incorrect.", field: null });
+  }
 
+  clearFails(email);
   res.json({ token: createSession(user.id), player: publicPlayer(user) });
 });
 
