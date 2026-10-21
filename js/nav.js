@@ -19,6 +19,8 @@
 (function () {
   const SIGNED_IN_KEY = "questify.signedIn";
   const PLAYER_KEY = "questify.player";
+  // Server mode (npm start): session token mula sa server, pinapadala sa bawat request
+  const TOKEN_KEY = "questify.token";
   // Demo account: may sample quests at Level 12 (1,450 XP) para sa mentor at testers.
   // Bagong account: walang laman ang board, Level 1 (0 XP).
   const DEMO_EMAIL = "alex@gmail.com";
@@ -53,6 +55,31 @@
       else localStorage.setItem(key, value);
     } catch (err) {
       /* okay lang */
+    }
+  }
+
+  // ---------- SERVER (Milestone 2) ----------
+  // Kausap ang Express server natin. Ibinabalik: { status, ok, data }.
+  // null = walang server (GitHub Pages, Live Server, file://) o hindi maabot:
+  // doon, gumagana pa rin ang lumang browser-only na paraan (demo mode).
+  async function api(path, { method = "GET", body, keepalive = false } = {}) {
+    const headers = {};
+    const token = read(TOKEN_KEY);
+    if (token) headers.Authorization = "Bearer " + token;
+    if (body) headers["Content-Type"] = "application/json";
+    try {
+      const res = await fetch(BASE + "api/" + path, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+        keepalive,
+      });
+      // Kapag hindi JSON ang sagot (hal. 404 page ng Live Server), walang server
+      if (!(res.headers.get("content-type") || "").includes("application/json"))
+        return null;
+      return { status: res.status, ok: res.ok, data: await res.json() };
+    } catch (err) {
+      return null;
     }
   }
 
@@ -716,6 +743,10 @@
     let signOutReturn = null;
 
     function doSignOut() {
+      // Server mode: sabihan ang server para hindi na magamit ang token.
+      // keepalive = matatapos ang request kahit lumipat na ng page.
+      if (read(TOKEN_KEY)) api("signout", { method: "POST", keepalive: true });
+      write(TOKEN_KEY, null);
       write(SIGNED_IN_KEY, null); // flag lang ang binubura, naiiwan ang quests at XP
       location.href = BASE + "index.html?signedout=1";
     }
@@ -1024,6 +1055,44 @@
     });
   }
 
+  // ---------- SESSION CHECK (server mode) ----------
+  // Naka-sign in ka, pero valid pa ba sa server? (Natatapos ang sign in after
+  // 1 araw, o kapag nag-sign out ka sa ibang tab.) Kung hindi na, sign in ulit.
+  // Walang server (demo mode) = walang gagawin, gaya ng dati.
+  async function checkSession() {
+    if (!signedIn) return;
+    // Laging /api/me ang tinatanong (kahit walang token): 401 = hindi na valid.
+    // Lumang server na wala pang /api/me = hindi JSON = null, kaya walang gagawin
+    // (dati: nag-loop pabalik sa Sign in kapag hindi pa na-restart ang server).
+    const res = await api("me");
+    if (!res) return; // walang server, o luma pa ang server
+    if (res.ok) {
+      // Kunin ang pinakabagong pangalan/avatar mula sa server
+      const p = res.data.player;
+      if (p.name !== ME.name || p.avatar !== ME.avatar || p.email !== ME.email)
+        savePlayer({ name: p.name, email: p.email, avatar: p.avatar });
+      return;
+    }
+    if (res.status !== 401) return; // ibang error: huwag i-sign out
+    write(TOKEN_KEY, null);
+    write(SIGNED_IN_KEY, null);
+    if (guard)
+      location.replace(
+        BASE + "pages/signin.html?next=" + encodeURIComponent(guard) + "&session=ended",
+      );
+    else location.reload();
+  }
+
+  // Sign in / Create account: kapag may server, sa server na naka-save ang account
+  async function serverModeNote() {
+    const note = document.querySelector(".auth-privacy");
+    if (!note) return;
+    // /api/me: kahit 401 ang sagot, JSON = may account routes ang server
+    const res = await api("me");
+    if (res)
+      note.textContent = "Your account is saved on the Questify server. Your password is never stored.";
+  }
+
   // ---------- 4. FORMS (Sign in / Create account) ----------
   function setupAuthForm() {
     const form = document.querySelector("form.auth-card");
@@ -1033,11 +1102,14 @@
     const next = new URLSearchParams(location.search).get("next");
     const target = BASE + "pages/" + (GUARDED[next] || "tasks.html");
 
-    // Notice kung galing sila sa Tasks / Profile na naka-sign out
+    // Notice kung galing sila sa Tasks / Profile na naka-sign out,
+    // o kung natapos na yung sign in nila sa server (?session=ended)
     const notice = document.getElementById("authNotice");
-    if (notice && GUARDED[next]) {
-      document.getElementById("authNoticeText").textContent =
-        next === "profile"
+    const ended = new URLSearchParams(location.search).get("session") === "ended";
+    if (notice && (GUARDED[next] || ended)) {
+      document.getElementById("authNoticeText").textContent = ended
+        ? "Your session ended. Please sign in again."
+        : next === "profile"
           ? "Sign in to see your profile."
           : "Sign in to open your Quest Board.";
       notice.hidden = false;
@@ -1113,15 +1185,6 @@
               ? "Passwords don't match."
               : null,
         );
-        if (!errors.length && findAccount(mail)) {
-          const signinHref = form.querySelector('.tabs a[href*="signin"]').href;
-          fieldError(
-            email,
-            `An account with this email already exists. <a href="${signinHref}">Sign in instead</a>`,
-            true,
-          );
-          errors.push(email);
-        }
       } else {
         check(password, password.value ? null : "Enter your password.");
       }
@@ -1130,17 +1193,61 @@
         return;
       }
 
+      // "An account with this email already exists" + link papuntang Sign in
+      const emailTaken = () => {
+        const signinHref = form.querySelector('.tabs a[href*="signin"]').href;
+        fieldError(
+          email,
+          `An account with this email already exists. <a href="${signinHref}">Sign in instead</a>`,
+          true,
+        );
+        email.focus();
+      };
+      const wrongLogin = () => {
+        formAlert(form, "Email or password is incorrect.");
+        password.value = "";
+        password.focus();
+      };
+      // Yung avatar radios ay nasa kaliwa (labas ng <form>), kaya form.elements ang gamit
+      const avatarInput = form.elements.namedItem("avatar");
+      const avatar = avatarInput && avatarInput.value === "gold" ? "gold" : "lime";
+
       submitBtn.disabled = true;
       try {
         let player;
-        if (isSignup) {
-          // Yung avatar radios ay nasa kaliwa (labas ng <form>), kaya form.elements ang gamit
-          const avatar = form.elements.namedItem("avatar");
+        // 1) Server mode: ang server ang nagche-check at nagse-save ng account
+        const res = await api(isSignup ? "signup" : "signin", {
+          method: "POST",
+          body: isSignup
+            ? { name: name.value.trim(), email: mail, password: password.value, avatar }
+            : { email: mail, password: password.value },
+        });
+        if (res) {
+          if (!res.ok) {
+            const field = res.data && res.data.field;
+            const input = { name, email, password }[field];
+            if (res.status === 409) emailTaken();
+            else if (res.status === 401) wrongLogin();
+            else if (input) {
+              fieldError(input, res.data.error);
+              input.focus();
+            } else
+              formAlert(form, (res.data && res.data.error) || "Something went wrong. Please try again.");
+            return;
+          }
+          write(TOKEN_KEY, res.data.token);
+          player = res.data.player;
+        } else if (isSignup) {
+          // 2) Walang server (demo mode): sa browser lang naka-save, gaya ng Milestone 1
+          if (findAccount(mail)) {
+            emailTaken();
+            return;
+          }
           const salt = randomHex(16);
           const account = {
             email: mail,
             name: name.value.trim(),
-            avatar: avatar && avatar.value === "gold" ? "gold" : "lime",
+            avatar,
             salt,
             hash: await hashPassword(password.value, salt),
             created: Date.now(),
@@ -1150,9 +1257,7 @@
         } else {
           player = await checkLogin(mail, password.value);
           if (!player) {
-            formAlert(form, "Email or password is incorrect.");
-            password.value = "";
-            password.focus();
+            wrongLogin();
             return;
           }
         }
@@ -1508,6 +1613,8 @@
     setupCursor();
     setupHeader();
     setupAuthForm();
+    serverModeNote();
+    checkSession();
     signedOutToast();
     alreadySignedInToast();
     memberFinalCta();
