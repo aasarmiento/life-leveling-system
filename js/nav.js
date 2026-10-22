@@ -492,12 +492,27 @@
   // Parehong board = parehong text, kahit iba ang pagkakasunod ng fields
   function canon(b) {
     if (!b) return "";
-    const highest = Math.max(0, ...b.quests.map((q) => parseInt(String(q.id).slice(1), 10) || 0));
+    const highest = Math.max(
+      0,
+      ...b.quests.map((q) => parseInt(String(q.id).slice(1), 10) || 0),
+    );
     return JSON.stringify([
       b.quests
         .map((q) => {
           const done = q.status === "done";
-          return [q.id, q.title, q.desc, q.cat, q.priority, q.status, q.due, q.added, q.rank, done ? q.earned : null, done ? q.completed : null];
+          return [
+            q.id,
+            q.title,
+            q.desc,
+            q.cat,
+            q.priority,
+            q.status,
+            q.due,
+            q.added,
+            q.rank,
+            done ? q.earned : null,
+            done ? q.completed : null,
+          ];
         })
         .sort((a, c) => (a[0] < c[0] ? -1 : a[0] > c[0] ? 1 : 0)),
       b.xp.map((e) => [e.id || null, e.xp]),
@@ -557,7 +572,11 @@
     retryTimer = null;
     if (!offline) return;
     offline = false;
-    syncToast({ tone: "ok", title: "Synced", text: "Your board is saved on the server again." });
+    syncToast({
+      tone: "ok",
+      title: "Synced",
+      text: "Your board is saved on the server again.",
+    });
   }
 
   // Ipadala ang board sa server. true = naka-save na.
@@ -610,7 +629,10 @@
       write(SIGNED_IN_KEY, null);
       if (guard)
         location.replace(
-          BASE + "pages/signin.html?next=" + encodeURIComponent(guard) + "&session=ended",
+          BASE +
+            "pages/signin.html?next=" +
+            encodeURIComponent(guard) +
+            "&session=ended",
         );
       else location.reload();
       return false;
@@ -620,7 +642,9 @@
     syncToast({
       tone: "err",
       title: "Couldn't save to the server",
-      text: (res.data && res.data.error) || "Your board is still saved on this device.",
+      text:
+        (res.data && res.data.error) ||
+        "Your board is still saved on this device.",
     });
     return false;
   }
@@ -687,7 +711,8 @@
     if (readSync().pending) return flush();
     if (saving || queued) return;
     const res = await api("board");
-    if (!res || !res.ok || !res.data.board || res.data.version === boardVersion) return;
+    if (!res || !res.ok || !res.data.board || res.data.version === boardVersion)
+      return;
     if (saving || queued || readSync().pending) return; // may bagong pagbabago habang naghihintay
     adopt(res.data.board, res.data.version);
   }
@@ -706,7 +731,8 @@
   window.questifyBoard = {
     ready: boardReady,
     save,
-    saveNow: (board) => (useServer() ? push(board, true) : Promise.resolve(false)),
+    saveNow: (board) =>
+      useServer() ? push(board, true) : Promise.resolve(false),
     onChange: (handler) => {
       changeHandler = handler;
     },
@@ -1307,8 +1333,10 @@
       menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
       close: '<path d="M6 6l12 12M18 6L6 18"/>',
       home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
-      tasks: '<rect x="3" y="4" width="7" height="16" rx="2"/><rect x="14" y="4" width="7" height="10" rx="2"/>',
-      profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+      tasks:
+        '<rect x="3" y="4" width="7" height="16" rx="2"/><rect x="14" y="4" width="7" height="10" rx="2"/>',
+      profile:
+        '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
       about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>',
     };
     const menuBtn = document.createElement("button");
@@ -1424,7 +1452,9 @@
         return;
       }
       if (e.key !== "Tab") return;
-      const items = [...menu.querySelectorAll("a, button:not([aria-disabled])")];
+      const items = [
+        ...menu.querySelectorAll("a, button:not([aria-disabled])"),
+      ];
       const first = items[0];
       const last = items[items.length - 1];
       if (e.shiftKey && document.activeElement === first) {
@@ -1536,7 +1566,10 @@
     write(SIGNED_IN_KEY, null);
     if (guard)
       location.replace(
-        BASE + "pages/signin.html?next=" + encodeURIComponent(guard) + "&session=ended",
+        BASE +
+          "pages/signin.html?next=" +
+          encodeURIComponent(guard) +
+          "&session=ended",
       );
     else location.reload();
   }
@@ -1548,7 +1581,8 @@
     // /api/me: kahit 401 ang sagot, JSON = may account routes ang server
     const res = await api("me");
     if (res)
-      note.textContent = "Your account is saved on the Questify server. Your password is never stored.";
+      note.textContent =
+        "Your account is saved on the Questify server. Your password is never stored.";
   }
 
   // ---------- 4. FORMS (Sign in / Create account) ----------
@@ -1563,7 +1597,8 @@
     // Notice kung galing sila sa Tasks / Profile na naka-sign out,
     // o kung natapos na yung sign in nila sa server (?session=ended)
     const notice = document.getElementById("authNotice");
-    const ended = new URLSearchParams(location.search).get("session") === "ended";
+    const ended =
+      new URLSearchParams(location.search).get("session") === "ended";
     if (notice && (GUARDED[next] || ended)) {
       document.getElementById("authNoticeText").textContent = ended
         ? "Your session ended. Please sign in again."
@@ -1668,7 +1703,8 @@
       };
       // Yung avatar radios ay nasa kaliwa (labas ng <form>), kaya form.elements ang gamit
       const avatarInput = form.elements.namedItem("avatar");
-      const avatar = avatarInput && avatarInput.value === "gold" ? "gold" : "lime";
+      const avatar =
+        avatarInput && avatarInput.value === "gold" ? "gold" : "lime";
 
       submitBtn.disabled = true;
       try {
@@ -1677,7 +1713,12 @@
         const res = await api(isSignup ? "signup" : "signin", {
           method: "POST",
           body: isSignup
-            ? { name: name.value.trim(), email: mail, password: password.value, avatar }
+            ? {
+                name: name.value.trim(),
+                email: mail,
+                password: password.value,
+                avatar,
+              }
             : { email: mail, password: password.value },
         });
         if (res) {
@@ -1690,7 +1731,11 @@
               fieldError(input, res.data.error);
               input.focus();
             } else
-              formAlert(form, (res.data && res.data.error) || "Something went wrong. Please try again.");
+              formAlert(
+                form,
+                (res.data && res.data.error) ||
+                  "Something went wrong. Please try again.",
+              );
             return;
           }
           write(TOKEN_KEY, res.data.token);

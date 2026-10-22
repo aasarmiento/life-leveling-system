@@ -4,7 +4,6 @@ const path = require("path");
 // open the SQLite database (creates the tables + demo account on first start)
 require("./db/db");
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -21,7 +20,10 @@ app.use(express.json({ limit: "1mb" }));
 // Serve front-end assets with .html extension support for /pages
 app.use("/css", express.static(path.join(__dirname, "css")));
 app.use("/js", express.static(path.join(__dirname, "js")));
-app.use("/pages", express.static(path.join(__dirname, "pages"), { extensions: ["html"] }));
+app.use(
+  "/pages",
+  express.static(path.join(__dirname, "pages"), { extensions: ["html"] }),
+);
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
 //silencing the request for favico - 204
@@ -36,7 +38,7 @@ app.use("/api/board", boardRoutes);
 
 // Home page
 app.get(["/", "/index.html"], (req, res) => {
-  res.sendFile("index.html", {root: __dirname });
+  res.sendFile("index.html", { root: __dirname });
 });
 
 // Health check route
@@ -57,14 +59,15 @@ app.use((err, req, res, next) => {
   const status = err.status || err.statusCode || 500;
   if (status >= 500) console.error(err);
   const error =
-    status === 413 ? "The request is too large."
-    : status === 400 ? "The request isn't valid JSON."
-    : "Something went wrong on the server.";
+    status === 413
+      ? "The request is too large."
+      : status === 400
+        ? "The request isn't valid JSON."
+        : "Something went wrong on the server.";
   res.status(status).json({ error });
 });
 
 // Feedback API
-
 
 app.listen(PORT, () => {
   console.log(`Questify running at http://localhost:${PORT}`);

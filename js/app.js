@@ -694,7 +694,12 @@
       sendBtn.textContent = "Sending…";
       const res = await api("feedback", {
         method: "POST",
-        body: { ref: entry.ref, rating, tags: entry.tags, message: entry.message },
+        body: {
+          ref: entry.ref,
+          rating,
+          tags: entry.tags,
+          message: entry.message,
+        },
       });
       sending = false;
       sendBtn.disabled = false;
