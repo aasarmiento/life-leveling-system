@@ -418,8 +418,6 @@
     return { quests, xp: [{ id: null, xp: DEMO_XP }], nextId };
   };
 
-  window.questifyDebugShowRankUp = showRankUp; // TEMP: para lang sa testing, tanggalin bago i-launch
-
   // Total XP = sum ng XP ledger na sine-save ng Tasks page.
   // Kung wala pa: 1,450 sa demo, 0 sa bagong account.
   function savedXp() {
@@ -1452,6 +1450,22 @@
     });
   }
 
+  // Pangalan at avatar agad (bago pa makuha ang board sa server), para hindi
+  // lumabas sandali ang "Player" sa Profile at sa Quest Board
+  function paintPlayerName() {
+    if (!signedIn) return;
+    const p = loadPlayer();
+    const img = `${BASE}assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+    ["pName", "saveName", "bName"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = p.name;
+    });
+    ["pAvatar", "bAvatar"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.src = img;
+    });
+  }
+
   // Tasks: galing sa Sign in / Create account pero naka-sign in na (tingnan ang GUARD)
   function alreadySignedInToast() {
     const url = new URL(location.href);
@@ -2056,6 +2070,7 @@
     setupMusic();
     setupCursor();
     setupHeader();
+    paintPlayerName();
     setupAuthForm();
     serverModeNote();
     checkSession();

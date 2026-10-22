@@ -4,10 +4,10 @@
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen)](https://aasarmiento.github.io/life-leveling-system/index.html)
 [![GitHub](https://img.shields.io/badge/Repository-life--leveling--system-blue)](https://github.com/aasarmiento/life-leveling-system)
-[![Milestone](https://img.shields.io/badge/Milestone-1%20%7C%20Interactive%20Frontend-purple)]()
-[![Tech](https://img.shields.io/badge/Stack-HTML%20%7C%20CSS%20%7C%20Vanilla%20JS-orange)]()
+[![Milestone](https://img.shields.io/badge/Milestone-2%20%7C%20Backend--Supported%20Web%20App-purple)]()
+[![Tech](https://img.shields.io/badge/Stack-HTML%20%7C%20CSS%20%7C%20JS%20%7C%20Node.js%20%7C%20Express%20%7C%20SQLite-orange)]()
 
-Questify is a **gamified browser-based personal progress dashboard** that turns real daily effort (Work, Learning, and Health) into XP, levels, and ranks.  
+Questify is a **gamified personal progress web app** that turns real daily effort (Work, Learning, and Health) into XP, levels, and ranks.
 
 Everyday work that normally stays invisible — hours worked, tasks finished, workouts logged — becomes something you can **see move**.
 
@@ -17,186 +17,228 @@ Everyday work that normally stays invisible — hours worked, tasks finished, wo
 
 ## 🎯 Problem & Goal
 
-Most daily effort disappears without feedback.  
-Questify solves this by treating every completed task as a **quest** that earns XP, fills a progress bar, and raises the player’s level and rank — exactly like a game.
+Most daily effort disappears without feedback.
+Questify solves this by treating every completed task as a **quest** that earns XP, fills a progress bar, and raises the player's level and rank — exactly like a game.
 
-**Milestone 1 Goal**  
-Deliver a fully interactive, multi-page frontend prototype that demonstrates the complete core loop (sign in → manage quests → earn XP → level up → notifications → sign out) running entirely in the browser with no server or database.
+**Milestone 1** delivered the full interactive frontend (sign in → manage quests → earn XP → level up → notifications → sign out), running in the browser.
+
+**Milestone 2** adds a real **backend**: a Node.js + Express REST API with a SQLite database, so accounts, the Quest Board and feedback are saved on the server, checked by the server, and the same on every device.
 
 ---
 
-## ✨ Features (Milestone 1)
+## 🚀 Run It Locally (with the server)
 
-### Core Loop
-- **Quest Board** (Kanban-style): To Do → Doing → Done
-- Create, edit, delete, and move quests
-- Priority-based XP (Low 10 · Medium 20 · High 30)
-- Level formula: `Level = floor(totalXP ÷ 125) + 1`
-- Ranks: Novice → Apprentice → Adventurer → Veteran → Master
-- Undo completed quests (with confirmation + XP reversal)
-- Drag-and-drop reordering (mouse, touch long-press, keyboard Alt+↑/↓)
-- Search, category filters, and sort (with Manual mode when dragging)
-- Overdue detection (runs every 60 s)
+### 1. Requirements
+- **Node.js 22.13 or newer** (the database uses Node's built-in SQLite). Check with:
+  ```bash
+  node -v
+  ```
+  Older version? Download the LTS from [nodejs.org](https://nodejs.org). If it is too old, the server says so clearly when it starts.
+- Git
 
-### Site-wide Layer
-- Shared header for visitors and signed-in members
-- Page guard (redirects protected pages with clear notice)
-- Demo sign-in / create account flow (avatar picker, validation, salted SHA-256 hash stored only in browser)
-- Player card (level, rank, XP bar, XP to next level)
-- Notification bell (Quest done, Level up, Rank up, Overdue) with max 20 items and click-to-open
-- Profile page with live data, category stats, XP chart, ranks, trophy shelf, and export/import backup
+### 2. Install and start
+```bash
+git clone https://github.com/aasarmiento/life-leveling-system.git
+cd life-leveling-system
+npm install
+npm start
+```
 
-### Home & About
-- Hero with mascot video
-- How It Works (4-step onboarding)
-- Interactive “Try It” XP demo
-- Level-up animation (IntersectionObserver)
-- Star rating + feedback form with receipt
-- FAQ (single-open accordion)
-- Background music toggle (respects autoplay policy)
-- Team cards with member details
+You should see:
+```
+Database ready: data\questify.db
+Questify running at http://localhost:3000
+```
 
-### Technical Highlights (Advanced Functionality)
-- Data-driven rendering (quests array is single source of truth)
-- Custom events for inter-script communication (`questify:xp`, `questify:quest-done`, etc.)
-- Reusable blueprint functions (`cardHtml`, `playerCardHtml`, `notifItemHtml`…)
-- localStorage with validation + fallback to 16 sample quests
-- Progressive disclosure (⋮ menus, Show all / Show less)
-- Confirmation dialogs + Undo for destructive/XP-changing actions
-- XSS protection (all user text escaped)
-- Reduced-motion support
-- Responsive design (desktop + 375 px / 768 px tested)
+Open **http://localhost:3000** in your browser.
+
+- The first start creates `data/questify.db` (the database) with the demo account. The `data/` folder is not in Git, so each computer has its own database.
+- Stop the server with **Ctrl + C**. After pulling new changes, stop it and run `npm start` again.
+
+### 3. Demo account
+| Email | Password |
+|---|---|
+| `alex@gmail.com` | `12345678` |
+
+The demo account starts with 16 sample quests at Level 12. New accounts start with an empty board at Level 1.
+
+### 4. Try it on your phone
+Connect your phone to the same Wi-Fi, find your computer's IP address (`ipconfig` on Windows), and open `http://<that IP>:3000`. Or in Brave/Chrome on the computer: **F12 → Ctrl + Shift + M** for a phone view.
+
+---
+
+## 🔀 Server Mode vs Demo Mode
+
+The same pages work in two ways. They detect which one automatically.
+
+| | **Server mode** (`npm start` → localhost:3000) | **Demo mode** (GitHub Pages, Live Server, opening the file) |
+|---|---|---|
+| Accounts | Saved in the SQLite database; passwords hashed with scrypt + salt | Saved in this browser only |
+| Sign in | Server checks the password and gives a session token (1 day) | Checked in the browser |
+| Quest Board | Saved on the server: **same board on every device** | Saved in this browser only |
+| Offline | Changes stay on the device and sync when the server is back | — |
+| Feedback | Saved in the database with a server-made reference number | Saved in this browser only |
+
+The **live link on GitHub Pages runs in demo mode**, because GitHub Pages can only host files and cannot run a Node.js server. To see the backend, run it locally with `npm start`.
+
+---
+
+## 🔌 API
+
+All addresses start with `http://localhost:3000`. Everything answers in JSON; errors look like `{ "error": "...", "field": "..." }`.
+
+| Method | Address | Sign in needed | What it does |
+|---|---|---|---|
+| GET | `/api/health` | No | Server check → `{ status: "ok" }` |
+| POST | `/api/signup` | No | Create an account `{ name, email, password, avatar }` → `201 { token, player }` (409 if the email is taken) |
+| POST | `/api/signin` | No | Sign in `{ email, password }` → `{ token, player }` (401 wrong email/password, 429 after 5 wrong tries for 15 minutes) |
+| GET | `/api/me` | Yes | Who is signed in → `{ player }` |
+| POST | `/api/signout` | No (uses the token if sent) | End this sign in (the token stops working); always answers OK |
+| GET | `/api/board` | Yes | The player's Quest Board → `{ board, version }` |
+| PUT | `/api/board` | Yes | Save the whole board `{ board, base }` in one transaction (409 if another device saved first, with the newest board) |
+| POST | `/api/feedback` | No | Send feedback `{ rating, tags, message }` → `201` with a server-made `FB-YYMMDD-XXXX` reference (max 10 per minute) |
+| GET | `/api/feedback` | No | The newest 100 feedback |
+
+"Sign in needed" = send the token as `Authorization: Bearer <token>` (the pages do this for you).
+
+---
+
+## ✨ Features
+
+### Milestone 2: Backend
+- **SQLite database** (`db/schema.sql`): 6 tables — users, sessions, quests, boards, xp_log, feedback — with rules (unique email, allowed values, lengths, links between tables)
+- **Accounts and sign in on the server**: scrypt + salt passwords (never stored or sent back), 1-day session tokens, same message for a wrong email or password, wrong-password limit
+- **Server-side validation** of every request, with the same messages the pages show
+- **Quest Board on the server**: saved in one transaction, version check so two devices never overwrite each other, offline changes sync later, the board already in a browser is uploaded once
+- **Feedback in the database** with a unique server-made reference; the receipt only appears after the server saved it
+- **Phone layout** (720 px and below): one-row header with a ☰ menu, notifications panel, To do / Doing / Done tabs, floating + Add quest — desktop unchanged
+- **Clear errors**: a damaged database, a missing schema or an old Node version stop the server with a plain message; unknown `/api` addresses and bad requests answer in JSON
+
+### Milestone 1: Frontend
+- **Quest Board** (Kanban-style): To Do → Doing → Done; create, edit, delete, move, drag to reorder (mouse, touch, keyboard)
+- Priority-based XP (Low 10 · Medium 20 · High 30), `Level = floor(totalXP ÷ 125) + 1`, ranks Novice → Apprentice → Adventurer → Veteran → Master
+- Undo completed quests (confirmation + XP reversal), search, category filters, sort, overdue detection
+- Shared header, page guard, player card, notification bell (Quest done, Level up, Rank up, Overdue)
+- Profile with live stats, category grid, XP chart, ranks, trophy shelf, export/import backup
+- Home: mascot hero, how it works, XP demo, level-up animation, feedback form, FAQ, background music; About with team cards
+- Accessibility: keyboard support, focus management, reduced motion, screen-reader announcements; all user text escaped (XSS-safe)
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer        | Technology                          | Why |
-|--------------|-------------------------------------|-----|
-| Structure    | Semantic HTML5                      | Clean, accessible base |
-| Styling      | CSS3 (Custom Properties / Design Tokens, Grid, Flexbox) | Full control of pixel aesthetic |
-| Behavior     | Vanilla JavaScript (ES6+)           | No framework overhead; every line is explainable |
-| Persistence  | localStorage                        | Works offline, survives refresh, no backend needed |
-| Fonts        | Press Start 2P + Space Grotesk (Google Fonts) | Pixel titles + readable body |
-| Hosting      | GitHub Pages                        | Free static hosting |
-| Design       | Figma                               | Shared visual source of truth |
-| Versioning   | Git + GitHub (branches + PRs)       | Safe teamwork |
-
-**No frameworks, no build tools, no backend** — pure frontend as required for Milestone 1.
+| Layer | Technology | Why |
+|---|---|---|
+| Structure | Semantic HTML5 | Clean, accessible base |
+| Styling | CSS3 (design tokens, Grid, Flexbox, media queries) | Full control of the pixel style; phone + desktop layouts |
+| Behavior | Vanilla JavaScript (ES6+) | No framework overhead; every line is explainable |
+| Server | **Node.js + Express 5** | REST API taught in the course (Weeks 7–9) |
+| Database | **SQLite** (Node's built-in `node:sqlite`) | A real database in one file; nothing extra to install |
+| Security | Node `crypto` (scrypt + salt, random tokens) | Passwords never stored; sign-in sessions |
+| Hosting | GitHub Pages (demo mode) · localhost (server mode) | Free static demo + full backend locally |
+| Design | Figma | Shared visual source of truth |
+| Versioning | Git + GitHub (branches + PRs) | Safe teamwork |
 
 ---
 
 ## 📁 Project Structure
+```
 life-leveling-system/
-├── index.html                  # Home
-├── pages/
-│   ├── about.html
-│   ├── signin.html
-│   ├── create-account.html
-│   ├── tasks.html              # Quest Board
-│   └── profile.html
-├── css/
-│   └── style.css               # Single shared stylesheet (design tokens + all pages)
+├── server.js                  # Express server: pages, API routes, JSON errors
+├── package.json               # npm start, Express
+├── db/
+│   ├── schema.sql             # The 6 tables and their rules
+│   └── db.js                  # Opens data/questify.db, runs the schema, adds the demo account
+├── lib/
+│   ├── passwords.js           # scrypt + salt
+│   ├── sessions.js            # Session tokens, requireAuth
+│   ├── validate.js            # Server-side checks (sign up, sign in, board)
+│   └── limit.js               # Wrong-password limit
+├── routes/
+│   ├── auth.js                # /api/signup, /signin, /me, /signout
+│   ├── board.js               # /api/board (GET, PUT)
+│   └── feedback.js            # /api/feedback (POST, GET)
+├── index.html                 # Home
+├── pages/                     # about, signin, create-account, tasks (Quest Board), profile
+├── css/style.css              # One shared stylesheet (design tokens, all pages, phone layout)
 ├── js/
-│   ├── nav.js                  # Header, guard, player card, notifications, sign-in/out
-│   ├── tasks.js                # Quest Board logic, XP, drag, search, sort, Undo
-│   └── app.js                  # Home & About interactions
-└── assets/                     # Images, avatars, icons, videos, audio
-
-
-
----
-
-##  Getting Started
-
-### Live Demo
- **[https://aasarmiento.github.io/life-leveling-system/index.html](https://aasarmiento.github.io/life-leveling-system/index.html)**
-
-### Run Locally
-1. Clone the repository
-   ```bash
-   git clone https://github.com/aasarmiento/life-leveling-system.git
-   cd life-leveling-system
-2. Open with any static server (recommended: **VS Code Live Server**) or simply open `index.html` in a modern browser.
-3. **Demo account** (pre-loaded with 16 sample quests):
-   - Email: `alex@gmail.com`
-   - Password: `12345678`
-
-> New accounts start with an empty board at Level 1.
+│   ├── nav.js                 # Header, guard, sign in/out, board sync, notifications, phone menu
+│   ├── tasks.js               # Quest Board logic, XP, drag, search, sort, tabs
+│   ├── profile.js             # Profile stats, charts, export/import
+│   └── app.js                 # Home & About interactions, feedback form
+├── assets/                    # Images, avatars, icons, videos, audio
+└── data/                      # Created on first start (not in Git): questify.db
+```
 
 ---
 
-## 🧪 Tested Flows (Summary)
+## 🧪 Testing
 
-| Flow                                                      | Result            |
-|-----------------------------------------------------------|-------------------|
-| Sign in → land on Quest Board                             | Pass              |
-| Open Tasks / Profile while signed out → redirect + notice | Pass              |
-| Create account + avatar selection                         | Pass              |
-| Drag cards (mouse / touch / keyboard)                     | Pass              |
-| Mark done → XP + notifications → Undo                     | Pass              |
-| Refresh → data persists                                   | Pass              |
-| Blocked localStorage (private window)                     | Graceful fallback |
-| XSS attempt                                               | Escaped correctly |
-| 375 px / 768 px layouts                                   | Usable            |
+Every Milestone 2 checkpoint was tested on a separate copy of the project with its own database, using automated scripts that send real API requests and drive a real browser (headless Brave), plus manual tests.
+
+| Area | Examples of what was checked |
+|---|---|
+| Database | Every table rule refuses bad data; deleting a user removes their data |
+| Accounts & sign in | Validation, duplicate emails (any letter case), 5 sign-ups at once, SQL injection, wrong-password limit, expired sessions |
+| Quest Board | Two devices on one account, conflicts, offline sync, a 500-quest board, two players kept apart, restart keeps everything |
+| Feedback | Unique references, spam limit, old data moved once, receipt only after saving, server down |
+| Phone layout | Every page at 360–414 px, menu and panels with keyboard, tabs, desktop unchanged |
+| UI audit | 51 screens on phone and desktop: no sideways scroll, cut-off or overlapping text, small buttons |
+
+All checks pass. Details are in the team's checkpoint change logs.
 
 ---
 
 ## 👥 Team
 
-| Member                    | Role                          | Main Contributions |
-|---------------------------|-------------------------------|--------------------|
-| **Abigail Ann Sarmiento** | UI/UX Design, Repo Owner      | Figma, Home, About, Profile & Sign-in design, design tokens |
-| **Christian Allen Soriano** | Project Manager             | Quest Board, shared header, auth flow, player card, notifications, docs |
-| **Sire Ermond Manalo**    | GitHub Lead                   | Repository, merges, bug hunting, code quality |
-| **Jeremiah Alzona**       | Documentation                 | Development logs, worksheet, written docs |
-| **Rowel Jepsani**         | Documentation / Tester        | Research, consolidated report, testing, final push |
+| Member | Role | Main Contributions |
+|---|---|---|
+| **Abigail Ann Sarmiento** | UI/UX Design, Repo Owner | Figma, Home, About, Profile & Sign-in design, design tokens |
+| **Christian Allen Soriano** | Project Manager | Quest Board, header, auth, player card, notifications; Milestone 2 database, accounts, sync, feedback, phone layout; docs |
+| **Sire Ermond Manalo** | GitHub Lead | Repository, merges, Express server and feedback API, bug hunting, code quality |
+| **Jeremiah Alzona** | Documentation | Development logs, worksheet, written docs |
+| **Rowel Jepsani** | Documentation / Tester | Research, consolidated report, testing, final push |
 
-**Mentors:**  
-- Aldrin John Tamayo  
+**Mentors:**
+- Aldrin John Tamayo
 - Sir Hanz Cruz
 
 ---
 
-## 📅 Milestone 1 Timeline
+## 📅 Timeline
 
-| Week | Focus |
-|------|-------|
-| 1    | Ideation & group formation |
-| 2    | Semantic HTML skeleton |
-| 3    | CSS design system + realignment |
-| 4–5  | JavaScript behavior + full audit |
-| 6    | Shared header, auth, notifications, integration & testing |
+| When | Focus |
+|---|---|
+| Weeks 1–6 | Milestone 1: ideation, HTML, CSS design system, JavaScript, shared header, auth, notifications, testing |
+| Oct 20–21 | Milestone 2 starts: Express server + feedback API (Sire) |
+| Oct 22 | Checkpoints 1–5: SQLite database, accounts and sign in, Quest Board sync, feedback in the database, phone layout + UI polish |
+| Oct 26 | Milestone 2 submission |
 
 ---
 
-##  What's Next (Milestone 2+)
+##  What's Next
 
-- Real authentication + backend (Node.js / Express)
-- Database + multi-device sync
-- Live Profile data fully connected
-- Compact phone menu
-- Settings page
-- Feedback form → backend
-- Screen-reader & cross-browser formal testing
+- Host the server online (so the live link has accounts and sync too)
+- Live updates between devices (WebSockets) and notifications saved on the server
+- Settings page (change name, avatar, password)
+- Sessions in secure cookies; wrong-password counts saved in the database
 
 ---
 
 ##  License & Academic Notice
 
-This project was developed as a student coursework deliverable for Mapúa-Malayan Digital College (MMDC).  
-The template and structure follow institutional guidelines.  
+This project was developed as a student coursework deliverable for Mapúa-Malayan Digital College (MMDC).
+The template and structure follow institutional guidelines.
 Unauthorized commercial use, redistribution, or claiming ownership of the original template is prohibited.
 
 ---
 
-## 📎Quick Links
+## 📎 Quick Links
 
-- **Live Site:** https://aasarmiento.github.io/life-leveling-system/index.html  
-- **Repository:** https://github.com/aasarmiento/life-leveling-system  
-- **Figma:** https://www.figma.com/design/AJTHmDxEK733yLdHtsNm3P/Questify  
+- **Live Site (demo mode):** https://aasarmiento.github.io/life-leveling-system/index.html
+- **Repository:** https://github.com/aasarmiento/life-leveling-system
+- **Figma:** https://www.figma.com/design/AJTHmDxEK733yLdHtsNm3P/Questify
 
 ---
 
 **Questify** — Make progress visible. Level up your life.
-   
