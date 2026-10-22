@@ -24,7 +24,13 @@
 // =====================================================================
 // Nagsisimula pag handa na ang page (DOMContentLoaded), para nauna na ang
 // nav.js na gumawa ng player card (Alex ▾) kung saan naka-lagay ang Level at XP.
+// Server mode: hinihintay muna ang board galing sa server (window.questifyBoard.ready).
 document.addEventListener("DOMContentLoaded", function () {
+  const sync = window.questifyBoard;
+  (sync ? sync.ready : Promise.resolve()).then(startQuestBoard);
+});
+
+function startQuestBoard() {
   const XP_BY_PRIORITY = { low: 10, medium: 20, high: 30 };
   const PRIORITY_VALUE = { low: 1, medium: 2, high: 3 };
   const PRIORITY_LABEL = { low: "Low", medium: "Medium", high: "High" };
@@ -188,20 +194,20 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function saveBoard() {
+    const data = {
+      quests,
+      xp: bankedXp,
+      nextId,
+      sort: state.sort,
+      dir: state.dir,
+    };
     try {
-      localStorage.setItem(
-        STORE_KEY,
-        JSON.stringify({
-          quests,
-          xp: bankedXp,
-          nextId,
-          sort: state.sort,
-          dir: state.dir,
-        }),
-      );
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
     } catch (err) {
       // Naka-block o puno yung storage: gagana pa rin yung board, hindi lang ma-sa-save.
     }
+    // Server mode: ipadala rin sa server (nav.js ang bahala kung may nagbago)
+    if (window.questifyBoard) window.questifyBoard.save(data);
   }
 
   // Pagbukas ng page: kunin yung naka-save. Kung wala: sample quests para sa
@@ -2195,6 +2201,33 @@ document.addEventListener("DOMContentLoaded", function () {
     openFromNotification(e.detail.id),
   );
 
+  // Binago ang board sa ibang device (o tab): ipakita ang bago, dito mismo.
+  // Habang may bukas na popup o nagda-drag, maghihintay muna (busy).
+  if (window.questifyBoard)
+    window.questifyBoard.onChange({
+      busy: () => !!activeModal || !!drag,
+      apply(b) {
+        if (activeModal) closeModal({ restoreFocus: false });
+        editing = null;
+        quests = b.quests;
+        bankedXp = b.xp;
+        const highest = Math.max(
+          0,
+          ...quests.map((q) => parseInt(q.id.slice(1), 10) || 0),
+        );
+        nextId = Math.max(Number(b.nextId) || 0, highest + 1);
+        if (SORTS[b.sort]) {
+          state.sort = b.sort;
+          if (b.dir === "asc" || b.dir === "desc") state.dir = b.dir;
+        }
+        knownOverdue = new Set(quests.filter(isOverdue).map((q) => q.id));
+        syncSort();
+        paintLevel();
+        render({ animate: false });
+        announce("Your board was updated from another device.");
+      },
+    });
+
   paintLevel();
   syncControls();
   syncSort();
@@ -2209,4 +2242,4 @@ document.addEventListener("DOMContentLoaded", function () {
     nudge(quests.filter(isOverdue));
   }
   notifyOverdue(quests.filter(isOverdue));
-});
+}
