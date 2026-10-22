@@ -441,6 +441,291 @@
   // (hindi lang naka-refresh). Nase-set ulit tuwing bukas ng page.
   let currentRank = rankFor(savedXp());
 
+  // ---------- BOARD SYNC (Checkpoint 3) ----------
+  // Server mode: nasa server ang Quest Board, kaya pareho ang quests at XP sa
+  // kahit anong device. May kopya pa rin sa browser (localStorage) para mabilis
+  // magbukas ang page at gumagana pa rin kahit hindi maabot ang server.
+  //   window.questifyBoard.ready      → tapos nang kunin ang board sa server
+  //   window.questifyBoard.save(b)    → tinatawag ng Tasks pagkatapos ng bawat pagbabago
+  //   window.questifyBoard.saveNow(b) → Profile import (papalitan ang buong board)
+  //   window.questifyBoard.onChange({ busy, apply }) → Tasks: ipakita ang bagong board
+  // Ang "version" = oras ng huling save sa server. Kapag may ibang device na
+  // nauna mag-save, tinatanggihan ng server (409) at ang pinakabago ang ipapakita.
+  const SYNC_KEY = "questify.sync" + SUFFIX; // { pending, base }: pagbabagong wala pa sa server
+  let boardVersion = null; // version ng board na hawak ng page na 'to
+  let syncedText = null; // canon() ng nasa server, para hindi mag-save kung walang nagbago
+  let pageStarted = false; // nabasa na ng page ang board (pagkatapos ng ready)
+  let changeHandler = null;
+  let saveTimer = null;
+  let saving = false;
+  let queued = null;
+  let offline = false;
+  let retryTimer = null;
+  const useServer = () => signedIn && !!read(TOKEN_KEY);
+
+  // Hintayin muna ang page bago magpakita ng toast (nasa <head> pa ang nav.js)
+  const whenReady = (fn) =>
+    document.readyState === "loading"
+      ? document.addEventListener("DOMContentLoaded", fn, { once: true })
+      : fn();
+  const syncToast = (opts) =>
+    whenReady(() => window.questifyToast && window.questifyToast(opts));
+
+  function readLocal() {
+    try {
+      const b = JSON.parse(read(BOARD_KEY));
+      return b && Array.isArray(b.quests) && Array.isArray(b.xp) ? b : null;
+    } catch (err) {
+      return null;
+    }
+  }
+  function readSync() {
+    try {
+      return JSON.parse(read(SYNC_KEY)) || {};
+    } catch (err) {
+      return {};
+    }
+  }
+  const markPending = () =>
+    write(SYNC_KEY, JSON.stringify({ pending: true, base: boardVersion }));
+
+  // Parehong board = parehong text, kahit iba ang pagkakasunod ng fields
+  function canon(b) {
+    if (!b) return "";
+    const highest = Math.max(0, ...b.quests.map((q) => parseInt(String(q.id).slice(1), 10) || 0));
+    return JSON.stringify([
+      b.quests
+        .map((q) => {
+          const done = q.status === "done";
+          return [q.id, q.title, q.desc, q.cat, q.priority, q.status, q.due, q.added, q.rank, done ? q.earned : null, done ? q.completed : null];
+        })
+        .sort((a, c) => (a[0] < c[0] ? -1 : a[0] > c[0] ? 1 : 0)),
+      b.xp.map((e) => [e.id || null, e.xp]),
+      Math.max(Number(b.nextId) || 0, highest + 1),
+      b.sort || "due",
+      b.dir || "asc",
+    ]);
+  }
+
+  // Header (Alex ▾): Level, rank at XP galing sa board na naka-save
+  function paintHeaderXp() {
+    const total = savedXp();
+    currentRank = rankFor(total); // para walang maling "Rank up" popup
+    const set = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    const pill = document.getElementById("levelPill");
+    if (pill) pill.dataset.level = levelFor(total);
+    set("levelNum", "Level " + levelFor(total));
+    set("levelRank", rankFor(total));
+    set("levelXp", total.toLocaleString("en-US") + " XP");
+    set("levelNext", `${toNext(total)} XP to Level ${levelFor(total) + 1}`);
+    const fill = document.getElementById("levelFill");
+    if (fill) fill.style.width = pctFor(total) + "%";
+  }
+
+  // Tanggapin ang board ng server: i-save sa browser at sabihan ang page.
+  // force = galing sa 409 (kailangang ipakita kahit may bukas na popup).
+  function adopt(board, version, force = false) {
+    if (pageStarted && changeHandler && !force && changeHandler.busy())
+      return false; // may bukas na popup o nagda-drag: sa susunod na lang
+    write(BOARD_KEY, JSON.stringify(board));
+    write(SYNC_KEY, null);
+    boardVersion = version;
+    syncedText = canon(board);
+    whenReady(paintHeaderXp);
+    if (pageStarted) {
+      if (changeHandler) changeHandler.apply(board);
+      else document.dispatchEvent(new CustomEvent("questify:board-changed"));
+    }
+    return true;
+  }
+
+  function goOffline() {
+    if (!retryTimer) retryTimer = setInterval(() => flush(), 10000);
+    if (offline) return;
+    offline = true;
+    syncToast({
+      tone: "info",
+      title: "Can't reach the server",
+      text: "Your changes are saved on this device and will sync when it's back.",
+    });
+  }
+  function backOnline() {
+    clearInterval(retryTimer);
+    retryTimer = null;
+    if (!offline) return;
+    offline = false;
+    syncToast({ tone: "ok", title: "Synced", text: "Your board is saved on the server again." });
+  }
+
+  // Ipadala ang board sa server. true = naka-save na.
+  async function push(board, force = false) {
+    const text = canon(board);
+    if (!force && text === syncedText) {
+      write(SYNC_KEY, null);
+      return true;
+    }
+    const res = await api("board", {
+      method: "PUT",
+      body: { board, base: boardVersion, force },
+    });
+    if (!res || res.status >= 500) {
+      markPending(); // hindi naabot: ipapadala ulit mamaya o sa susunod na bukas
+      goOffline();
+      return false;
+    }
+    if (res.status === 404) {
+      // Lumang server (Checkpoint 2, hindi pa na-restart): wala pang /api/board.
+      // Naka-save dito; ipapadala kapag na-restart na ang server.
+      markPending();
+      return false;
+    }
+    if (res.ok) {
+      boardVersion = res.data.version;
+      syncedText = text;
+      write(SYNC_KEY, null);
+      backOnline();
+      return true;
+    }
+    if (res.status === 409) {
+      // Naunang nag-save ang ibang device: ipakita ang pinakabago
+      backOnline();
+      const same = canon(res.data.board) === text;
+      adopt(res.data.board, res.data.version, true);
+      if (!same)
+        syncToast({
+          tone: "info",
+          title: "Updated from another device",
+          text: "Your board changed somewhere else, so the newest version is shown.",
+        });
+      return false;
+    }
+    if (res.status === 401) {
+      // Natapos ang sign in habang gamit ang page: naka-save dito, ipapadala
+      // pagkatapos mag-sign in ulit (parehong flow ng checkSession)
+      markPending();
+      write(TOKEN_KEY, null);
+      write(SIGNED_IN_KEY, null);
+      if (guard)
+        location.replace(
+          BASE + "pages/signin.html?next=" + encodeURIComponent(guard) + "&session=ended",
+        );
+      else location.reload();
+      return false;
+    }
+    // 400: tinanggihan ng server (hindi dapat mangyari): naka-save pa rin dito
+    write(SYNC_KEY, null);
+    syncToast({
+      tone: "err",
+      title: "Couldn't save to the server",
+      text: (res.data && res.data.error) || "Your board is still saved on this device.",
+    });
+    return false;
+  }
+
+  // Isa-isang save lang; kung may bago habang nagse-save, isusunod
+  async function flush() {
+    if (saving || !useServer()) return;
+    const board = queued || (readSync().pending ? readLocal() : null);
+    queued = null;
+    if (!board) return;
+    saving = true;
+    try {
+      await push(board);
+    } finally {
+      saving = false;
+    }
+    if (queued) flush();
+  }
+
+  function save(board) {
+    if (!useServer()) return;
+    queued = board;
+    // Tandaan agad: kung isara ang page bago ma-save, ipapadala sa susunod
+    if (canon(board) !== syncedText) markPending();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 400);
+  }
+
+  // Pagbukas ng page: kunin ang board sa server
+  async function loadBoardFromServer() {
+    const res = await api("board");
+    if (!res || !res.ok) return; // walang server o hindi naka-sign in: browser copy muna
+    const server = res.data;
+    const local = readLocal();
+    const sync = readSync();
+    if (!server.board) {
+      // Unang beses sa server: i-upload ang board ng browser na 'to (o ang sample ng demo)
+      const start = local || (IS_DEMO ? window.questifyDemoBoard() : null);
+      if (start) {
+        write(BOARD_KEY, JSON.stringify(start));
+        await push(start);
+      }
+      return;
+    }
+    if (sync.pending && local && sync.base === server.version) {
+      // May binago dito habang hindi maabot ang server, at walang ibang nag-save: ipadala
+      boardVersion = server.version;
+      syncedText = canon(server.board);
+      await push(local);
+      return;
+    }
+    if (sync.pending && local && canon(local) !== canon(server.board))
+      syncToast({
+        tone: "info",
+        title: "Updated from another device",
+        text: "Changes made here while offline were replaced by newer ones.",
+      });
+    adopt(server.board, server.version);
+  }
+
+  // Bumalik sa tab / window: baka may binago sa ibang device
+  async function refreshBoard() {
+    if (!useServer() || !pageStarted) return;
+    if (readSync().pending) return flush();
+    if (saving || queued) return;
+    const res = await api("board");
+    if (!res || !res.ok || !res.data.board || res.data.version === boardVersion) return;
+    if (saving || queued || readSync().pending) return; // may bagong pagbabago habang naghihintay
+    adopt(res.data.board, res.data.version);
+  }
+
+  const boardReady = useServer()
+    ? Promise.race([
+        loadBoardFromServer().catch(() => {}),
+        new Promise((done) => setTimeout(done, 3000)), // mabagal ang server: browser copy muna
+      ]).then(() => {
+        pageStarted = true;
+      })
+    : Promise.resolve().then(() => {
+        pageStarted = true;
+      });
+
+  window.questifyBoard = {
+    ready: boardReady,
+    save,
+    saveNow: (board) => (useServer() ? push(board, true) : Promise.resolve(false)),
+    onChange: (handler) => {
+      changeHandler = handler;
+    },
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshBoard();
+  });
+  window.addEventListener("focus", refreshBoard);
+  window.addEventListener("online", () => flush());
+  // Paalis sa page na may hindi pa naipapadala: ipadala na ngayon
+  window.addEventListener("pagehide", () => {
+    if (!queued || !useServer()) return;
+    clearTimeout(saveTimer);
+    const body = { board: queued, base: boardVersion };
+    queued = null;
+    if (JSON.stringify(body).length < 60000)
+      api("board", { method: "PUT", body, keepalive: true });
+  });
+
   const esc = (s) =>
     String(s).replace(
       /[&<>"']/g,

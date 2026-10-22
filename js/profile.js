@@ -8,8 +8,18 @@
 //   - XP chart (7 days / 30 days / All time) + summary
 //   - Climb the ranks, Trophy shelf (badges)
 //   - Save file: Export (download backup) at Import (ibalik mula sa backup)
+// Server mode: hinihintay muna ang board galing sa server (window.questifyBoard.ready).
 // =====================================================================
 document.addEventListener("DOMContentLoaded", function () {
+  const sync = window.questifyBoard;
+  (sync ? sync.ready : Promise.resolve()).then(startProfile);
+});
+
+function startProfile() {
+  const sync = window.questifyBoard;
+  // Binago ang board sa ibang device: i-reload para tama ang lahat ng numero at chart
+  document.addEventListener("questify:board-changed", () => location.reload());
+
   const XP_PER_LEVEL = 125; // pareho sa tasks.js at nav.js
   const DEMO_XP = 1450;
   const RANKS = [
@@ -567,17 +577,26 @@ document.addEventListener("DOMContentLoaded", function () {
     dataCard.appendChild(picker);
     importBtn.addEventListener("click", () => picker.click());
 
+    // Parehong rules ng Tasks page at ng server (para hindi tanggihan pagkatapos)
     const validQuest = (q) =>
       q &&
       typeof q.id === "string" &&
+      /^q\d{1,9}$/.test(q.id) &&
       typeof q.title === "string" &&
+      q.title.trim().length > 0 &&
+      q.title.length <= 60 &&
       typeof q.desc === "string" &&
+      q.desc.length <= 300 &&
       ["todo", "doing", "done"].includes(q.status) &&
       ["work", "growth", "health"].includes(q.cat) &&
       ["low", "medium", "high"].includes(q.priority) &&
       typeof q.due === "string" &&
-      typeof q.added === "number" &&
-      typeof q.rank === "number";
+      (q.due === "" || /^\d{4}-\d{2}-\d{2}$/.test(q.due)) &&
+      Number.isInteger(q.added) &&
+      typeof q.rank === "number" &&
+      Number.isFinite(q.rank) &&
+      (q.status !== "done" ||
+        (Number.isInteger(q.earned) && Number.isInteger(q.completed)));
     picker.addEventListener("change", () => {
       const file = picker.files[0];
       picker.value = "";
@@ -594,9 +613,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const ok =
           b &&
           Array.isArray(b.quests) &&
+          b.quests.length <= 500 &&
           b.quests.every(validQuest) &&
+          new Set(b.quests.map((q) => q.id)).size === b.quests.length &&
           Array.isArray(b.xp) &&
-          b.xp.every((e) => e && Number.isFinite(e.xp));
+          b.xp.length <= 10000 &&
+          b.xp.every(
+            (e) =>
+              e &&
+              Number.isInteger(e.xp) &&
+              Math.abs(e.xp) <= 100000 &&
+              (e.id == null || /^q\d{1,9}$/.test(e.id)),
+          );
         if (!ok) {
           say("That file isn't a Questify backup. Nothing was changed.", true);
           return;
@@ -611,7 +639,10 @@ document.addEventListener("DOMContentLoaded", function () {
           `Imported ${b.quests.length} quest${b.quests.length === 1 ? "" : "s"}. Reloading…`,
           false,
         );
-        setTimeout(() => location.reload(), 900);
+        // Server mode: palitan din ang board sa server, bago mag-reload
+        (sync ? sync.saveNow(b) : Promise.resolve()).then(() =>
+          setTimeout(() => location.reload(), 900),
+        );
       };
       reader.readAsText(file);
     });
@@ -619,4 +650,4 @@ document.addEventListener("DOMContentLoaded", function () {
       hint.textContent =
         "Export downloads a backup of your quests and XP. Import checks the file first, then replaces this account's board.";
   }
-});
+}

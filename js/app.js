@@ -734,23 +734,29 @@
     signedIn = false;
   }
   if (!bar || !acc || !signedIn) return;
-  let total = acc.isDemo ? 1450 : 0;
-  try {
-    const board = JSON.parse(localStorage.getItem(acc.boardKey));
-    if (board && Array.isArray(board.xp))
-      total = board.xp.reduce((sum, e) => sum + (Number(e.xp) || 0), 0);
-  } catch (err) {
-    /* walang board pa: default */
+  function paintLoopLevel() {
+    let total = acc.isDemo ? 1450 : 0;
+    try {
+      const board = JSON.parse(localStorage.getItem(acc.boardKey));
+      if (board && Array.isArray(board.xp))
+        total = board.xp.reduce((sum, e) => sum + (Number(e.xp) || 0), 0);
+    } catch (err) {
+      /* walang board pa: default */
+    }
+    const XP_PER_LEVEL = 125;
+    const level = Math.floor(total / XP_PER_LEVEL) + 1;
+    const into = total % XP_PER_LEVEL;
+    bar.querySelector("span").style.width = (into / XP_PER_LEVEL) * 100 + "%";
+    bar.setAttribute("aria-valuenow", String(into));
+    bar.setAttribute("aria-label", `Your XP into Level ${level + 1}`);
+    document.getElementById("abLoopLevel").textContent = `Your level: ${level}`;
+    document.getElementById("abLoopXp").textContent =
+      `${into} / ${XP_PER_LEVEL} XP`;
   }
-  const XP_PER_LEVEL = 125;
-  const level = Math.floor(total / XP_PER_LEVEL) + 1;
-  const into = total % XP_PER_LEVEL;
-  bar.querySelector("span").style.width = (into / XP_PER_LEVEL) * 100 + "%";
-  bar.setAttribute("aria-valuenow", String(into));
-  bar.setAttribute("aria-label", `Your XP into Level ${level + 1}`);
-  document.getElementById("abLoopLevel").textContent = `Your level: ${level}`;
-  document.getElementById("abLoopXp").textContent =
-    `${into} / ${XP_PER_LEVEL} XP`;
+  paintLoopLevel();
+  // Server mode: ulitin pagkatapos makuha ang board sa server, o kapag binago sa ibang device
+  if (window.questifyBoard) window.questifyBoard.ready.then(paintLoopLevel);
+  document.addEventListener("questify:board-changed", paintLoopLevel);
 })();
 
 /*

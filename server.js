@@ -12,9 +12,11 @@ const PORT = process.env.PORT || 3000;
 const feedbackRoutes = require("./routes/feedback");
 // accounts + sign in routes (signup, signin, me, signout)
 const authRoutes = require("./routes/auth");
+// Quest Board routes (GET /api/board, PUT /api/board)
+const boardRoutes = require("./routes/board");
 
-// Parse JSON request bodies
-app.use(express.json());
+// Parse JSON request bodies (1 MB: room for a full board of 500 quests)
+app.use(express.json({ limit: "1mb" }));
 
 // Serve front-end assets with .html extension support for /pages
 app.use("/css", express.static(path.join(__dirname, "css")));
@@ -29,6 +31,8 @@ app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.use("/api/feedback", feedbackRoutes);
 //mounting the account routes: /api/signup, /api/signin, /api/me, /api/signout
 app.use("/api", authRoutes);
+//mounting the Quest Board routes: /api/board
+app.use("/api/board", boardRoutes);
 
 // Home page
 app.get(["/", "/index.html"], (req, res) => {
