@@ -76,12 +76,10 @@ router.post("/", (req, res) => {
     : [];
 
   if (tooMany(req.ip)) {
-    return res
-      .status(429)
-      .json({
-        error:
-          "You've sent a lot of feedback. Please wait a minute and try again.",
-      });
+    return res.status(429).json({
+      error:
+        "You've sent a lot of feedback. Please wait a minute and try again.",
+    });
   }
 
   // The server makes the reference number (the page's own number is ignored)
