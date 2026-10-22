@@ -204,18 +204,6 @@ All checks pass. Details are in the team's checkpoint change logs.
 
 ---
 
-## 📅 Timeline
-
-| When | Focus |
-|---|---|
-| Weeks 1–6 | Milestone 1: ideation, HTML, CSS design system, JavaScript, shared header, auth, notifications, testing |
-| Oct 20–21 | Milestone 2 starts: Express server + feedback API (Sire) |
-| Oct 22 | Checkpoints 1–5: accounts and sign in, Quest Board sync, feedback on the server, phone layout + UI polish (first with a SQLite database) |
-| Oct 22–23 | Checkpoint 6: data saved in JSON files instead of SQLite, as asked in class |
-| Oct 26 | Milestone 2 submission |
-
----
-
 ##  What's Next
 
 - Host the server online (so the live link has accounts and sync too)
