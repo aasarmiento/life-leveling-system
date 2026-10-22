@@ -1,11 +1,15 @@
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 
-// open the SQLite database (creates the tables + demo account on first start)
-require("./db/db");
+// load the JSON data files (creates them + the demo account on first start)
+require("./lib/store");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Don't tell visitors which server framework this is (no "X-Powered-By: Express")
+app.disable("x-powered-by");
 
 //feedback route module import
 const feedbackRoutes = require("./routes/feedback");
@@ -49,9 +53,14 @@ app.get("/api/health", (req, res) => {
 // Unknown /api addresses answer with JSON (the pages read JSON, not the Home page)
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found." }));
 
-// 404 Fallback
+// 404 Fallback: the Home page. <base href="/"> makes its css/js/images load
+// from the main folder, even for a wrong address like /data/anything.
 app.use((req, res) => {
-  res.status(404).sendFile("index.html", { root: __dirname });
+  const home = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+  res
+    .status(404)
+    .type("html")
+    .send(home.replace(/<head>/i, '<head>\n  <base href="/">'));
 });
 
 // Errors (e.g. broken JSON in a request): answer with JSON instead of an HTML error page
