@@ -13,19 +13,25 @@ const { checkBoard } = require("../lib/validate");
 const router = express.Router();
 router.use(requireAuth);
 
-const getBoardRow = db.prepare("SELECT next_id, sort, dir, updated_at FROM boards WHERE user_id = ?");
+const getBoardRow = db.prepare(
+  "SELECT next_id, sort, dir, updated_at FROM boards WHERE user_id = ?",
+);
 const getQuests = db.prepare(
   `SELECT id, title, description, cat, priority, status, due, added, position, earned, completed
      FROM quests WHERE user_id = ? ORDER BY rowid`,
 );
-const getXp = db.prepare("SELECT quest_id, xp FROM xp_log WHERE user_id = ? ORDER BY id");
+const getXp = db.prepare(
+  "SELECT quest_id, xp FROM xp_log WHERE user_id = ? ORDER BY id",
+);
 const deleteQuests = db.prepare("DELETE FROM quests WHERE user_id = ?");
 const deleteXp = db.prepare("DELETE FROM xp_log WHERE user_id = ?");
 const insertQuest = db.prepare(
   `INSERT INTO quests (user_id, id, title, description, cat, priority, status, due, added, position, earned, completed)
    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 );
-const insertXp = db.prepare("INSERT INTO xp_log (user_id, quest_id, xp) VALUES (?, ?, ?)");
+const insertXp = db.prepare(
+  "INSERT INTO xp_log (user_id, quest_id, xp) VALUES (?, ?, ?)",
+);
 const saveBoardRow = db.prepare(
   `INSERT INTO boards (user_id, next_id, sort, dir, updated_at) VALUES (?, ?, ?, ?, ?)
    ON CONFLICT (user_id) DO UPDATE SET next_id = excluded.next_id, sort = excluded.sort,
@@ -38,11 +44,23 @@ function readBoard(userId) {
   const row = getBoardRow.get(userId);
   if (!row) return { board: null, version: null };
   const quests = getQuests.all(userId).map((q) => ({
-    id: q.id, title: q.title, desc: q.description, cat: q.cat, priority: q.priority, status: q.status,
-    due: q.due, added: q.added, rank: q.position, earned: q.earned, completed: q.completed,
+    id: q.id,
+    title: q.title,
+    desc: q.description,
+    cat: q.cat,
+    priority: q.priority,
+    status: q.status,
+    due: q.due,
+    added: q.added,
+    rank: q.position,
+    earned: q.earned,
+    completed: q.completed,
   }));
   const xp = getXp.all(userId).map((e) => ({ id: e.quest_id, xp: e.xp }));
-  return { board: { quests, xp, nextId: row.next_id, sort: row.sort, dir: row.dir }, version: row.updated_at };
+  return {
+    board: { quests, xp, nextId: row.next_id, sort: row.sort, dir: row.dir },
+    version: row.updated_at,
+  };
 }
 
 router.get("/", (req, res) => {
@@ -54,7 +72,8 @@ router.put("/", (req, res) => {
   const check = checkBoard(body.board);
   if (check.error) return res.status(400).json({ error: check.error });
   const base = body.base === undefined ? null : body.base;
-  if (base !== null && !Number.isInteger(base)) return res.status(400).json({ error: "The board version is not valid." });
+  if (base !== null && !Number.isInteger(base))
+    return res.status(400).json({ error: "The board version is not valid." });
   const { quests, xp, nextId, sort, dir } = check.value;
   const userId = req.user.id;
 
@@ -65,11 +84,29 @@ router.put("/", (req, res) => {
     const current = row ? row.updated_at : null;
     if (current !== base && body.force !== true) {
       db.exec("ROLLBACK");
-      return res.status(409).json({ error: "Your board changed on another device.", ...readBoard(userId) });
+      return res
+        .status(409)
+        .json({
+          error: "Your board changed on another device.",
+          ...readBoard(userId),
+        });
     }
     deleteQuests.run(userId);
     for (const q of quests) {
-      insertQuest.run(userId, q.id, q.title, q.desc, q.cat, q.priority, q.status, q.due, q.added, q.rank, q.earned, q.completed);
+      insertQuest.run(
+        userId,
+        q.id,
+        q.title,
+        q.desc,
+        q.cat,
+        q.priority,
+        q.status,
+        q.due,
+        q.added,
+        q.rank,
+        q.earned,
+        q.completed,
+      );
     }
     deleteXp.run(userId);
     for (const e of xp) insertXp.run(userId, e.id, e.xp);
