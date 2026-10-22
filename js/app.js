@@ -387,7 +387,7 @@
 // at footer. Pagka-send, papalitan ang form ng "receipt".
 // Reference = FB-YYMMDD-XXXX (petsa + 4 na random na letra/numero, walang
 // magkamukha gaya ng 0/O at 1/I).
-// Server mode (npm start): sa database naka-save at ang SERVER ang gumagawa ng
+// Server mode (npm start): sa data/feedback.json ng server naka-save at ang SERVER ang gumagawa ng
 // reference; lalabas lang ang receipt kapag sinabi ng server na naka-save na.
 // Walang server (Live Server / GitHub Pages): sa browser lang, gaya ng dati.
 // Hindi ginalaw ang index.html: dito na idinadagdag ang bagong parts.
@@ -560,7 +560,7 @@
     sendErr.hidden = !msg;
   }
 
-  // May server ba? (npm start) Kung meron, sa database mapupunta ang feedback.
+  // May server ba? (npm start) Kung meron, sa data/feedback.json ng server mapupunta ang feedback.
   // (Promise: kapag pinindot ang Send bago matapos ang check, hihintayin muna.)
   const api = window.questifyApi;
   const serverCheck = api

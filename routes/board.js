@@ -5,62 +5,20 @@
 // "version" is the time of the last save. The page sends back the version it
 // started from (base); if the server has a newer one, the save is refused so
 // one device can't silently erase what another device just saved.
+// Boards are saved in data/boards.json, in the same shape the Tasks page uses (Checkpoint 6).
 const express = require("express");
-const { db } = require("../db/db");
+const { data, save } = require("../lib/store");
 const { requireAuth } = require("../lib/sessions");
 const { checkBoard } = require("../lib/validate");
 
 const router = express.Router();
 router.use(requireAuth);
 
-const getBoardRow = db.prepare(
-  "SELECT next_id, sort, dir, updated_at FROM boards WHERE user_id = ?",
-);
-const getQuests = db.prepare(
-  `SELECT id, title, description, cat, priority, status, due, added, position, earned, completed
-     FROM quests WHERE user_id = ? ORDER BY rowid`,
-);
-const getXp = db.prepare(
-  "SELECT quest_id, xp FROM xp_log WHERE user_id = ? ORDER BY id",
-);
-const deleteQuests = db.prepare("DELETE FROM quests WHERE user_id = ?");
-const deleteXp = db.prepare("DELETE FROM xp_log WHERE user_id = ?");
-const insertQuest = db.prepare(
-  `INSERT INTO quests (user_id, id, title, description, cat, priority, status, due, added, position, earned, completed)
-   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-);
-const insertXp = db.prepare(
-  "INSERT INTO xp_log (user_id, quest_id, xp) VALUES (?, ?, ?)",
-);
-const saveBoardRow = db.prepare(
-  `INSERT INTO boards (user_id, next_id, sort, dir, updated_at) VALUES (?, ?, ?, ?, ?)
-   ON CONFLICT (user_id) DO UPDATE SET next_id = excluded.next_id, sort = excluded.sort,
-     dir = excluded.dir, updated_at = excluded.updated_at`,
-);
-
-// Read one player's board in the same shape the Tasks page uses
-// (description → desc, position → rank)
+// One player's board, or null before their first save
 function readBoard(userId) {
-  const row = getBoardRow.get(userId);
-  if (!row) return { board: null, version: null };
-  const quests = getQuests.all(userId).map((q) => ({
-    id: q.id,
-    title: q.title,
-    desc: q.description,
-    cat: q.cat,
-    priority: q.priority,
-    status: q.status,
-    due: q.due,
-    added: q.added,
-    rank: q.position,
-    earned: q.earned,
-    completed: q.completed,
-  }));
-  const xp = getXp.all(userId).map((e) => ({ id: e.quest_id, xp: e.xp }));
-  return {
-    board: { quests, xp, nextId: row.next_id, sort: row.sort, dir: row.dir },
-    version: row.updated_at,
-  };
+  const saved = Object.hasOwn(data.boards, userId) ? data.boards[userId] : null;
+  if (!saved) return { board: null, version: null };
+  return { board: saved.board, version: saved.version };
 }
 
 router.get("/", (req, res) => {
@@ -74,51 +32,23 @@ router.put("/", (req, res) => {
   const base = body.base === undefined ? null : body.base;
   if (base !== null && !Number.isInteger(base))
     return res.status(400).json({ error: "The board version is not valid." });
-  const { quests, xp, nextId, sort, dir } = check.value;
   const userId = req.user.id;
 
-  // One transaction: the whole board is saved, or nothing is (never half a board)
-  db.exec("BEGIN IMMEDIATE");
-  try {
-    const row = getBoardRow.get(userId);
-    const current = row ? row.updated_at : null;
-    if (current !== base && body.force !== true) {
-      db.exec("ROLLBACK");
-      return res
-        .status(409)
-        .json({
-          error: "Your board changed on another device.",
-          ...readBoard(userId),
-        });
-    }
-    deleteQuests.run(userId);
-    for (const q of quests) {
-      insertQuest.run(
-        userId,
-        q.id,
-        q.title,
-        q.desc,
-        q.cat,
-        q.priority,
-        q.status,
-        q.due,
-        q.added,
-        q.rank,
-        q.earned,
-        q.completed,
-      );
-    }
-    deleteXp.run(userId);
-    for (const e of xp) insertXp.run(userId, e.id, e.xp);
-    // Always newer than the last version, even if two saves land in the same millisecond
-    const version = Math.max(Date.now(), (current || 0) + 1);
-    saveBoardRow.run(userId, nextId, sort, dir, version);
-    db.exec("COMMIT");
-    res.json({ version });
-  } catch (err) {
-    db.exec("ROLLBACK");
-    throw err;
+  // The check and the save run in one go, so two devices saving at the same
+  // moment can't both get through: the second one gets the 409.
+  const current = readBoard(userId).version;
+  if (current !== base && body.force !== true) {
+    return res.status(409).json({
+      error: "Your board changed on another device.",
+      ...readBoard(userId),
+    });
   }
+  // Always newer than the last version, even if two saves land in the same millisecond
+  const version = Math.max(Date.now(), (current || 0) + 1);
+  // The whole board is replaced at once (never half a board)
+  data.boards[userId] = { version, board: check.value };
+  save("boards");
+  res.json({ version });
 });
 
 module.exports = router;

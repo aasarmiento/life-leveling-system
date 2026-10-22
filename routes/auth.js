@@ -6,8 +6,9 @@
 //   POST /api/signout  end this sign in                     → 200 { ok: true }
 // Errors always come back as { error, field }, so the page can show the
 // message under the right box.
+// Accounts are saved in data/users.json (Checkpoint 6).
 const express = require("express");
-const { db } = require("../db/db");
+const { data, save } = require("../lib/store");
 const { newSalt, hashPassword, checkPassword } = require("../lib/passwords");
 const {
   createSession,
@@ -37,54 +38,41 @@ const publicPlayer = (u) => ({
 const DUMMY_SALT = newSalt();
 const DUMMY_HASH = hashPassword("not-a-real-password", DUMMY_SALT);
 
+// Emails are saved in lowercase, so Alex@Gmail.com and alex@gmail.com are the same account
+const findUser = (email) =>
+  data.users.find((u) => String(u.email).toLowerCase() === email) || null;
+
 router.post("/signup", (req, res) => {
   const check = checkSignup(req.body);
   if (check.error) return res.status(400).json(check);
   const { name, email, password, avatar } = check.value;
 
-  if (db.prepare("SELECT 1 FROM users WHERE email = ?").get(email)) {
-    return res
-      .status(409)
-      .json({
-        error: "An account with this email already exists.",
-        field: "email",
-      });
+  // One email = one account. The check and the save run in one go, so two
+  // sign ups with the same email at the same moment can't both get through.
+  if (findUser(email)) {
+    return res.status(409).json({
+      error: "An account with this email already exists.",
+      field: "email",
+    });
   }
 
   const salt = newSalt();
-  let userId;
-  try {
-    userId = db
-      .prepare(
-        "INSERT INTO users (email, name, avatar, salt, hash, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-      )
-      .run(
-        email,
-        name,
-        avatar,
-        salt,
-        hashPassword(password, salt),
-        Date.now(),
-      ).lastInsertRowid;
-  } catch (err) {
-    // Two sign ups with the same email at the same moment: the UNIQUE rule stops the second
-    if (String(err.message).includes("UNIQUE")) {
-      return res
-        .status(409)
-        .json({
-          error: "An account with this email already exists.",
-          field: "email",
-        });
-    }
-    throw err;
-  }
+  const userId = Math.max(0, ...data.users.map((u) => u.id)) + 1;
+  data.users.push({
+    id: userId,
+    email,
+    name,
+    avatar,
+    salt,
+    hash: hashPassword(password, salt),
+    createdAt: Date.now(),
+  });
+  save("users");
 
-  res
-    .status(201)
-    .json({
-      token: createSession(Number(userId)),
-      player: { name, email, avatar },
-    });
+  res.status(201).json({
+    token: createSession(userId),
+    player: { name, email, avatar },
+  });
 });
 
 router.post("/signin", (req, res) => {
@@ -97,11 +85,7 @@ router.post("/signin", (req, res) => {
   if (locked)
     return res.status(429).json({ error: lockedMessage(locked), field: null });
 
-  const user = db
-    .prepare(
-      "SELECT id, name, email, avatar, salt, hash FROM users WHERE email = ?",
-    )
-    .get(email);
+  const user = findUser(email);
   let ok = false;
   if (user) ok = checkPassword(password, user.salt, user.hash);
   else checkPassword(password, DUMMY_SALT, DUMMY_HASH); // same work as a real check, then fail
