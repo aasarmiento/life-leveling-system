@@ -712,6 +712,8 @@
     onChange: (handler) => {
       changeHandler = handler;
     },
+    // true = naka-sign in sa server (hindi sa browser lang)
+    onServer: () => useServer(),
   };
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refreshBoard();
@@ -898,7 +900,7 @@
   function notifPanelHtml() {
     return `
       <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifications" hidden>
-        <div class="np-head"><h3>Notifications</h3><button type="button" class="np-link" data-notif-readall hidden>Mark all as read</button></div>
+        <div class="np-head"><h3>Notifications</h3><button type="button" class="np-link" data-notif-readall hidden>Mark all as read</button><button type="button" class="icon-btn np-close" data-np-close aria-label="Close notifications">${svgIcon('<path d="M6 6l12 12M18 6L6 18"/>')}</button></div>
         <div class="np-tabs" id="notifTabs"></div>
         <div id="notifBody"></div>
         <div class="np-foot" id="notifFoot"></div>
@@ -941,7 +943,8 @@
     panel.querySelector("[data-notif-readall]").hidden = unread === 0;
     const foot = document.getElementById("notifFoot");
     foot.hidden = list.length === 0;
-    foot.innerHTML = `<span>${list.length} notification${list.length === 1 ? "" : "s"}</span><button type="button" class="np-link" data-notif-clear>Clear all</button>`;
+    // Sa phone, nasa baba ang "Mark all as read" (parang Sign out sa ☰ menu)
+    foot.innerHTML = `<span>${list.length} notification${list.length === 1 ? "" : "s"}</span>${unread ? '<button type="button" class="np-link np-readall-foot" data-notif-readall>Mark all as read</button>' : ""}<button type="button" class="np-link" data-notif-clear>Clear all</button>`;
   }
 
   function addNotif(n) {
@@ -989,6 +992,7 @@
         panel.hidden = true;
         btn.setAttribute("aria-expanded", "false");
       });
+      phoneSync();
     }
 
     pairs.forEach(([btn, panel]) => {
@@ -999,6 +1003,7 @@
         closeAll(panel);
         panel.hidden = !open;
         btn.setAttribute("aria-expanded", String(open));
+        phoneSync();
       });
     });
 
@@ -1055,7 +1060,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
           <h2 id="soTitle">Sign out?</h2>
-          <p id="soText">Your quests and XP stay saved on this device. Sign back in anytime to continue.</p>
+          <p id="soText">Your quests and XP stay saved. Sign back in anytime to continue.</p>
           <div class="cm-quest so-player">
             <img alt="" width="40" height="40">
             <div><b></b><small></small></div>
@@ -1293,6 +1298,158 @@
           JSON.stringify(seen.concat(fresh.map((q) => q.id))),
         );
     });
+
+    // ---------- 6. PHONE MENU ☰ (Checkpoint 5) ----------
+    // Sa phone (720px pababa) nakatago ang page links at ang Alex ▾: nasa ☰ menu na
+    // sila (panel mula sa kanan). Ang bell ay nagbubukas ng parehong klase ng panel.
+    // Sa desktop, nakatago ang ☰ (CSS) at walang nagbabago.
+    const isPhone = () => window.matchMedia("(max-width: 720px)").matches;
+    const navLinks = document.querySelector(".nav-links");
+    const MENU_ICON = {
+      menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+      close: '<path d="M6 6l12 12M18 6L6 18"/>',
+      home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+      tasks: '<rect x="3" y="4" width="7" height="16" rx="2"/><rect x="14" y="4" width="7" height="10" rx="2"/>',
+      profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+      about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>',
+    };
+    const menuBtn = document.createElement("button");
+    menuBtn.type = "button";
+    menuBtn.className = "icon-btn m-menu-btn";
+    menuBtn.setAttribute("aria-label", "Menu");
+    menuBtn.setAttribute("aria-haspopup", "dialog");
+    menuBtn.setAttribute("aria-expanded", "false");
+    menuBtn.innerHTML = svgIcon(MENU_ICON.menu);
+    if (navLinks) navLinks.appendChild(menuBtn);
+
+    const back = document.createElement("div");
+    back.className = "m-back";
+    back.hidden = true;
+    const menu = document.createElement("aside");
+    menu.className = "m-menu";
+    menu.id = "mMenu";
+    menu.hidden = true;
+    menu.setAttribute("role", "dialog");
+    menu.setAttribute("aria-modal", "true");
+    menu.setAttribute("aria-label", "Menu");
+    menu.innerHTML = `
+      <div class="m-head"><span class="m-title pixel">Menu</span><button type="button" class="icon-btn m-close" data-m-close aria-label="Close menu">${svgIcon(MENU_ICON.close)}</button></div>
+      <div class="m-body"></div>
+      <div class="m-foot"><span>Privacy Policy</span><span>Terms of Service</span></div>`;
+    document.body.append(back, menu);
+
+    // Kasalukuyang page (para sa lime na guhit sa menu)
+    const here = location.pathname.split("/").pop() || "index.html";
+    const row = (href, icon, label, extra = "") =>
+      `<a class="m-item${here === href.split("/").pop() ? " on" : ""}" href="${BASE}${href}"${here === href.split("/").pop() ? ' aria-current="page"' : ""}>${svgIcon(MENU_ICON[icon])}<span>${label}</span>${extra}</a>`;
+
+    // Binubuo tuwing bubuksan, para laging bago ang XP (walang Notifications dito: nasa bell na)
+    function menuBody() {
+      if (!signedIn)
+        return `
+          <div class="m-list" role="navigation" aria-label="Pages">${row("index.html", "home", "Home")}${row("pages/about.html", "about", "About")}</div>
+          <div class="m-sep"></div>
+          <div class="m-cta">
+            <a class="nav-signup m-signin" href="${BASE}pages/signin.html">Sign In</a>
+            <a class="m-create" href="${BASE}pages/create-account.html">Create free account</a>
+          </div>`;
+      const p = loadPlayer();
+      const t = savedXp();
+      return `
+        <div class="m-card">
+          <div class="m-who">
+            <span class="m-ava"><img src="${BASE}assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png" alt=""><b class="pixel">${levelFor(t)}</b></span>
+            <span class="m-id"><b>${esc(p.name)}</b><small>${esc(p.email || "")}</small></span>
+          </div>
+          <div class="m-chips"><span class="rank-chip" data-rank="${rankFor(t).toLowerCase()}"><i aria-hidden="true"></i><span>${rankFor(t)}</span></span><b class="m-level">Level ${levelFor(t)}</b></div>
+          <div class="acct-bar"><span class="level-fill" style="width:${pctFor(t)}%"></span></div>
+          <div class="m-xp"><span>${t.toLocaleString("en-US")} XP</span><span>${toNext(t)} XP to Level ${levelFor(t) + 1}</span></div>
+        </div>
+        <div class="m-list" role="navigation" aria-label="Pages">
+          ${row("pages/tasks.html", "tasks", "Tasks")}${row("pages/profile.html", "profile", "Profile")}${row("pages/about.html", "about", "About")}
+        </div>
+        <div class="m-sep"></div>
+        <div class="m-list">
+          <button type="button" class="m-item muted" aria-disabled="true">${ICON.gear}<span>Settings</span><em>Coming soon</em></button>
+          <button type="button" class="m-item out" data-m-signout>${ICON.out}<span>Sign out</span></button>
+        </div>`;
+    }
+
+    let menuOpen = false;
+    function phoneSync() {
+      const notifOpen =
+        isPhone() && notifWrap && !document.getElementById("notifPanel").hidden;
+      back.hidden = !(menuOpen || notifOpen);
+      back.classList.toggle("under-nav", notifOpen && !menuOpen);
+      document.body.classList.toggle("m-open", menuOpen || notifOpen);
+    }
+    function openMenu() {
+      closeAll();
+      menu.querySelector(".m-body").innerHTML = menuBody();
+      menu.hidden = false;
+      menuOpen = true;
+      menuBtn.setAttribute("aria-expanded", "true");
+      phoneSync();
+      menu.querySelector("[data-m-close]").focus();
+    }
+    function closeMenu(returnFocus = true) {
+      if (!menuOpen) return;
+      menu.hidden = true;
+      menuOpen = false;
+      menuBtn.setAttribute("aria-expanded", "false");
+      phoneSync();
+      if (returnFocus) menuBtn.focus();
+    }
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (menuOpen) closeMenu();
+      else openMenu();
+    });
+    back.addEventListener("click", () => {
+      closeMenu(false);
+      closeAll();
+    });
+    menu.addEventListener("click", (e) => {
+      // Huwag ipasa sa document (doon nagsasara ang bell panel)
+      e.stopPropagation();
+      if (e.target.closest("[data-m-close]")) return closeMenu();
+      if (e.target.closest("[data-m-signout]")) {
+        closeMenu(false);
+        openSignOut();
+      }
+    });
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMenu();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = [...menu.querySelectorAll("a, button:not([aria-disabled])")];
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+    // Bell panel sa phone: may ✕ sa taas
+    const panelEl = document.getElementById("notifPanel");
+    if (panelEl)
+      panelEl.addEventListener("click", (e) => {
+        if (!e.target.closest("[data-np-close]")) return;
+        closeAll();
+        document.getElementById("notifBtn").focus();
+      });
+    // Lumaki ang window (phone → desktop): isara ang ☰ menu
+    window.addEventListener("resize", () => {
+      if (!isPhone()) closeMenu(false);
+      phoneSync();
+    });
   }
 
   // Tasks: galing sa Sign in / Create account pero naka-sign in na (tingnan ang GUARD)
@@ -1338,7 +1495,7 @@
     window.questifyToast({
       tone: "info",
       title: "Signed out",
-      text: "Your quests stay saved in this browser.",
+      text: "Your quests and XP are saved. Sign back in anytime.",
     });
   }
 

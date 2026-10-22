@@ -243,6 +243,44 @@ function startQuestBoard() {
     expanded[s] = false;
   });
 
+  // ---------- phone: tabs To do · Doing · Done (Checkpoint 5) ----------
+  // Sa phone (720px pababa) isang column lang ang kita; pinipili gamit ang tabs.
+  // Sa desktop, nakatago ang tabs (CSS) at lahat ng column ay kita pa rin.
+  const isPhone = () => window.matchMedia("(max-width: 720px)").matches;
+  const colTabs = document.createElement("div");
+  colTabs.className = "col-tabs";
+  colTabs.setAttribute("role", "tablist");
+  colTabs.setAttribute("aria-label", "Quest columns");
+  colTabs.innerHTML = STATUSES.map(
+    (s) =>
+      `<button type="button" class="col-tab" role="tab" id="tab-${s}" data-tab="${s}" aria-controls="col-${s}" aria-selected="false" tabindex="-1"><span>${STATUS_LABEL[s]}</span><span class="col-tab-n" data-tab-count="${s}">0</span><i class="col-tab-od" data-tab-od="${s}" hidden title="Has overdue quests"></i></button>`,
+  ).join("");
+  board.before(colTabs);
+  const tabBtns = [...colTabs.querySelectorAll(".col-tab")];
+  function setPhoneTab(status) {
+    board.dataset.tab = status;
+    tabBtns.forEach((b) => {
+      const on = b.dataset.tab === status;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-selected", String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+  }
+  setPhoneTab("todo");
+  colTabs.addEventListener("click", (e) => {
+    const b = e.target.closest(".col-tab");
+    if (b) setPhoneTab(b.dataset.tab);
+  });
+  colTabs.addEventListener("keydown", (e) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const i = STATUSES.indexOf(board.dataset.tab);
+    const next = STATUSES[(i + step + STATUSES.length) % STATUSES.length];
+    setPhoneTab(next);
+    colTabs.querySelector(`[data-tab="${next}"]`).focus();
+  });
+
   const searchInput = $("questSearch");
   const searchClear = $("searchClear");
   const filterChips = document.querySelectorAll(".filters .chip");
@@ -559,6 +597,14 @@ function startQuestBoard() {
         long && !expanded[status] ? items.slice(0, COLUMN_LIMIT) : items;
 
       counts[status].textContent = items.length;
+      // Phone tabs: bilang + pulang tuldok kung may overdue
+      colTabs.querySelector(`[data-tab-count="${status}"]`).textContent =
+        items.length;
+      colTabs.querySelector(`[data-tab-od="${status}"]`).hidden =
+        !items.some(isOverdue);
+      // Lumipat ang quest sa ibang column (Begin, Mark done, Undo): sundan sa phone
+      if (highlight && isPhone() && items.some((q) => q.id === highlight))
+        setPhoneTab(status);
       lists[status].innerHTML = shown.length
         ? shown.map(cardHtml).join("")
         : `<p class="col-empty">${COLUMN_EMPTY[status]}</p>`;
@@ -573,6 +619,7 @@ function startQuestBoard() {
 
     const nothing = visible.length === 0;
     board.hidden = nothing;
+    colTabs.hidden = nothing;
     emptyBox.hidden = !nothing;
     if (nothing) fillEmptyState();
 

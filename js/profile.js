@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function startProfile() {
   const sync = window.questifyBoard;
+  // Save file: totoo ang sinasabi (server mode = nasa server ang board, mula Checkpoint 3)
+  const dataNote = document.querySelector(".data-card .card-note");
+  if (dataNote && sync && sync.onServer())
+    dataNote.textContent = "Saved on the Questify server";
   // Binago ang board sa ibang device: i-reload para tama ang lahat ng numero at chart
   document.addEventListener("questify:board-changed", () => location.reload());
 
@@ -326,7 +330,7 @@ function startProfile() {
               `<div class="activity"><span class="when">${shortDate(q.completed)}</span><span class="what">${esc(q.title)}</span><span class="xp">+${q.earned} XP</span></div>`,
           )
           .join("")
-      : '<div class="activity"><span class="what">No finished quests yet. Mark a quest done on your board.</span></div>';
+      : '<div class="activity empty"><span class="what">No finished quests yet. Mark a quest done on your board.</span></div>';
   }
 
   // ---------- XP chart (7 days / 30 days / All time) ----------
