@@ -82,6 +82,8 @@
       return null;
     }
   }
+  // Para magamit din ng ibang file (hal. ang feedback form sa js/app.js)
+  window.questifyApi = api;
 
   // ---------- TOAST (maliit na message sa baba-kanan, para sa lahat ng page) ----------
   // Tawagin: window.questifyToast({ tone, title, text }).

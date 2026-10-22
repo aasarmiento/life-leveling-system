@@ -386,7 +386,10 @@
 // (Poor → Excellent), optional na "What stood out?" tags, bilang ng letra,
 // at footer. Pagka-send, papalitan ang form ng "receipt".
 // Reference = FB-YYMMDD-XXXX (petsa + 4 na random na letra/numero, walang
-// magkamukha gaya ng 0/O at 1/I). Naka-save lang sa browser (wala pang server).
+// magkamukha gaya ng 0/O at 1/I).
+// Server mode (npm start): sa database naka-save at ang SERVER ang gumagawa ng
+// reference; lalabas lang ang receipt kapag sinabi ng server na naka-save na.
+// Walang server (Live Server / GitHub Pages): sa browser lang, gaya ng dati.
 // Hindi ginalaw ang index.html: dito na idinadagdag ang bagong parts.
 // =====================================================================
 (function () {
@@ -541,9 +544,34 @@
   // --- Footer: privacy note sa kaliwa, button sa kanan ---
   const foot = document.createElement("div");
   foot.className = "fb-foot";
-  foot.innerHTML = `<small>${icon(ICON_LOCK)}Saved in this browser only.</small>`;
+  foot.innerHTML = `<small>${icon(ICON_LOCK)}<span class="fb-where">Saved in this browser only.</span></small>`;
   form.appendChild(foot);
   foot.appendChild(sendBtn);
+
+  // Error kapag hindi naipadala (nasa itaas ng footer, hindi popup)
+  const sendErr = document.createElement("p");
+  sendErr.className = "fb-err";
+  sendErr.setAttribute("role", "alert");
+  sendErr.hidden = true;
+  sendErr.innerHTML = icon(ICON_ALERT) + "<span></span>";
+  foot.before(sendErr);
+  function showSendError(msg) {
+    sendErr.querySelector("span").textContent = msg || "";
+    sendErr.hidden = !msg;
+  }
+
+  // May server ba? (npm start) Kung meron, sa database mapupunta ang feedback.
+  // (Promise: kapag pinindot ang Send bago matapos ang check, hihintayin muna.)
+  const api = window.questifyApi;
+  const serverCheck = api
+    ? api("health").then((res) => {
+        const ok = !!(res && res.ok);
+        if (ok)
+          foot.querySelector(".fb-where").textContent =
+            "Sent to the Questify team. No names or emails are saved.";
+        return ok;
+      })
+    : Promise.resolve(false);
 
   paint(0);
   markChosen();
@@ -579,6 +607,7 @@
     paint(0);
     markChosen();
     showError(false);
+    showSendError(null);
     tagBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
     comment.value = "";
     updateCount();
@@ -607,7 +636,7 @@
         <div class="rc-row"><dt>Message</dt><dd>${entry.message ? esc(entry.message) : '<span class="rc-none">No message</span>'}</dd></div>
         <div class="rc-row"><dt>Reference</dt><dd><span class="rc-ref"><code>${entry.ref}</code><button type="button" class="rc-copy">${icon(ICON_COPY)}<span>Copy</span></button></span></dd></div>
       </dl>
-      <div class="rc-foot"><small>Saved in this browser.</small><button type="button" class="rc-again">Send another response</button></div>`;
+      <div class="rc-foot"><small>${entry.server ? "Saved on the Questify server." : "Saved in this browser."}</small><button type="button" class="rc-again">Send another response</button></div>`;
 
     card.querySelector(".rc-copy").addEventListener("click", (e) => {
       const label = e.currentTarget.querySelector("span");
@@ -634,8 +663,11 @@
     card.focus();
   }
 
-  form.addEventListener("submit", (e) => {
+  let sending = false;
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (sending) return; // naka-send na, hinihintay pa ang server
+    showSendError(null);
     if (!rating) {
       showError(true);
       stars[0].focus();
@@ -647,18 +679,41 @@
       tags: chosenTags(),
       message: comment.value.trim(),
       at: Date.now(),
+      server: false,
     };
-    saveEntry(entry);
 
-    //send feedback to the express server
-    fetch("/api/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry),
-    }).catch((err) => {
-      console.error("Failed to send feedback to server:", err);
-    });
-    
+    const label = sendBtn.textContent;
+    sending = true;
+    sendBtn.disabled = true;
+    const serverMode = await serverCheck;
+    if (!serverMode) {
+      sending = false;
+      sendBtn.disabled = false;
+    } else {
+      // Ipadala sa server at HINTAYIN ang sagot (ang server ang gagawa ng reference)
+      sendBtn.textContent = "Sending…";
+      const res = await api("feedback", {
+        method: "POST",
+        body: { ref: entry.ref, rating, tags: entry.tags, message: entry.message },
+      });
+      sending = false;
+      sendBtn.disabled = false;
+      sendBtn.textContent = label;
+      if (!res || !res.ok) {
+        // Hindi naipadala: walang receipt, nandiyan pa rin ang stars at message
+        showSendError(
+          (res && res.data && res.data.error) ||
+            "Couldn't reach the server, so your feedback wasn't sent. Please try again.",
+        );
+        sendBtn.focus();
+        return;
+      }
+      entry.ref = res.data.ref || entry.ref;
+      entry.at = Date.parse(res.data.receivedAt) || entry.at;
+      entry.server = true;
+    }
+
+    saveEntry(entry); // kopya sa browser (huling 20), gaya ng dati
     showReceipt(entry);
   });
 })();
