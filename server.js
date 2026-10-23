@@ -18,6 +18,46 @@ const authRoutes = require("./routes/auth");
 // Quest Board routes (GET /api/board, PUT /api/board)
 const boardRoutes = require("./routes/board");
 
+// Security headers on every answer. They tell the browser what the pages are
+// allowed to load, so a piece of injected code can't pull in scripts from
+// other sites, and the app can't be shown inside someone else's page.
+//   script-src   our own scripts + the Cursorly cursor library (jsDelivr)
+//   style-src    our CSS + Google Fonts ('unsafe-inline': a few pages use style="")
+//   font-src     Google Fonts files
+//   img-src      our images + data: + the Cursorly default cursor images
+//   media-src    our videos and music
+//   connect-src  the pages only talk to this server (blob: lets Export data download its backup file)
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' https://cdn.jsdelivr.net",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https://img.icons8.com",
+  "media-src 'self' blob:",
+  "connect-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+app.use((req, res, next) => {
+  res.set({
+    "Content-Security-Policy": CSP,
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  });
+  next();
+});
+
+// Answers from the API hold private data (boards, sessions): never keep a copy in the browser cache
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
 // Parse JSON request bodies (1 MB: room for a full board of 500 quests)
 app.use(express.json({ limit: "1mb" }));
 

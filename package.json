@@ -4,7 +4,8 @@
   "description": "**Conquer your goals, one quest at a time.**",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "repository": {
     "type": "git",

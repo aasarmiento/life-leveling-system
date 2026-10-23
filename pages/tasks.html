@@ -328,6 +328,13 @@
       <div class="board-empty" id="boardEmpty" hidden>
         <h2 id="emptyTitle">No quests yet</h2>
         <p id="emptyText">Add a quest to get started.</p>
+        <!-- First-quest guide: tasks.js fills it and shows it only on a brand-new, empty board -->
+        <ol
+          class="first-steps"
+          id="firstSteps"
+          aria-label="How to earn your first XP"
+          hidden
+        ></ol>
         <div class="actions">
           <button type="button" class="btn-outline fx" id="emptyReset">
             Clear search

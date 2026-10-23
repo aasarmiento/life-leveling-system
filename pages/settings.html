@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en" data-guard="settings">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Questify — Settings</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+    <script src="../js/nav.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/iamashruu/cursorly.js@1.0.5/dist/cursorly.min.js"></script>
+  </head>
+  <body class="settings-page">
+    <!-- Shared header (same as every page). The player card and the bell are
+     built by js/nav.js. Settings is opened from the player card (Alex ▾). -->
+    <nav>
+      <div class="nav-logo">
+        <a href="../index.html">QUESTIFY</a>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="guest-only">Home</a>
+        <a href="tasks.html" class="member-only">Tasks</a>
+        <a href="profile.html" class="member-only">Profile</a>
+        <a href="about.html">About</a>
+        <div class="notif-wrap member-only">
+          <button
+            type="button"
+            class="icon-btn"
+            id="notifBtn"
+            aria-label="Notifications"
+            aria-haspopup="dialog"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+          </button>
+        </div>
+        <div class="acct-wrap member-only">
+          <button
+            type="button"
+            class="nav-signup acct-btn"
+            id="acctBtn"
+            aria-haspopup="menu"
+          >
+            <span data-acct-name>Alex</span
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+        </div>
+        <a href="signin.html" class="nav-signup guest-only">Sign In</a>
+      </div>
+    </nav>
+
+    <main class="container st-main">
+      <header class="st-head">
+        <h1 class="pixel">Settings</h1>
+        <p class="page-kicker">
+          Change how your player looks, or update your password.
+        </p>
+      </header>
+
+      <!-- Shown instead of the forms when there is no server (the GitHub Pages demo) -->
+      <section class="card st-card st-demo" id="stDemo" role="status" hidden>
+        <h2>Settings need the Questify server</h2>
+        <p>
+          This copy of Questify can't reach a server, so accounts live only in
+          this browser. To change your name, avatar or password, run the app
+          with <code>npm start</code> and open
+          <code>http://localhost:3000</code>.
+        </p>
+        <a class="btn-outline fx" href="tasks.html">Back to your Quest Board</a>
+      </section>
+
+      <!-- ============ PLAYER (name + avatar) ============ -->
+      <form class="card st-card" id="playerForm" novalidate hidden>
+        <h2>Your player</h2>
+        <p class="st-sub">
+          Your name and avatar show on your player card, your profile and your
+          Quest Board.
+        </p>
+
+        <div class="st-field">
+          <label for="stName">Display name</label>
+          <input
+            type="text"
+            id="stName"
+            maxlength="40"
+            autocomplete="nickname"
+            aria-describedby="stNameErr"
+          />
+          <p class="st-err" id="stNameErr" role="alert" hidden></p>
+        </div>
+
+        <div class="st-field">
+          <label for="stEmail">Email</label>
+          <input
+            type="email"
+            id="stEmail"
+            disabled
+            autocomplete="email"
+            aria-describedby="stEmailNote"
+          />
+          <p class="st-note" id="stEmailNote">
+            Your email is your sign-in name, so it can't be changed here.
+          </p>
+        </div>
+
+        <p class="av-label" id="stAvLabel">Choose your avatar</p>
+        <div class="av-pick st-av" role="radiogroup" aria-labelledby="stAvLabel">
+          <label class="av-opt"
+            ><input type="radio" name="avatar" value="lime" /><span
+              class="av-tick"
+              aria-hidden="true"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span
+            ><img src="../assets/avatars/avatar-lime-slime-256.png" alt="" /><b
+              >Lime</b
+            ><small>Slime with a headset</small></label
+          >
+          <label class="av-opt"
+            ><input type="radio" name="avatar" value="gold" /><span
+              class="av-tick"
+              aria-hidden="true"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span
+            ><img src="../assets/avatars/avatar-gold-slime-256.png" alt="" /><b
+              >Gold</b
+            ><small>Slime with cat ears</small></label
+          >
+        </div>
+
+        <p class="st-alert" id="playerAlert" role="alert" hidden></p>
+        <div class="st-actions">
+          <button type="submit" class="btn-lime fx" id="playerSave">
+            Save changes
+          </button>
+        </div>
+      </form>
+
+      <!-- ============ PASSWORD ============ -->
+      <form class="card st-card" id="passwordForm" novalidate hidden>
+        <h2>Password</h2>
+        <p class="st-sub">
+          Use at least 8 characters. When you change it, every other device is
+          signed out. This one stays signed in.
+        </p>
+
+        <div class="st-field">
+          <label for="stCurrent">Current password</label>
+          <div class="st-pw">
+            <input
+              type="password"
+              id="stCurrent"
+              autocomplete="current-password"
+              aria-describedby="stCurrentErr"
+            /><button
+              type="button"
+              class="st-show"
+              aria-controls="stCurrent"
+              aria-pressed="false"
+            >
+              Show
+            </button>
+          </div>
+          <p class="st-err" id="stCurrentErr" role="alert" hidden></p>
+        </div>
+
+        <div class="st-field">
+          <label for="stNew">New password</label>
+          <div class="st-pw">
+            <input
+              type="password"
+              id="stNew"
+              autocomplete="new-password"
+              aria-describedby="stNewErr"
+            /><button
+              type="button"
+              class="st-show"
+              aria-controls="stNew"
+              aria-pressed="false"
+            >
+              Show
+            </button>
+          </div>
+          <p class="st-err" id="stNewErr" role="alert" hidden></p>
+        </div>
+
+        <div class="st-field">
+          <label for="stConfirm">Confirm new password</label>
+          <div class="st-pw">
+            <input
+              type="password"
+              id="stConfirm"
+              autocomplete="new-password"
+              aria-describedby="stConfirmErr"
+            /><button
+              type="button"
+              class="st-show"
+              aria-controls="stConfirm"
+              aria-pressed="false"
+            >
+              Show
+            </button>
+          </div>
+          <p class="st-err" id="stConfirmErr" role="alert" hidden></p>
+        </div>
+
+        <p class="st-alert" id="passwordAlert" role="alert" hidden></p>
+        <div class="st-actions">
+          <button type="submit" class="btn-lime fx" id="passwordSave">
+            Change password
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <!-- Footer: same as the other pages -->
+    <div class="cta-footer site-footer">
+      <footer>
+        <a class="footer-logo" href="../index.html">QUESTIFY</a>
+        <div class="footer-info">
+          <p><strong>Web Systems and Technology</strong></p>
+          <p>
+            Abigail Ann Sarmiento | Christian Allen Soriano | Jeremiah Alzona |
+            Rowel Jepsani | Sire Manalo
+          </p>
+        </div>
+        <div>© 2026 Questify</div>
+      </footer>
+    </div>
+    <script src="../js/settings.js"></script>
+  </body>
+</html>
