@@ -4791,6 +4791,13 @@ section {
 }
 .av-opt input {
   position: absolute;
+  /* Pinned inside its card: without a position it sat where the text would
+     be and stuck out past the screen on phones (Settings, 16 px sideways scroll) */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
   opacity: 0;
   pointer-events: none;
 }
@@ -9614,7 +9621,9 @@ body.m-open .music-ctl {
   --a-gold: #e0b13d;
 }
 
-.st-main {
+/* main.container.st-main (not just .st-main): "main.container" is more
+   specific and set the width to 1200px, so the cards stretched across the page */
+main.container.st-main {
   max-width: 760px;
   padding-top: 40px;
   padding-bottom: 72px;
@@ -9745,12 +9754,27 @@ body.m-open .music-ctl {
 .st-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
 }
-.st-actions .btn-lime {
+.st-actions .btn-lime,
+.st-actions .btn-outline {
   min-height: 44px;
   padding: 10px 22px;
   border-radius: 6px;
   font-size: 14px;
+}
+/* The password boxes open with "Change password" (display: flex/grid would
+   otherwise beat the hidden attribute and keep them on screen) */
+.st-pw-start {
+  justify-content: flex-start;
+}
+.st-pw-fields {
+  display: grid;
+  gap: 18px;
+}
+.st-pw-start[hidden],
+.st-pw-fields[hidden] {
+  display: none;
 }
 .st-actions .btn-lime:disabled {
   opacity: 0.6;
@@ -9761,7 +9785,7 @@ body.m-open .music-ctl {
 }
 
 @media (max-width: 720px) {
-  .st-main {
+  main.container.st-main {
     padding: 24px 16px 56px;
   }
   .st-card {
@@ -9783,6 +9807,13 @@ body.m-open .music-ctl {
   .st-actions .btn-lime {
     width: 100%;
     justify-content: center;
+  }
+  /* Cancel + Save share the row; "Change password" alone fills it */
+  .st-actions > .btn-lime,
+  .st-actions > .btn-outline {
+    flex: 1 1 0;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
 
