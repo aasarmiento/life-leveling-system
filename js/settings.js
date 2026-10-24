@@ -148,7 +148,8 @@
     if (res.status === 401) return sessionEnded();
     if (!res.ok) {
       const message =
-        (res.data && res.data.error) || "Something went wrong. Please try again.";
+        (res.data && res.data.error) ||
+        "Something went wrong. Please try again.";
       if (res.data && res.data.field === "name") {
         setError(nameInput, message);
         nameInput.focus();
@@ -243,7 +244,8 @@
     if (res.status === 401) return sessionEnded();
     if (!res.ok) {
       const message =
-        (res.data && res.data.error) || "Something went wrong. Please try again.";
+        (res.data && res.data.error) ||
+        "Something went wrong. Please try again.";
       const input = { currentPassword: current, newPassword: next }[
         res.data && res.data.field
       ];
