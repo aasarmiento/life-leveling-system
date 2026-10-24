@@ -35,7 +35,11 @@
     { name: "Master", xp: 1500 },
   ];
   // Yung pages na kailangan naka-sign in. Ang <html> nila ay may data-guard="...".
-  const GUARDED = { tasks: "tasks.html", profile: "profile.html" };
+  const GUARDED = {
+    tasks: "tasks.html",
+    profile: "profile.html",
+    settings: "settings.html",
+  };
 
   // Saan naka-lagay yung site (para gumana ang links sa index.html at sa pages/)
   const BASE = document.currentScript.src.replace(/js\/nav\.js.*$/, "");
@@ -791,7 +795,7 @@
           <div class="acct-bar"><span class="level-fill" id="levelFill" style="width:${pctFor(total)}%"></span></div>
           <small id="levelNext">${toNext(total)} XP to Level ${levelFor(total) + 1}</small>
         </div>
-        <button type="button" class="acct-item" role="menuitem" aria-disabled="true" title="Coming soon">${ICON.gear} Settings</button>
+        <a class="acct-item" role="menuitem" href="${BASE}pages/settings.html">${ICON.gear} Settings</a>
         <div class="acct-sep"></div>
         <button type="button" class="acct-item danger" role="menuitem" data-signout>${ICON.out} Sign out</button>
         <div class="pc-foot"><span>Privacy Policy</span><span>Terms of Service</span></div>
@@ -1074,6 +1078,16 @@
       if (signOutReturn && signOutReturn.isConnected) signOutReturn.focus();
     }
 
+    // Pangalan at email = textContent (hindi innerHTML), para ligtas.
+    // Tuwing bubuksan ulit ito, para laging bago (puwedeng palitan sa Settings).
+    function paintSignOut(back) {
+      const p = loadPlayer();
+      back.querySelector(".so-player img").src =
+        `${BASE}assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+      back.querySelector(".so-player b").textContent = p.name;
+      back.querySelector(".so-player small").textContent = p.email || "";
+    }
+
     function buildSignOut() {
       const back = document.createElement("div");
       back.className = "modal-back so-back";
@@ -1094,11 +1108,7 @@
             <button type="button" class="btn-rose fx" data-so-ok>Sign out</button>
           </div>
         </div>`;
-      // Pangalan at email = textContent (hindi innerHTML), para ligtas
-      back.querySelector(".so-player img").src =
-        `${BASE}assets/avatars/avatar-${player.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
-      back.querySelector(".so-player b").textContent = player.name;
-      back.querySelector(".so-player small").textContent = player.email || "";
+      paintSignOut(back);
 
       let pressedBackdrop = false;
       back.addEventListener("mousedown", (e) => {
@@ -1138,6 +1148,7 @@
 
     function openSignOut() {
       if (!signOutModal) signOutModal = buildSignOut();
+      else paintSignOut(signOutModal);
       signOutReturn = document.getElementById("acctBtn");
       closeAll();
       signOutModal.hidden = false;
@@ -1396,7 +1407,7 @@
         </div>
         <div class="m-sep"></div>
         <div class="m-list">
-          <button type="button" class="m-item muted" aria-disabled="true">${ICON.gear}<span>Settings</span><em>Coming soon</em></button>
+          <a class="m-item${here === "settings.html" ? " on" : ""}" href="${BASE}pages/settings.html"${here === "settings.html" ? ' aria-current="page"' : ""}>${ICON.gear}<span>Settings</span></a>
           <button type="button" class="m-item out" data-m-signout>${ICON.out}<span>Sign out</span></button>
         </div>`;
     }
@@ -1604,7 +1615,9 @@
         ? "Your session ended. Please sign in again."
         : next === "profile"
           ? "Sign in to see your profile."
-          : "Sign in to open your Quest Board.";
+          : next === "settings"
+            ? "Sign in to change your settings."
+            : "Sign in to open your Quest Board.";
       notice.hidden = false;
     }
     // Dalhin din yung ?next= kapag lumipat sa kabilang tab

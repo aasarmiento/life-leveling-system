@@ -290,6 +290,7 @@ function startQuestBoard() {
   const emptyText = $("emptyText");
   const emptyReset = $("emptyReset");
   const emptyAdd = $("emptyAdd");
+  const firstSteps = $("firstSteps");
   const announcer = $("announcer");
 
   const sortBtn = $("sortBtn");
@@ -720,8 +721,21 @@ function startQuestBoard() {
   });
   window.addEventListener("resize", updateFades);
 
+  // First-quest guide: shown only when the whole board is empty (no search,
+  // no filter). The XP numbers come from the same constants as the game.
+  function firstStepsHtml() {
+    const xp = XP_BY_PRIORITY;
+    return `
+      <li><b>Add a quest</b><span>Name it, pick Work, Learning or Health, and set a priority.</span></li>
+      <li><b>Begin it</b><span>Move it to Doing when you start.</span></li>
+      <li><b>Mark it done</b><span>Low gives ${xp.low} XP, Medium ${xp.medium}, High ${xp.high}. Every ${XP_PER_LEVEL} XP is a new level.</span></li>`;
+  }
+
   function fillEmptyState() {
     emptyReset.hidden = false;
+    const brandNew = !state.query && state.filter === "all";
+    firstSteps.hidden = !brandNew;
+    if (brandNew) firstSteps.innerHTML = firstStepsHtml();
     if (state.query) {
       emptyTitle.textContent = `No quests match "${state.query}"`;
       emptyText.textContent =
@@ -733,7 +747,7 @@ function startQuestBoard() {
       emptyReset.textContent = "Show all quests";
     } else {
       emptyTitle.textContent = "Your board is empty";
-      emptyText.textContent = "Add your first quest to start earning XP.";
+      emptyText.textContent = "Three steps to your first XP:";
       emptyReset.hidden = true;
     }
   }

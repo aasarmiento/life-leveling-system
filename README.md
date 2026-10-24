@@ -91,9 +91,10 @@ All addresses start with `http://localhost:3000`. Everything answers in JSON; er
 | Method | Address | Sign in needed | What it does |
 |---|---|---|---|
 | GET | `/api/health` | No | Server check → `{ status: "ok" }` |
-| POST | `/api/signup` | No | Create an account `{ name, email, password, avatar }` → `201 { token, player }` (409 if the email is taken) |
+| POST | `/api/signup` | No | Create an account `{ name, email, password, avatar }` → `201 { token, player }` (409 if the email is taken, 429 if one connection made 10 accounts in 15 minutes) |
 | POST | `/api/signin` | No | Sign in `{ email, password }` → `{ token, player }` (401 wrong email/password, 429 after 5 wrong tries for 15 minutes) |
 | GET | `/api/me` | Yes | Who is signed in → `{ player }` |
+| PUT | `/api/me` | Yes | Settings: change `{ name }`, `{ avatar }` and/or `{ currentPassword, newPassword }` → `{ player, passwordChanged }`. A new password needs the current one (wrong tries count toward the same 5-try limit as sign in) and signs out every other device |
 | POST | `/api/signout` | No (uses the token if sent) | End this sign in (the token stops working); always answers OK |
 | GET | `/api/board` | Yes | The player's Quest Board → `{ board, version }` |
 | PUT | `/api/board` | Yes | Save the whole board `{ board, base }` all at once (409 if another device saved first, with the newest board) |
@@ -112,6 +113,9 @@ All addresses start with `http://localhost:3000`. Everything answers in JSON; er
 - **Server-side validation** of every request, with the same messages the pages show
 - **Quest Board on the server**: saved all at once, version check so two devices never overwrite each other, offline changes sync later, the board already in a browser is uploaded once
 - **Feedback on the server** (`data/feedback.json`, the Milestone 1 format) with a unique server-made reference; the receipt only appears after the server saved it
+- **Settings page** (`pages/settings.html`): change display name, avatar and password; the header and sign-out popup update straight away; changing the password signs out the other devices
+- **Empty-board guide**: a brand-new board shows three steps (Add, Begin, Mark done) with the real XP numbers instead of a blank screen
+- **Security hardening**: Content-Security-Policy and other security headers on every answer, session tokens saved only as a SHA-256 hash (a leaked `sessions.json` can't be used to sign in), a sign-up limit per connection, and API answers marked `no-store`
 - **Phone layout** (720 px and below): one-row header with a ☰ menu, notifications panel, To do / Doing / Done tabs, floating + Add quest — desktop unchanged
 - **Clear errors**: a damaged data file stops the server with a plain message that names the file; unknown `/api` addresses and bad requests answer in JSON
 
@@ -146,24 +150,27 @@ All addresses start with `http://localhost:3000`. Everything answers in JSON; er
 ```
 life-leveling-system/
 ├── server.js                  # Express server: pages, API routes, JSON errors
-├── package.json               # npm start, Express
+├── package.json               # npm start, npm test, Express
 ├── lib/
 │   ├── store.js               # Reads and saves the JSON files in data/, adds the demo account
 │   ├── passwords.js           # scrypt + salt
-│   ├── sessions.js            # Session tokens, requireAuth
-│   ├── validate.js            # Server-side checks (sign up, sign in, board)
-│   └── limit.js               # Wrong-password limit
+│   ├── sessions.js            # Session tokens (saved as hashes), requireAuth
+│   ├── validate.js            # Server-side checks (sign up, sign in, settings, board)
+│   └── limit.js               # Wrong-password limit, sign-up limit
 ├── routes/
-│   ├── auth.js                # /api/signup, /signin, /me, /signout
+│   ├── auth.js                # /api/signup, /signin, /me (GET, PUT), /signout
 │   ├── board.js               # /api/board (GET, PUT)
 │   └── feedback.js            # /api/feedback (POST, GET)
 ├── index.html                 # Home
-├── pages/                     # about, signin, create-account, tasks (Quest Board), profile
-├── css/style.css              # One shared stylesheet (design tokens, all pages, phone layout)
+├── pages/                     # about, signin, create-account, tasks (Quest Board), profile, settings
+├── css/
+│   └── style.css              # One shared stylesheet (design tokens, all pages, phone layout)
+├── tests/                     # Automated tests (npm test): helpers.js + *.test.js
 ├── js/
 │   ├── nav.js                 # Header, guard, sign in/out, board sync, notifications, phone menu
 │   ├── tasks.js               # Quest Board logic, XP, drag, search, sort, tabs
 │   ├── profile.js             # Profile stats, charts, export/import
+│   ├── settings.js            # Settings page: name, avatar, password
 │   └── app.js                 # Home & About interactions, feedback form
 ├── assets/                    # Images, avatars, icons, videos, audio
 └── data/                      # Created on first start (not in Git): users, sessions, boards, feedback (.json)
@@ -172,6 +179,26 @@ life-leveling-system/
 ---
 
 ## 🧪 Testing
+
+### Run the automated tests
+
+```
+npm test
+```
+
+Needs Node 18 or newer and no extra packages (it uses Node's built-in test runner). Each test file starts its own copy of the server on a free port with a temporary data folder, so the tests never touch your real `data/` folder and take about 15 seconds.
+
+| File | What it covers |
+|---|---|
+| `tests/auth.test.js` | Sign up and sign in, validation, duplicate emails, sign out, wrong-try limit, restarts, damaged data files |
+| `tests/board.test.js` | Saving, the 409 version check, 5 saves at once, 23 kinds of bad board, one board per player, restarts |
+| `tests/feedback.test.js` | Validation, server-made references, newest first, the spam limit, restarts |
+| `tests/settings.test.js` | Name, avatar and password changes, wrong current password, other devices signed out, restarts |
+| `tests/security.test.js` | Security headers, private files not served, session tokens saved as hashes, the sign-up limit |
+| `tests/unit.test.js` | `lib/` on its own: passwords, limits, validation |
+| `tests/pages.test.js` | Every page loads; the pages and the server use the same rules |
+
+### Manual and browser testing
 
 Every Milestone 2 checkpoint was tested on a separate copy of the project with its own data folder, using automated scripts that send real API requests and drive a real browser (headless Brave), plus manual tests.
 
@@ -185,6 +212,8 @@ Every Milestone 2 checkpoint was tested on a separate copy of the project with i
 | UI audit | 51 screens on phone and desktop: no sideways scroll, cut-off or overlapping text, small buttons |
 
 All checks pass. Details are in the team's checkpoint change logs.
+
+Manual phone checklist (Jeremiah): [`docs/Questify_Mobile_Testing_Checklist.pdf`](docs/Questify_Mobile_Testing_Checklist.pdf).
 
 ---
 
@@ -208,7 +237,6 @@ All checks pass. Details are in the team's checkpoint change logs.
 
 - Host the server online (so the live link has accounts and sync too)
 - Live updates between devices (WebSockets) and notifications saved on the server
-- Settings page (change name, avatar, password)
 - Sessions in secure cookies; wrong-password counts saved on the server
 
 ---

@@ -15,6 +15,8 @@
    10. Legacy         probably unused: check, then delete
    11. Keyframes
    12. Reduced motion
+   13. Settings       settings.html (added in Milestone 2)
+   14. First quest    guide on an empty Quest Board (added in Milestone 2)
    ===================================================================== */
 
 /* =====================================================================
@@ -9592,4 +9594,261 @@ body.m-open .music-ctl {
   .notif-panel {
     animation: none;
   }
+}
+
+/* =====================================================================
+   13. SETTINGS PAGE (settings.html)
+   Also: the Settings link in the player card is a real link now (a.acct-item).
+   ===================================================================== */
+
+/* The avatar picker (.av-opt) was made for the auth pages and reads these
+   colors from .auth-page. Same values here, so it looks the same. */
+.settings-page {
+  --a-lime: #d7ff4a;
+  --a-card: #1c1f2e;
+  --a-line: #2a3147;
+  --a-deep: #0d111b;
+  --a-dim: #9aa3be;
+  --a-faint: #666a86;
+  --a-white: #f4f2f7;
+  --a-gold: #e0b13d;
+}
+
+.st-main {
+  max-width: 760px;
+  padding-top: 40px;
+  padding-bottom: 72px;
+}
+.st-head {
+  margin-bottom: 24px;
+}
+.st-head h1 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.st-card {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 20px;
+  padding: 26px 28px 28px;
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+}
+.st-card[hidden] {
+  display: none;
+}
+.st-card h2 {
+  font-size: 13px;
+  color: var(--cream);
+}
+.st-sub,
+.st-demo p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.st-card code {
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--cream);
+}
+
+.st-field label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.st-card input[type="text"],
+.st-card input[type="email"],
+.st-card input[type="password"] {
+  height: 48px;
+  padding: 0 16px;
+  background: var(--bg-deep);
+  border-radius: 8px;
+  font-size: 15px;
+}
+.st-card input:focus-visible {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px var(--green);
+}
+.st-card input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.st-card input[aria-invalid="true"],
+.st-card input[aria-invalid="true"]:focus-visible {
+  border-color: #ff8fa3;
+  box-shadow: none;
+}
+
+.st-pw {
+  position: relative;
+}
+.st-pw input {
+  padding-right: 68px;
+}
+.st-show {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  translate: 0 -50%;
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  cursor: pointer;
+}
+.st-show:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.st-note {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.st-err {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #ff8fa3;
+}
+.st-err[hidden],
+.st-alert[hidden] {
+  display: none;
+}
+.st-alert {
+  margin: 0;
+  padding: 12px 14px;
+  background: rgba(255, 107, 129, 0.08);
+  border: 1px solid rgba(255, 107, 129, 0.3);
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #ffc2cc;
+}
+
+.st-av {
+  margin-top: -6px;
+}
+.settings-page .av-label {
+  margin: 0;
+}
+.st-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.st-actions .btn-lime {
+  min-height: 44px;
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.st-actions .btn-lime:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.st-demo .btn-outline {
+  justify-self: start;
+}
+
+@media (max-width: 720px) {
+  .st-main {
+    padding: 24px 16px 56px;
+  }
+  .st-card {
+    padding: 20px 18px 22px;
+  }
+  /* Two avatar cards side by side on a phone */
+  .st-av {
+    gap: 12px;
+  }
+  .st-av .av-opt {
+    flex: 1 1 130px;
+    width: auto;
+  }
+  .st-av .av-opt img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .st-actions .btn-lime {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* The player card menu now has a real link (Settings), styled like its buttons */
+a.acct-item {
+  text-decoration: none;
+}
+a.acct-item:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
+}
+
+/* =====================================================================
+   14. TASKS: FIRST-QUEST GUIDE
+   Shown inside the empty-board box (#boardEmpty), only when the whole
+   board is empty. tasks.js fills the list.
+   ===================================================================== */
+.first-steps {
+  display: grid;
+  gap: 12px;
+  max-width: 460px;
+  margin: 0 auto 24px;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  text-align: left;
+}
+.first-steps[hidden] {
+  display: none;
+}
+.first-steps li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px 12px 56px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  counter-increment: step;
+}
+.first-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--green);
+  color: var(--ink);
+  font-family: "Press Start 2P", monospace;
+  font-size: 11px;
+}
+.first-steps b {
+  font-size: 14px;
+  color: var(--cream);
+}
+.first-steps span {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+/* The box above already says "Your board is empty": keep the steps tight under it */
+.board-empty .first-steps + .actions {
+  margin-top: 4px;
 }
