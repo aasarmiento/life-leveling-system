@@ -197,6 +197,28 @@
     });
   }
 
+  // The password boxes stay closed until "Change password" is pressed.
+  // Cancel (or a successful change) closes them again and empties them.
+  const openButton = $("passwordOpen");
+  const passwordFields = $("passwordFields");
+
+  function showPasswordFields(open) {
+    passwordFields.hidden = !open;
+    $("passwordStart").hidden = open;
+    openButton.setAttribute("aria-expanded", String(open));
+    if (open) current.focus();
+  }
+
+  function closePasswordFields() {
+    resetPasswordForm();
+    clearErrors(passwordForm);
+    showPasswordFields(false);
+    openButton.focus();
+  }
+
+  openButton.addEventListener("click", () => showPasswordFields(true));
+  $("passwordCancel").addEventListener("click", closePasswordFields);
+
   passwordForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearErrors(passwordForm);
@@ -257,7 +279,7 @@
       return;
     }
 
-    resetPasswordForm();
+    closePasswordFields();
     toast({
       tone: "ok",
       title: "Password changed",

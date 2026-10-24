@@ -151,71 +151,89 @@
           signed out. This one stays signed in.
         </p>
 
-        <div class="st-field">
-          <label for="stCurrent">Current password</label>
-          <div class="st-pw">
-            <input
-              type="password"
-              id="stCurrent"
-              autocomplete="current-password"
-              aria-describedby="stCurrentErr"
-            /><button
-              type="button"
-              class="st-show"
-              aria-controls="stCurrent"
-              aria-pressed="false"
-            >
-              Show
-            </button>
-          </div>
-          <p class="st-err" id="stCurrentErr" role="alert" hidden></p>
-        </div>
-
-        <div class="st-field">
-          <label for="stNew">New password</label>
-          <div class="st-pw">
-            <input
-              type="password"
-              id="stNew"
-              autocomplete="new-password"
-              aria-describedby="stNewErr"
-            /><button
-              type="button"
-              class="st-show"
-              aria-controls="stNew"
-              aria-pressed="false"
-            >
-              Show
-            </button>
-          </div>
-          <p class="st-err" id="stNewErr" role="alert" hidden></p>
-        </div>
-
-        <div class="st-field">
-          <label for="stConfirm">Confirm new password</label>
-          <div class="st-pw">
-            <input
-              type="password"
-              id="stConfirm"
-              autocomplete="new-password"
-              aria-describedby="stConfirmErr"
-            /><button
-              type="button"
-              class="st-show"
-              aria-controls="stConfirm"
-              aria-pressed="false"
-            >
-              Show
-            </button>
-          </div>
-          <p class="st-err" id="stConfirmErr" role="alert" hidden></p>
-        </div>
-
-        <p class="st-alert" id="passwordAlert" role="alert" hidden></p>
-        <div class="st-actions">
-          <button type="submit" class="btn-lime fx" id="passwordSave">
+        <!-- Closed until the player asks for it, so the page isn't three empty password boxes -->
+        <div class="st-actions st-pw-start" id="passwordStart">
+          <button
+            type="button"
+            class="btn-outline fx"
+            id="passwordOpen"
+            aria-expanded="false"
+            aria-controls="passwordFields"
+          >
             Change password
           </button>
+        </div>
+
+        <div class="st-pw-fields" id="passwordFields" hidden>
+          <div class="st-field">
+            <label for="stCurrent">Current password</label>
+            <div class="st-pw">
+              <input
+                type="password"
+                id="stCurrent"
+                autocomplete="current-password"
+                aria-describedby="stCurrentErr"
+              /><button
+                type="button"
+                class="st-show"
+                aria-controls="stCurrent"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+            <p class="st-err" id="stCurrentErr" role="alert" hidden></p>
+          </div>
+
+          <div class="st-field">
+            <label for="stNew">New password</label>
+            <div class="st-pw">
+              <input
+                type="password"
+                id="stNew"
+                autocomplete="new-password"
+                aria-describedby="stNewErr"
+              /><button
+                type="button"
+                class="st-show"
+                aria-controls="stNew"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+            <p class="st-err" id="stNewErr" role="alert" hidden></p>
+          </div>
+
+          <div class="st-field">
+            <label for="stConfirm">Confirm new password</label>
+            <div class="st-pw">
+              <input
+                type="password"
+                id="stConfirm"
+                autocomplete="new-password"
+                aria-describedby="stConfirmErr"
+              /><button
+                type="button"
+                class="st-show"
+                aria-controls="stConfirm"
+                aria-pressed="false"
+              >
+                Show
+              </button>
+            </div>
+            <p class="st-err" id="stConfirmErr" role="alert" hidden></p>
+          </div>
+
+          <p class="st-alert" id="passwordAlert" role="alert" hidden></p>
+          <div class="st-actions">
+            <button type="button" class="btn-outline fx" id="passwordCancel">
+              Cancel
+            </button>
+            <button type="submit" class="btn-lime fx" id="passwordSave">
+              Save password
+            </button>
+          </div>
         </div>
       </form>
     </main>
