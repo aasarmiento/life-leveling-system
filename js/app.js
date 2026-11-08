@@ -1,59 +1,4 @@
-// Background music – starts on first interaction
-const bgMusic = document.getElementById("bg-music");
-const musicToggle = document.getElementById("music-toggle");
-let musicPlaying = false;
-let hasInteracted = false;
-
-if (bgMusic && musicToggle) {
-  // Yung icon ng sound button (naka-mute o tumutugtog) ay nakabase sa aria-pressed.
-  // Si CSS (.music-btn) na bahala kung aling speaker icon ang lalabas.
-  const showMusicState = (on) => {
-    musicToggle.setAttribute("aria-pressed", String(on));
-    musicToggle.title = on ? "Mute music" : "Play music";
-  };
-
-  const startMusicOnFirstInteraction = async () => {
-    if (hasInteracted) return;
-    hasInteracted = true;
-
-    try {
-      bgMusic.muted = false;
-      await bgMusic.play();
-      musicPlaying = true;
-      showMusicState(true);
-    } catch (err) {
-      console.warn("Could not start music:", err.message);
-    }
-
-    document.removeEventListener("click", startMusicOnFirstInteraction);
-    document.removeEventListener("touchstart", startMusicOnFirstInteraction);
-  };
-
-  document.addEventListener("click", startMusicOnFirstInteraction);
-  document.addEventListener("touchstart", startMusicOnFirstInteraction);
-
-  musicToggle.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    // Bilang "first interaction" na rin 'to. Kung wala 'to, pag in-mute mo
-    // tapos nag-click ka sa ibang lugar, tutugtog ulit yung music.
-    hasInteracted = true;
-
-    try {
-      if (musicPlaying) {
-        bgMusic.pause();
-        showMusicState(false);
-        musicPlaying = false;
-      } else {
-        bgMusic.muted = false;
-        await bgMusic.play();
-        showMusicState(true);
-        musicPlaying = true;
-      }
-    } catch (err) {
-      console.warn("Music toggle error:", err.message);
-    }
-  });
-}
+// Background music: nasa js/nav.js na (para gumana sa lahat ng page).
 
 // Level-up animation
 (function () {
@@ -201,7 +146,7 @@ if (bgMusic && musicToggle) {
   const section = document.querySelector(".progress-section");
   if (section) observer.observe(section);
 })();
-// Quest cards – select one and play its video
+// Quest cards – hover (or focus/tap) to select one and play its video
 (function () {
   const items = document.querySelectorAll(".quest-item");
   if (!items.length) return;
@@ -212,6 +157,8 @@ if (bgMusic && musicToggle) {
   }
 
   function select(item) {
+    if (item.classList.contains("selected")) return; // already playing, don't restart it
+
     items.forEach((i) => {
       i.classList.remove("selected");
       const v = i.querySelector("video");
@@ -223,17 +170,13 @@ if (bgMusic && musicToggle) {
 
     item.classList.add("selected");
     const video = item.querySelector("video");
-    if (video) video.play().catch(() => {});
+    if (video) video.play().catch(() => { });
   }
 
   items.forEach((item) => {
-    item.addEventListener("click", () => select(item));
-    item.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        select(item);
-      }
-    });
+    item.addEventListener("mouseenter", () => select(item)); // desktop hover
+    item.addEventListener("focus", () => select(item)); // keyboard (Tab)
+    item.addEventListener("click", () => select(item)); // touch / tap fallback
   });
 })();
 
@@ -438,31 +381,345 @@ if (bgMusic && musicToggle) {
   for (let i = 0; i < 14; i++) add("spark");
 })();
 
+// =====================================================================
+// FEEDBACK (Home): kailangan ng rating bago i-send. May salita ang stars
+// (Poor → Excellent), optional na "What stood out?" tags, bilang ng letra,
+// at footer. Pagka-send, papalitan ang form ng "receipt".
+// Reference = FB-YYMMDD-XXXX (petsa + 4 na random na letra/numero, walang
+// magkamukha gaya ng 0/O at 1/I).
+// Server mode (npm start): sa data/feedback.json ng server naka-save at ang SERVER ang gumagawa ng
+// reference; lalabas lang ang receipt kapag sinabi ng server na naka-save na.
+// Walang server (Live Server / GitHub Pages): sa browser lang, gaya ng dati.
+// Hindi ginalaw ang index.html: dito na idinadagdag ang bagong parts.
+// =====================================================================
 (function () {
   const stars = document.querySelectorAll("#stars .star");
   const form = document.getElementById("feedbackForm");
   if (!stars.length || !form) return;
 
-  let rating = 4;
+  const starBox = document.getElementById("stars");
+  const comment = form.querySelector("textarea");
+  const sendBtn = document.getElementById("feedbackBtn");
+  const FEEDBACK_KEY = "questify.feedback";
+  const REF_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const WORDS = ["", "Poor", "Fair", "Good", "Great", "Excellent"];
+  const TAGS = [
+    "Quest board",
+    "XP and levels",
+    "Design",
+    "Music",
+    "Easy to use",
+  ];
+  const MAX_COMMENT = 500;
+  const MONTHS_LONG = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const esc = (s) =>
+    String(s).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
+  const icon = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  const ICON_ALERT =
+    '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>';
+  const ICON_CHECK = '<path d="M5 12.5l4.5 4.5L19 7.5"/>';
+  const ICON_LOCK =
+    '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>';
+  const ICON_COPY =
+    '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>';
+  const STAR_PATH =
+    '<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.5 1.1 6.3L12 17.3l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/>';
 
-  const paint = (v) =>
+  let rating = 0; // wala pang napipili (dati 4 agad, kaya hindi na-check)
+
+  // --- Stars + salita sa tabi (hal. "Great") ---
+  const rate = document.createElement("div");
+  rate.className = "fb-rate";
+  starBox.before(rate);
+  rate.appendChild(starBox);
+  const word = document.createElement("span");
+  word.className = "fb-word";
+  word.setAttribute("aria-live", "polite");
+  rate.appendChild(word);
+
+  function showWord(v) {
+    word.textContent = v ? WORDS[v] : "Select a rating";
+    word.classList.toggle("dim", !v);
+  }
+  const paint = (v) => {
     stars.forEach((s) => s.classList.toggle("on", Number(s.dataset.v) <= v));
+    showWord(v);
+  };
+  const markChosen = () =>
+    stars.forEach((s) => {
+      const v = Number(s.dataset.v);
+      s.setAttribute("aria-pressed", String(v === rating));
+      s.setAttribute("aria-label", `${v} star${v > 1 ? "s" : ""}, ${WORDS[v]}`);
+    });
+
+  // Error sa ilalim ng stars (hindi popup)
+  const err = document.createElement("p");
+  err.className = "fb-err";
+  err.id = "ratingErr";
+  err.setAttribute("role", "alert");
+  err.hidden = true;
+  err.innerHTML =
+    icon(ICON_ALERT) + "<span>Choose a rating from 1 to 5 stars.</span>";
+  rate.after(err);
+
+  function showError(on) {
+    err.hidden = !on;
+    starBox.classList.toggle("invalid", on);
+  }
 
   stars.forEach((s) => {
     s.addEventListener("click", () => {
       rating = Number(s.dataset.v);
       paint(rating);
+      markChosen();
+      showError(false);
     });
     s.addEventListener("mouseenter", () => paint(Number(s.dataset.v)));
     s.addEventListener("mouseleave", () => paint(rating));
   });
 
-  form.addEventListener("submit", (e) => {
+  // --- "What stood out?" (optional na tags) ---
+  const commentLabel = form.querySelector('label[for="comment"]');
+  const tagBlock = document.createElement("div");
+  tagBlock.className = "fb-block";
+  tagBlock.innerHTML =
+    '<span class="field-label" id="fbTagsLabel">What stood out? <small>optional</small></span>' +
+    `<div class="fb-tags" role="group" aria-labelledby="fbTagsLabel">${TAGS.map(
+      (t) =>
+        `<button type="button" class="fb-tag" aria-pressed="false">${icon(ICON_CHECK)}${t}</button>`,
+    ).join("")}</div>`;
+  commentLabel.before(tagBlock);
+  const tagBtns = [...tagBlock.querySelectorAll(".fb-tag")];
+  tagBtns.forEach((b) =>
+    b.addEventListener("click", () =>
+      b.setAttribute(
+        "aria-pressed",
+        String(b.getAttribute("aria-pressed") !== "true"),
+      ),
+    ),
+  );
+  const chosenTags = () =>
+    tagBtns
+      .filter((b) => b.getAttribute("aria-pressed") === "true")
+      .map((b) => b.textContent);
+
+  // --- Comment: "(optional)", bilang ng letra, at paalala ---
+  commentLabel.insertAdjacentHTML("beforeend", " <small>optional</small>");
+  comment.maxLength = MAX_COMMENT;
+  const help = document.createElement("div");
+  help.className = "fb-help";
+  help.id = "fbHelp";
+  help.innerHTML =
+    '<span>Please don\'t include passwords or personal details.</span><span class="fb-count"></span>';
+  comment.after(help);
+  comment.setAttribute("aria-describedby", "fbHelp");
+  const count = help.querySelector(".fb-count");
+  const updateCount = () =>
+    (count.textContent = `${comment.value.length} / ${MAX_COMMENT}`);
+  comment.addEventListener("input", updateCount);
+
+  // --- Footer: privacy note sa kaliwa, button sa kanan ---
+  const foot = document.createElement("div");
+  foot.className = "fb-foot";
+  foot.innerHTML = `<small>${icon(ICON_LOCK)}<span class="fb-where">Saved in this browser only.</span></small>`;
+  form.appendChild(foot);
+  foot.appendChild(sendBtn);
+
+  // Error kapag hindi naipadala (nasa itaas ng footer, hindi popup)
+  const sendErr = document.createElement("p");
+  sendErr.className = "fb-err";
+  sendErr.setAttribute("role", "alert");
+  sendErr.hidden = true;
+  sendErr.innerHTML = icon(ICON_ALERT) + "<span></span>";
+  foot.before(sendErr);
+  function showSendError(msg) {
+    sendErr.querySelector("span").textContent = msg || "";
+    sendErr.hidden = !msg;
+  }
+
+  // May server ba? (npm start) Kung meron, sa data/feedback.json ng server mapupunta ang feedback.
+  // (Promise: kapag pinindot ang Send bago matapos ang check, hihintayin muna.)
+  const api = window.questifyApi;
+  const serverCheck = api
+    ? api("health").then((res) => {
+      const ok = !!(res && res.ok);
+      if (ok)
+        foot.querySelector(".fb-where").textContent =
+          "Sent to the Questify team. No names or emails are saved.";
+      return ok;
+    })
+    : Promise.resolve(false);
+
+  paint(0);
+  markChosen();
+  updateCount();
+
+  function makeRef(d) {
+    const pad = (n) => String(n).padStart(2, "0");
+    const rnd = new Uint8Array(4);
+    crypto.getRandomValues(rnd);
+    const tail = [...rnd].map((b) => REF_CHARS[b % REF_CHARS.length]).join("");
+    return `FB-${String(d.getFullYear()).slice(2)}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${tail}`;
+  }
+
+  function sentText(d) {
+    const h = d.getHours() % 12 || 12;
+    const m = String(d.getMinutes()).padStart(2, "0");
+    return `Sent ${MONTHS_LONG[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} at ${h}:${m} ${d.getHours() < 12 ? "AM" : "PM"}`;
+  }
+
+  function saveEntry(entry) {
+    try {
+      const list = JSON.parse(localStorage.getItem(FEEDBACK_KEY));
+      const all = Array.isArray(list) ? list : [];
+      all.unshift(entry);
+      localStorage.setItem(FEEDBACK_KEY, JSON.stringify(all.slice(0, 20)));
+    } catch (e) {
+      /* naka-block ang storage: lalabas pa rin ang receipt */
+    }
+  }
+
+  function resetForm() {
+    rating = 0;
+    paint(0);
+    markChosen();
+    showError(false);
+    showSendError(null);
+    tagBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    comment.value = "";
+    updateCount();
+  }
+
+  function showReceipt(entry) {
+    const d = new Date(entry.at);
+    const starsHtml = [1, 2, 3, 4, 5]
+      .map(
+        (v) =>
+          `<svg viewBox="0 0 24 24" class="${v <= entry.rating ? "" : "off"}" aria-hidden="true">${STAR_PATH}</svg>`,
+      )
+      .join("");
+    const card = document.createElement("div");
+    card.className = "feedback-form fb-receipt";
+    card.setAttribute("tabindex", "-1");
+    card.setAttribute("aria-labelledby", "fbReceiptTitle");
+    card.innerHTML = `
+      <div class="rc-head">
+        <span class="rc-ico">${icon(ICON_CHECK)}</span>
+        <div><b id="fbReceiptTitle">Feedback received</b><small>${sentText(d)}</small></div>
+      </div>
+      <dl class="rc-rows">
+        <div class="rc-row"><dt>Rating</dt><dd><span class="rc-stars">${starsHtml}<span>${WORDS[entry.rating]} · ${entry.rating} of 5</span></span></dd></div>
+        ${entry.tags.length ? `<div class="rc-row"><dt>Stood out</dt><dd>${entry.tags.map(esc).join(", ")}</dd></div>` : ""}
+        <div class="rc-row"><dt>Message</dt><dd>${entry.message ? esc(entry.message) : '<span class="rc-none">No message</span>'}</dd></div>
+        <div class="rc-row"><dt>Reference</dt><dd><span class="rc-ref"><code>${entry.ref}</code><button type="button" class="rc-copy">${icon(ICON_COPY)}<span>Copy</span></button></span></dd></div>
+      </dl>
+      <div class="rc-foot"><small>${entry.server ? "Saved on the Questify server." : "Saved in this browser."}</small><button type="button" class="rc-again">Send another response</button></div>`;
+
+    card.querySelector(".rc-copy").addEventListener("click", (e) => {
+      const label = e.currentTarget.querySelector("span");
+      const done = (text) => {
+        label.textContent = text;
+        setTimeout(() => (label.textContent = "Copy"), 2000);
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(entry.ref).then(
+          () => done("Copied"),
+          () => done("Copy failed"),
+        );
+      } else done("Copy failed");
+    });
+    card.querySelector(".rc-again").addEventListener("click", () => {
+      card.remove();
+      resetForm();
+      form.hidden = false;
+      stars[0].focus();
+    });
+
+    form.hidden = true;
+    form.after(card);
+    card.focus();
+  }
+
+  let sending = false;
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const btn = document.getElementById("feedbackBtn");
-    btn.textContent = "Thanks for your feedback!";
-    btn.disabled = true;
-    form.querySelector("textarea").value = "";
+    if (sending) return; // naka-send na, hinihintay pa ang server
+    showSendError(null);
+    if (!rating) {
+      showError(true);
+      stars[0].focus();
+      return;
+    }
+    const entry = {
+      ref: makeRef(new Date()),
+      rating,
+      tags: chosenTags(),
+      message: comment.value.trim(),
+      at: Date.now(),
+      server: false,
+    };
+
+    const label = sendBtn.textContent;
+    sending = true;
+    sendBtn.disabled = true;
+    const serverMode = await serverCheck;
+    if (!serverMode) {
+      sending = false;
+      sendBtn.disabled = false;
+    } else {
+      // Ipadala sa server at HINTAYIN ang sagot (ang server ang gagawa ng reference)
+      sendBtn.textContent = "Sending…";
+      const res = await api("feedback", {
+        method: "POST",
+        body: {
+          ref: entry.ref,
+          rating,
+          tags: entry.tags,
+          message: entry.message,
+        },
+      });
+      sending = false;
+      sendBtn.disabled = false;
+      sendBtn.textContent = label;
+      if (!res || !res.ok) {
+        // Hindi naipadala: walang receipt, nandiyan pa rin ang stars at message
+        showSendError(
+          (res && res.data && res.data.error) ||
+          "Couldn't reach the server, so your feedback wasn't sent. Please try again.",
+        );
+        sendBtn.focus();
+        return;
+      }
+      entry.ref = res.data.ref || entry.ref;
+      entry.at = Date.parse(res.data.receivedAt) || entry.at;
+      entry.server = true;
+    }
+
+    saveEntry(entry); // kopya sa browser (huling 20), gaya ng dati
+    showReceipt(entry);
   });
 })();
 
@@ -484,8 +741,82 @@ if (bgMusic && musicToggle) {
   const video = document.getElementById("mascotVideo");
   if (!wrap || !video) return;
 
-  video.addEventListener("error", () => wrap.classList.add("is-fallback"));
-  video.play().catch(() => wrap.classList.add("is-fallback"));
+  // Backup image lang kapag sira talaga ang video. Kung naantala lang ng browser
+  // ang autoplay (background tab, battery saver), subukan ulit at ibalik ang video.
+  const showVideo = () => wrap.classList.remove("is-fallback");
+  const showImage = () => wrap.classList.add("is-fallback");
+  video.addEventListener("error", showImage);
+  video.addEventListener("playing", showVideo);
+  const retry = () => video.play().catch(() => { });
+  video.play().catch(() => {
+    showImage();
+    video.addEventListener("canplay", retry, { once: true });
+    document.addEventListener("pointerdown", retry, { once: true });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) retry();
+    });
+  });
+})();
+
+/* ABOUT: pixel stars sa hero + totoong level sa "Level up" step */
+(function initAboutExtras() {
+  const stars = document.getElementById("abStars");
+  if (stars) {
+    // parehong puwesto tuwing bukas (hindi random), maliliit na pixel squares
+    let seed = 11;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    let html = "";
+    for (let i = 0; i < 110; i++) {
+      const x = Math.floor((rnd() * 1440) / 4) * 4;
+      const y = Math.floor((rnd() * 400) / 4) * 4;
+      const size = rnd() > 0.88 ? 4 : 2;
+      html += `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="#dfe3f5" opacity="${(0.15 + rnd() * 0.45).toFixed(2)}"/>`;
+    }
+    [
+      [250, 100],
+      [1200, 80],
+      [1080, 320],
+      [340, 340],
+    ].forEach(([x, y]) => {
+      html += `<g fill="#c6ef2e" opacity="0.5"><rect x="${x}" y="${y - 6}" width="3" height="15"/><rect x="${x - 6}" y="${y}" width="15" height="3"/></g>`;
+    });
+    stars.innerHTML = html;
+  }
+
+  // "Level up" step: kapag naka-sign in, ipakita ang TOTOONG level mo
+  // (parehong board na sine-save ng Tasks). Guest = halimbawa lang.
+  const bar = document.getElementById("abLoopBar");
+  const acc = window.questifyAccount;
+  let signedIn = false;
+  try {
+    signedIn = localStorage.getItem("questify.signedIn") === "1";
+  } catch (err) {
+    signedIn = false;
+  }
+  if (!bar || !acc || !signedIn) return;
+  function paintLoopLevel() {
+    let total = acc.isDemo ? 1450 : 0;
+    try {
+      const board = JSON.parse(localStorage.getItem(acc.boardKey));
+      if (board && Array.isArray(board.xp))
+        total = board.xp.reduce((sum, e) => sum + (Number(e.xp) || 0), 0);
+    } catch (err) {
+      /* walang board pa: default */
+    }
+    const XP_PER_LEVEL = 125;
+    const level = Math.floor(total / XP_PER_LEVEL) + 1;
+    const into = total % XP_PER_LEVEL;
+    bar.querySelector("span").style.width = (into / XP_PER_LEVEL) * 100 + "%";
+    bar.setAttribute("aria-valuenow", String(into));
+    bar.setAttribute("aria-label", `Your XP into Level ${level + 1}`);
+    document.getElementById("abLoopLevel").textContent = `Your level: ${level}`;
+    document.getElementById("abLoopXp").textContent =
+      `${into} / ${XP_PER_LEVEL} XP`;
+  }
+  paintLoopLevel();
+  // Server mode: ulitin pagkatapos makuha ang board sa server, o kapag binago sa ibang device
+  if (window.questifyBoard) window.questifyBoard.ready.then(paintLoopLevel);
+  document.addEventListener("questify:board-changed", paintLoopLevel);
 })();
 
 /*
@@ -498,33 +829,42 @@ if (bgMusic && musicToggle) {
     {
       id: "abigail",
       name: "Abigail Ann Sarmiento",
-      role: "UI/UX design",
+      role: "UI/UX Designer | Multimedia Artist | Video Editor",
       image: "../assets/icons/06-about/gail.jpg",
       desc: "Shapes how Questify looks and feels across every page, from the landing screen to the quest board.",
       workedShort: "Landing page, style guide, component layout",
-      bio: "A designer student/ video editor / Ai prompt engineer who treats interfaces like game HUDsclear feedback, readable progress, and no wasted clicks. Abigail keeps the visual system consistent so the product feels like one world instead of five different pages.",
+      bio:
+        "Abigail is a UI/UX designer with a decade of experience in multimedia production. She has worked across graphic design, motion graphics, video editing, and e-commerce visuals. She holds a degree in Multimedia Arts , so she understands how a design looks and how it gets built.\n\n" +
+        "Her approach to interfaces comes from games like League of Legends . Good game HUDs show you where you stand, what just happened, and what to do next, all without slowing you down. Abigail applies the same thinking to products: clear feedback, visible progress, and no wasted clicks. She also keeps the visual system consistent, so a product feels like one world instead of five different pages.\n\n" +
+        "She has delivered 300+ projects for international clients and has held Top Rated status on Upwork for 8 consecutive years. Her recent work includes short-form video and motion content for Alibaba Group through Hashi Media",
       hobbies:
-        "Pixel art, strength training, baking, hiking, writing short game design notes",
+        "Pixel art, strength training, baking, hiking, and writing short game design notes. Pixel art keeps her attentive to detail, and training and hiking have taught her that progress comes from steady, repeated effort. That idea carries into her design work.",
       favorite:
-        "The level-up moment when the bar fills and the rank finally changes",
-      games: "League of Legends, Dota 2, Ragnarok , Valorant",
+        "The level-up moment, when the bar fills and the rank finally changes. She designs for that feeling: people should always be able to see that their effort is counting.",
+      games: "League of Legends, Dota 2, Ragnarok, Valorant",
       quote: "If progress is invisible, people stop believing it happened.",
       github: "https://github.com/aasarmiento",
-      linkedin: "aasarmiento",
+      linkedin: "", // paste full https://linkedin.com/in/... link; empty hides the button
+      portfolio: "https://gaily-dev.github.io/Portfolio-website/",
+      behance: "https://behance.net/abigailannS",
     },
     {
       id: "christian",
       name: "Christian Allen Soriano",
       role: "Project manager",
       image: "../assets/icons/06-about/team-christian.png",
-      desc: "Keeps scope honest, runs check-ins, and makes sure the team ships what we promised.",
-      workedShort: "Scope plan, task breakdown, weekly reviews",
-      bio: "Balances student deadlines with product deadlines. Christian turns vague ideas into weekly goals and cuts features that sound cool but do not serve the core loop: log effort, earn XP, see the level climb.",
-      hobbies: "Basketball, anime, thrifting, weekend road trips",
-      favorite: "Closing a milestone on time without the team burning out",
-      games: "Mobile Legends, FIFA, Minecraft",
-      quote: "A plan only counts when someone owns the next deadline.",
-      github: "#",
+      desc: "Turn real life into a game worth grinding for anyone who struggles to stay consistent.",
+      workedShort: "Quest Board, sign in, notifications, Profile, project plan",
+      bio:
+        "Student by day, builder by night. Runs an AI content studio, trades crypto for a living, and takes on client projects on the side. Four side quests running at once, double-digit screen time, and no system holding it together.\n\n" +
+        "He noticed he only locked in when effort felt like a game, so he pitched the idea to the team. Questify is for every sidequester out there: log the work, earn the XP, watch the level climb.",
+      hobbies:
+        "Gym, running, basketball, motorcycle rides, hiking and nature trips",
+      favorite: "Turning his own bad habit into a working product",
+      games:
+        "Valorant (retired from the ranked grind). Now grinding real life.",
+      quote: "Be delusional until it works.",
+      github: "https://github.com/chwstnsoriano",
       linkedin: "#",
     },
     {
@@ -540,7 +880,7 @@ if (bgMusic && musicToggle) {
         "When the About page finally explains the project in one clear pass",
       games: "Persona 5, Chess.com, Among Us",
       quote: "If it is not written down, it did not really happen.",
-      github: "#",
+      github: "https://github.com/jrmhalzona",
       linkedin: "#",
     },
     {
@@ -556,7 +896,7 @@ if (bgMusic && musicToggle) {
         "Finding the right reference on the first try and saving the team an hour",
       games: "Animal Crossing, Overwatch 2, Tetris",
       quote: "Good references save more time than sudden inspiration.",
-      github: "#",
+      github: "https://github.com/oeljep",
       linkedin: "#",
     },
     {
@@ -567,29 +907,36 @@ if (bgMusic && musicToggle) {
       desc: "Owns the repository, reviews merges, and keeps the main branch stable for the whole team.",
       workedShort: "Repo setup, merge reviews, branch hygiene",
       bio: "Treats version control like a party raid: clear roles, clean commits, and no one merging chaos into main. Sire makes sure student work stays recoverable, reviewable, and ready to present.",
-      hobbies: "Building PCs, running, badminton, video editing",
-      favorite: "A clean merge with zero conflicts after a long feature branch",
-      games: "League of Legends, Counter-Strike 2, Rocket League",
-      quote: "Commit small, commit often, and leave the main branch playable.",
-      github: "#",
-      linkedin: "#",
+      hobbies:
+        "Reading, playing tactical turn-based RPGs, tinkering with emulation on Linux, playing tabletop games with friends and playing with Mighty (dog)",
+      favorite: "Conflict-free merges and structured commit logs",
+      games:
+        "Fire Emblem, Final Fantasy Tactics, Magic the Gathering, Suikoden series",
+      quote:
+        "Keep commits clear, workflows organized, and code presentation-ready.",
+      github: "https://github.com/semanalo23",
+      linkedin: "https://www.linkedin.com/in/semanalo23",
     },
   ];
 
-  function teamCardHTML(m) {
+  // Isang card blueprint (OOP): pinupuno ng data ng bawat member.
+  // Sa card, unang role lang (hal. "UI/UX Designer"); buo sa profile popup.
+  function teamCardHTML(m, slot) {
     return `
-      <div class="team2-bust-wrap">
-        <img class="team2-bust" src="${m.image}" alt="">
+      <div class="ab-tc-ph">
+        <img src="${m.image}" alt="">
+        <span class="ab-tc-slot pixel">P${slot}</span>
       </div>
-      <div class="team2-body">
-        <p class="team2-name">${m.name}</p>
-        <p class="team2-role">${m.role}</p>
-        <p class="team2-desc">${m.desc}</p>
-        <p class="team2-worked">Worked on: ${m.workedShort}</p>
-        <button class="team2-view-btn" type="button" tabindex="-1">View profile</button>
+      <div class="ab-tc-b">
+        <p class="ab-tc-name">${m.name}</p>
+        <p class="ab-tc-role">${m.role.split(" | ")[0]}</p>
+        <p class="ab-tc-desc">${m.desc}</p>
+        <p class="ab-tc-worked">Worked on: ${m.workedShort}</p>
       </div>
+      <span class="ab-tc-view">View profile</span>
     `;
   }
+  let lastCard = null;
 
   function openTeamModal(id) {
     const m = TEAM_MEMBERS.find((x) => x.id === id);
@@ -598,34 +945,65 @@ if (bgMusic && musicToggle) {
     document.getElementById("team2-modal-bust").src = m.image;
     document.getElementById("team2-modal-name").textContent = m.name;
     document.getElementById("team2-modal-role").textContent = m.role;
-    document.getElementById("team2-modal-bio").textContent = m.bio;
+
+    // Bio: each blank-line-separated block becomes its own paragraph
+    const bioEl = document.getElementById("team2-modal-bio");
+    bioEl.innerHTML = "";
+    m.bio.split("\n\n").forEach((text) => {
+      const p = document.createElement("p");
+      p.textContent = text;
+      bioEl.appendChild(p);
+    });
+
     document.getElementById("team2-modal-hobbies").textContent = m.hobbies;
     document.getElementById("team2-modal-favorite").textContent = m.favorite;
     document.getElementById("team2-modal-games").textContent = m.games;
     document.getElementById("team2-modal-quote").textContent = m.quote;
-    document.getElementById("team2-modal-github").href = m.github;
-    document.getElementById("team2-modal-linkedin").href = m.linkedin;
+
+    // Links: hide any link the member doesn't have
+    function setLink(elId, url) {
+      const a = document.getElementById(elId);
+      if (!a) return;
+      const valid = url && url !== "#";
+      a.href = valid ? url : "#";
+      a.hidden = !valid;
+    }
+    setLink("team2-modal-github", m.github);
+    setLink("team2-modal-linkedin", m.linkedin);
+    setLink("team2-modal-portfolio", m.portfolio);
+    setLink("team2-modal-behance", m.behance);
 
     document.getElementById("team2-overlay").classList.add("active");
     document.body.style.overflow = "hidden";
+    // keyboard: focus sa Close, para gumana agad ang Enter/Esc
+    const close = document.querySelector(".team2-modal-close");
+    if (close) close.focus();
   }
 
   function closeTeamModal() {
-    document.getElementById("team2-overlay").classList.remove("active");
+    const overlay = document.getElementById("team2-overlay");
+    if (!overlay.classList.contains("active")) return;
+    overlay.classList.remove("active");
     document.body.style.overflow = "";
+    if (lastCard) lastCard.focus(); // balik sa card na binuksan
   }
 
   // render cards
-  TEAM_MEMBERS.forEach((m) => {
+  TEAM_MEMBERS.forEach((m, i) => {
     const card = document.createElement("article");
-    card.className = "team2-card";
-    card.innerHTML = teamCardHTML(m);
+    card.className = "ab-tc";
+    card.innerHTML = teamCardHTML(m, i + 1);
     card.setAttribute("role", "button");
     card.setAttribute("tabindex", "0");
-    card.addEventListener("click", () => openTeamModal(m.id));
+    card.setAttribute("aria-label", `${m.name}, ${m.role}. View profile`);
+    card.addEventListener("click", () => {
+      lastCard = card;
+      openTeamModal(m.id);
+    });
     card.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
+        lastCard = card;
         openTeamModal(m.id);
       }
     });
@@ -633,7 +1011,7 @@ if (bgMusic && musicToggle) {
   });
 
   // close handlers
-  const closeBtn = document.getElementById("team2-modal-close");
+  const closeBtn = document.querySelector(".team2-modal-close");
   if (closeBtn) closeBtn.addEventListener("click", closeTeamModal);
 
   document.getElementById("team2-overlay").addEventListener("click", (e) => {
@@ -642,5 +1020,25 @@ if (bgMusic && musicToggle) {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeTeamModal();
+  });
+
+  // Tab = paikot lang sa loob ng popup habang bukas (Close + mga link)
+  document.getElementById("team2-overlay").addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const items = [
+      ...document.querySelectorAll(
+        ".team2-modal-close, .team2-modal-links a:not([hidden])",
+      ),
+    ];
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   });
 })();

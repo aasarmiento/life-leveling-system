@@ -24,7 +24,13 @@
 // =====================================================================
 // Nagsisimula pag handa na ang page (DOMContentLoaded), para nauna na ang
 // nav.js na gumawa ng player card (Alex ▾) kung saan naka-lagay ang Level at XP.
+// Server mode: hinihintay muna ang board galing sa server (window.questifyBoard.ready).
 document.addEventListener("DOMContentLoaded", function () {
+  const sync = window.questifyBoard;
+  (sync ? sync.ready : Promise.resolve()).then(startQuestBoard);
+});
+
+function startQuestBoard() {
   const XP_BY_PRIORITY = { low: 10, medium: 20, high: 30 };
   const PRIORITY_VALUE = { low: 1, medium: 2, high: 3 };
   const PRIORITY_LABEL = { low: "Low", medium: "Medium", high: "High" };
@@ -32,9 +38,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const STATUSES = ["todo", "doing", "done"];
   const STATUS_LABEL = { todo: "To do", doing: "Doing", done: "Done" };
   const COLUMN_EMPTY = {
-    todo: "Nothing queued.",
-    doing: "Nothing in progress.",
-    done: "Nothing finished yet.",
+    todo: "No quests here yet — add one to begin your journey.",
+    doing: "No quests in motion. Start one from To Do.",
+    done: "No victories logged yet. Complete a quest to see it here.",
   };
   // Bawat sort may sariling default na direction (hal. Due date = pinakamalapit muna).
   // Sa To do at Doing lang gumagana yung sort; ang Done ay laging pinakabago sa taas.
@@ -47,12 +53,18 @@ document.addEventListener("DOMContentLoaded", function () {
   };
   const DRAG_THRESHOLD = 6;
   const LONG_PRESS_MS = 350;
-  const UNDO_MS = 6000;
+  // Pinakahuling puwedeng due date (para walang year 20260 na mali ang type)
+  // (Ang pinakamalayong due date = 1 taon mula ngayon; tingnan ang maxDue() sa baba.)
   // Ilang card lang ang pinapakita per column bago lumabas yung "Show all".
   const COLUMN_LIMIT = 10;
   // Pangalan ng save sa localStorage. Binabasa rin 'to ng js/nav.js para sa Level
   // pill ng Dashboard / Profile / About.
-  const STORE_KEY = "questify.board.v1";
+  // Bawat account may sariling board (galing sa nav.js). Demo = "questify.board.v1".
+  const ACCOUNT = window.questifyAccount || {
+    boardKey: "questify.board.v1",
+    isDemo: true,
+  };
+  const STORE_KEY = ACCOUNT.boardKey;
   const MONTHS = [
     "Jan",
     "Feb",
@@ -93,9 +105,19 @@ document.addEventListener("DOMContentLoaded", function () {
     return new Date(y, m - 1, d);
   }
 
+  // Laging may taon, hal. "Oct 05, 2026" (para malinaw kung kailan)
   function shortDate(iso) {
     const d = parseIso(iso);
-    return MONTHS[d.getMonth()] + " " + pad(d.getDate());
+    return (
+      MONTHS[d.getMonth()] + " " + pad(d.getDate()) + ", " + d.getFullYear()
+    );
+  }
+
+  // Pinakamalayong puwedeng due date: 1 taon mula ngayon (parang 1-year planner)
+  function maxDue() {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    return isoFor(d);
   }
 
   function longDate(date) {
@@ -104,9 +126,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function doneLabel(ms) {
     const iso = isoFor(new Date(ms));
-    if (iso === todayIso()) return "Done today";
-    if (iso === isoOffset(-1)) return "Done yesterday";
-    return "Done " + shortDate(iso);
+    if (iso === todayIso()) return "Completed today";
+    if (iso === isoOffset(-1)) return "Completed yesterday";
+    return "Completed " + shortDate(iso);
+  }
+
+  // Petsa lang para sa Done card (nasa ilalim na ang "Completed"): "Today", "Yesterday", "Sep 25, 2026"
+  function doneDay(ms) {
+    const iso = isoFor(new Date(ms));
+    if (iso === todayIso()) return "Today";
+    if (iso === isoOffset(-1)) return "Yesterday";
+    return shortDate(iso);
   }
 
   const isOverdue = (q) => q.status !== "done" && !!q.due && q.due < todayIso();
@@ -115,164 +145,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let nextId = 1;
 
-  // Sample quests para sa first visit. Relative sa araw ngayon yung due dates,
-  // kaya laging may ilang overdue at ilang paparating pa lang.
+  // Sample quests ng demo: nasa nav.js na (window.questifyDemoBoard), para pareho
+  // ang Tasks at Profile kahit alin ang unang buksan.
   function sampleQuests() {
-    nextId = 1;
-    const seedStart = Date.now() - 12 * 86400000;
-    const seed = (title, desc, cat, priority, dueInDays, status) => {
-      const n = nextId++;
-      const due = isoOffset(dueInDays);
-      const done = status === "done";
-      return {
-        id: "q" + n,
-        title,
-        desc,
-        cat,
-        priority,
-        status,
-        due,
-        earned: done ? XP_BY_PRIORITY[priority] : null,
-        completed: done ? parseIso(due).getTime() + 18 * 3600000 : null,
-        added: seedStart + n * 3 * 3600000,
-        rank: n,
-      };
-    };
-    return [
-      seed(
-        "Send client proposal",
-        "Attach the PDF and hit send before noon.",
-        "work",
-        "high",
-        2,
-        "todo",
-      ),
-      seed(
-        "Inbox zero",
-        "Leave the work inbox at zero before you log off.",
-        "work",
-        "low",
-        -1,
-        "todo",
-      ),
-      seed(
-        "Draft weekly report",
-        "One page. What moved. What is next.",
-        "work",
-        "medium",
-        3,
-        "todo",
-      ),
-      seed(
-        "Outline lecture notes",
-        "Headings only — the full write-up can wait.",
-        "growth",
-        "medium",
-        4,
-        "todo",
-      ),
-      seed(
-        "Pack gym bag",
-        "Shoes, bottle, headphones. Night-before so morning is easy.",
-        "health",
-        "low",
-        0,
-        "todo",
-      ),
-      seed(
-        "Call the supplier",
-        "Confirm the Friday delivery window.",
-        "work",
-        "high",
-        5,
-        "todo",
-      ),
-      seed(
-        "Read 20 pages",
-        "Stay in the same book. Twenty real pages.",
-        "growth",
-        "medium",
-        -2,
-        "doing",
-      ),
-      seed(
-        "Refactor login form",
-        "Labels, errors, and the gold / lime buttons.",
-        "work",
-        "high",
-        1,
-        "doing",
-      ),
-      seed(
-        "30-min walk",
-        "Outside. Phone stays in a pocket.",
-        "health",
-        "medium",
-        0,
-        "doing",
-      ),
-      seed(
-        "Watch one course module",
-        "One module, notes in the same sitting.",
-        "growth",
-        "medium",
-        2,
-        "doing",
-      ),
-      seed(
-        "45-min run",
-        "Easy pace. It counted.",
-        "health",
-        "medium",
-        -1,
-        "done",
-      ),
-      seed(
-        "Morning stretch",
-        "Ten minutes before the first meeting.",
-        "health",
-        "low",
-        -2,
-        "done",
-      ),
-      seed(
-        "Ship slide deck",
-        "Sent. Not perfect. Sent.",
-        "work",
-        "high",
-        -3,
-        "done",
-      ),
-      seed(
-        "Journal half a page",
-        "What actually happened today.",
-        "growth",
-        "low",
-        -3,
-        "done",
-      ),
-      seed(
-        "Water plants / walk",
-        "Two minutes. Then a loop around the block.",
-        "health",
-        "low",
-        -4,
-        "done",
-      ),
-      seed(
-        "Plan next week",
-        "Pick the top three quests.",
-        "work",
-        "medium",
-        -5,
-        "done",
-      ),
-    ];
+    const demo = window.questifyDemoBoard();
+    nextId = demo.nextId;
+    return demo.quests;
   }
 
   // XP ledger = listahan ng lahat ng nakuhang XP. Pag nag-delete ng quest, hindi
   // nababawas yung XP. Yung Undo lang pagkatapos ng "Mark done" ang nagbabawas.
-  const startingXp = () => [{ id: null, xp: STARTING_XP }];
+  // Demo: nagsisimula sa 1,450 XP (Level 12). Bagong account: 0 XP (Level 1).
+  const startingXp = () =>
+    ACCOUNT.isDemo ? [{ id: null, xp: STARTING_XP }] : [];
 
   // ---------- saving (localStorage = maliit na storage ng browser) ----------
 
@@ -309,25 +194,26 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function saveBoard() {
+    const data = {
+      quests,
+      xp: bankedXp,
+      nextId,
+      sort: state.sort,
+      dir: state.dir,
+    };
     try {
-      localStorage.setItem(
-        STORE_KEY,
-        JSON.stringify({
-          quests,
-          xp: bankedXp,
-          nextId,
-          sort: state.sort,
-          dir: state.dir,
-        }),
-      );
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
     } catch (err) {
       // Naka-block o puno yung storage: gagana pa rin yung board, hindi lang ma-sa-save.
     }
+    // Server mode: ipadala rin sa server (nav.js ang bahala kung may nagbago)
+    if (window.questifyBoard) window.questifyBoard.save(data);
   }
 
-  // Pagbukas ng page: kunin yung naka-save. Kung wala, sample quests.
+  // Pagbukas ng page: kunin yung naka-save. Kung wala: sample quests para sa
+  // demo account, at walang laman para sa bagong account.
   const saved = loadBoard();
-  let quests = saved ? saved.quests : sampleQuests();
+  let quests = saved ? saved.quests : ACCOUNT.isDemo ? sampleQuests() : [];
   let bankedXp = saved ? saved.xp : startingXp();
   if (saved) {
     const highest = Math.max(
@@ -357,6 +243,44 @@ document.addEventListener("DOMContentLoaded", function () {
     expanded[s] = false;
   });
 
+  // ---------- phone: tabs To do · Doing · Done (Checkpoint 5) ----------
+  // Sa phone (720px pababa) isang column lang ang kita; pinipili gamit ang tabs.
+  // Sa desktop, nakatago ang tabs (CSS) at lahat ng column ay kita pa rin.
+  const isPhone = () => window.matchMedia("(max-width: 720px)").matches;
+  const colTabs = document.createElement("div");
+  colTabs.className = "col-tabs";
+  colTabs.setAttribute("role", "tablist");
+  colTabs.setAttribute("aria-label", "Quest columns");
+  colTabs.innerHTML = STATUSES.map(
+    (s) =>
+      `<button type="button" class="col-tab" role="tab" id="tab-${s}" data-tab="${s}" aria-controls="col-${s}" aria-selected="false" tabindex="-1"><span>${STATUS_LABEL[s]}</span><span class="col-tab-n" data-tab-count="${s}">0</span><i class="col-tab-od" data-tab-od="${s}" hidden title="Has overdue quests"></i></button>`,
+  ).join("");
+  board.before(colTabs);
+  const tabBtns = [...colTabs.querySelectorAll(".col-tab")];
+  function setPhoneTab(status) {
+    board.dataset.tab = status;
+    tabBtns.forEach((b) => {
+      const on = b.dataset.tab === status;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-selected", String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+  }
+  setPhoneTab("todo");
+  colTabs.addEventListener("click", (e) => {
+    const b = e.target.closest(".col-tab");
+    if (b) setPhoneTab(b.dataset.tab);
+  });
+  colTabs.addEventListener("keydown", (e) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const i = STATUSES.indexOf(board.dataset.tab);
+    const next = STATUSES[(i + step + STATUSES.length) % STATUSES.length];
+    setPhoneTab(next);
+    colTabs.querySelector(`[data-tab="${next}"]`).focus();
+  });
+
   const searchInput = $("questSearch");
   const searchClear = $("searchClear");
   const filterChips = document.querySelectorAll(".filters .chip");
@@ -366,10 +290,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const emptyText = $("emptyText");
   const emptyReset = $("emptyReset");
   const emptyAdd = $("emptyAdd");
+  const firstSteps = $("firstSteps");
   const announcer = $("announcer");
-  const toast = $("toast");
-  const toastText = $("toastText");
-  const toastAction = $("toastAction");
 
   const sortBtn = $("sortBtn");
   const sortValue = $("sortValue");
@@ -381,6 +303,34 @@ document.addEventListener("DOMContentLoaded", function () {
   const levelNum = $("levelNum");
   const levelXp = $("levelXp");
   const levelFill = $("levelFill");
+  // Level card sa taas ng board (pareho ng player card, live din)
+  const bLevel = $("bLevel");
+  const bRank = $("bRank");
+  const bXp = $("bXp");
+  const bFill = $("bFill");
+  const bNext = $("bNext");
+  const RANKS = [
+    { name: "Novice", xp: 0 },
+    { name: "Apprentice", xp: 100 },
+    { name: "Adventurer", xp: 300 },
+    { name: "Veteran", xp: 700 },
+    { name: "Master", xp: 1500 },
+  ];
+  const rankFor = (t) => RANKS.filter((r) => t >= r.xp).pop().name;
+  // Pangalan at avatar sa player strip (galing sa naka-sign in na player)
+  (function fillPlayerStrip() {
+    let p = {};
+    try {
+      p = JSON.parse(localStorage.getItem("questify.player")) || {};
+    } catch (err) {
+      p = {};
+    }
+    const name = $("bName");
+    const avatar = $("bAvatar");
+    if (name) name.textContent = p.name || "Alex Rivera";
+    if (avatar)
+      avatar.src = `../assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+  })();
 
   const questModal = $("questModal");
   const questForm = $("questForm");
@@ -388,19 +338,37 @@ document.addEventListener("DOMContentLoaded", function () {
   const qTitle = $("qTitle");
   const qTitleErr = $("qTitleErr");
   const qDesc = $("qDesc");
-  const qCat = $("qCat");
-  const qPriority = $("qPriority");
+  const qTitleCount = $("qTitleCount");
+  const qDescCount = $("qDescCount");
+  const quickDue = [...questForm.querySelectorAll("[data-due]")];
+  // Category at Priority = radio buttons (pills), hindi na dropdown
+  const getChoice = (name) => {
+    const on = questForm.querySelector(`input[name="${name}"]:checked`);
+    return on ? on.value : "";
+  };
+  const setChoice = (name, value) => {
+    questForm.querySelectorAll(`input[name="${name}"]`).forEach((r) => {
+      r.checked = r.value === value;
+    });
+  };
   const qDue = $("qDue");
+  const qDueErr = $("qDueErr");
   const qXp = $("qXp");
   const qSubmit = $("qSubmit");
 
   const detailModal = $("detailModal");
   const detailClose = $("detailClose");
 
-  const deleteModal = $("deleteModal");
-  const delText = $("delText");
-  const delCancel = $("delCancel");
-  const delConfirm = $("delConfirm");
+  // Iisang confirm popup para sa Mark done, Undo done at Delete
+  const confirmModal = $("confirmModal");
+  const cmIco = $("cmIco");
+  const cmTitle = $("cmTitle");
+  const cmText = $("cmText");
+  const cmQuest = $("cmQuest");
+  const cmMeta = $("cmMeta");
+  const cmXp = $("cmXp");
+  const cmCancel = $("cmCancel");
+  const cmOk = $("cmOk");
 
   // ---------- helpers (maliliit na tools na paulit-ulit gamitin) ----------
 
@@ -426,49 +394,14 @@ document.addEventListener("DOMContentLoaded", function () {
     announcer.textContent = message;
   }
 
-  // ---------- toast (yung maliit na message sa baba, may Undo minsan) ----------
-
-  let toastTimer = null;
-  let toastRun = null;
-
-  function showToast(message, { tone = "alert", action = null } = {}) {
-    toast.dataset.tone = tone;
-    toastText.textContent = message;
-    toastRun = action ? action.run : null;
-    toastAction.hidden = !action;
-    if (action) toastAction.textContent = action.label;
-    toast.hidden = false;
-    if (!reduceMotion.matches) restartAnimation(toast, "toast");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, action ? UNDO_MS : 5000);
+  // ---------- toast (maliit na message sa baba-kanan) ----------
+  // Galing sa nav.js (window.questifyToast) para pare-pareho sa buong site.
+  // Wala nang Undo button at timer dito: nasa 3-dot menu na ang Undo.
+  // announce: false kasi may sariling announcer ang page na 'to.
+  function showToast(opts) {
+    if (window.questifyToast)
+      window.questifyToast(Object.assign({ announce: false }, opts));
   }
-
-  function hideToast() {
-    toast.hidden = true;
-    toastRun = null;
-  }
-
-  toast.addEventListener("click", (e) => {
-    const run = e.target.closest("#toastAction") ? toastRun : null;
-    hideToast();
-    if (run) run();
-  });
-
-  // Ctrl+Z = Undo, basta hindi ka nagta-type sa isang input.
-  document.addEventListener("keydown", (e) => {
-    if (
-      !toastRun ||
-      e.key.toLowerCase() !== "z" ||
-      !(e.ctrlKey || e.metaKey) ||
-      e.shiftKey
-    )
-      return;
-    if (e.target.closest("input, textarea, select")) return;
-    e.preventDefault();
-    const run = toastRun;
-    hideToast();
-    run();
-  });
 
   // ---------- filtering + sorting (search, category chips, Sort) ----------
 
@@ -558,18 +491,39 @@ document.addEventListener("DOMContentLoaded", function () {
     return isOverdue(q) ? "Was due " + shortDate(q.due) : shortDate(q.due);
   }
 
+  // Maliliit na icon sa 3-dot menu
+  const MENU_ICON = {
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>',
+    back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+    undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    delete: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  };
+  const menuItem = (action, label, icon, extra = "", cls = "") =>
+    `<button type="button" role="menuitem"${cls ? ` class="${cls}"` : ""} data-action="${action}"><svg viewBox="0 0 24 24" aria-hidden="true">${MENU_ICON[icon]}</svg>${label}${extra}</button>`;
+
+  // 3-dot menu, iba bawat column:
+  //   To do: Edit · Delete
+  //   Doing: Move back to To do · Edit · Delete
+  //   Done:  Undo done (−XP) · Delete
   function menuHtml(q, title) {
-    const edit =
-      q.status === "done"
-        ? ""
-        : '<button type="button" role="menuitem" data-action="edit">Edit</button>';
+    let items = "";
+    if (q.status === "doing")
+      items += menuItem("back", "Move back to To do", "back");
+    if (q.status === "done")
+      items += menuItem(
+        "undo",
+        "Undo done",
+        "undo",
+        `<em aria-hidden="true">−${q.earned} XP</em>`,
+      );
+    else items += menuItem("edit", "Edit", "edit");
+    items +=
+      '<hr role="separator">' +
+      menuItem("delete", "Delete", "delete", "", "danger");
     return `
       <div class="qcard-menu">
         <button type="button" class="kebab" data-action="menu" aria-haspopup="menu" aria-expanded="false" aria-label="Options for ${title}"></button>
-        <div class="qmenu" role="menu" hidden>
-          ${edit}
-          <button type="button" role="menuitem" class="danger" data-action="delete">Delete</button>
-        </div>
+        <div class="qmenu" role="menu" hidden>${items}</div>
       </div>`;
   }
 
@@ -584,10 +538,10 @@ document.addEventListener("DOMContentLoaded", function () {
         ${q.desc ? `<p class="cap">${esc(q.desc)}</p>` : ""}
         <div class="meta">
           <span class="chip chip-${q.cat}">${CATEGORY_LABEL[q.cat]}</span>
-          <span class="xp earned">+${q.earned} XP earned</span>
-          <span class="due">${doneLabel(q.completed)}</span>
+          <span class="xp earned">+${q.earned} XP</span>
+          <span class="due done-when"><span class="sr-only">Completed </span>${doneDay(q.completed)}</span>
         </div>
-        <div class="qactions"><span class="done-label">Completed</span></div>
+        <div class="qactions done-row" aria-hidden="true"><span class="done-tag">Completed</span></div>
       </article>`;
   }
 
@@ -597,19 +551,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const title = esc(q.title);
     const action =
       q.status === "todo"
-        ? '<button type="button" class="btn-gold fx" data-action="start">Start</button>'
+        ? '<button type="button" class="btn-gold fx" data-action="start">Begin Quest</button>'
         : '<button type="button" class="btn-lime fx" data-action="done">Mark done</button>';
     return `
       <article class="qcard can-drag${overdue ? " is-overdue" : ""}" data-id="${q.id}">
         <div class="qcard-head">
           <h3 class="qcard-title"><button type="button" class="qcard-open" data-action="open" aria-haspopup="dialog" aria-describedby="dragHelp">${title}</button></h3>
+          ${overdue ? '<span class="badge-overdue">Quest Overdue</span>' : ""}
           <div class="qcard-tools">${menuHtml(q, title)}</div>
         </div>
         ${q.desc ? `<p class="cap">${esc(q.desc)}</p>` : ""}
         <div class="meta">
           <span class="chip chip-${q.cat}">${CATEGORY_LABEL[q.cat]}</span>
           <span class="xp" title="${PRIORITY_LABEL[q.priority]} priority">+${shownXp(q)} XP</span>
-          ${overdue ? '<span class="badge-overdue">Overdue</span>' : ""}
           <span class="due">${dueText(q)}</span>
         </div>
         <div class="qactions">${action}</div>
@@ -644,6 +598,14 @@ document.addEventListener("DOMContentLoaded", function () {
         long && !expanded[status] ? items.slice(0, COLUMN_LIMIT) : items;
 
       counts[status].textContent = items.length;
+      // Phone tabs: bilang + pulang tuldok kung may overdue
+      colTabs.querySelector(`[data-tab-count="${status}"]`).textContent =
+        items.length;
+      colTabs.querySelector(`[data-tab-od="${status}"]`).hidden =
+        !items.some(isOverdue);
+      // Lumipat ang quest sa ibang column (Begin, Mark done, Undo): sundan sa phone
+      if (highlight && isPhone() && items.some((q) => q.id === highlight))
+        setPhoneTab(status);
       lists[status].innerHTML = shown.length
         ? shown.map(cardHtml).join("")
         : `<p class="col-empty">${COLUMN_EMPTY[status]}</p>`;
@@ -658,13 +620,66 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const nothing = visible.length === 0;
     board.hidden = nothing;
+    colTabs.hidden = nothing;
     emptyBox.hidden = !nothing;
     if (nothing) fillEmptyState();
 
     if (highlight) revealInList(highlight);
     updateFades();
+    paintStreak();
+    paintCounters();
     saveBoard();
     if (before) play(before, highlight);
+  }
+
+  // Scoreboard sa arena header: buong board (hindi apektado ng search o filter)
+  function paintCounters() {
+    const today = todayIso();
+    const weekAgo = parseIso(isoOffset(-6)).getTime();
+    const set = (id, n) => {
+      const el = $(id);
+      if (el) el.textContent = n;
+    };
+    set("cOverdue", quests.filter(isOverdue).length);
+    set(
+      "cToday",
+      quests.filter((q) => q.status !== "done" && q.due === today).length,
+    );
+    set(
+      "cWeek",
+      quests.filter((q) => q.status === "done" && q.completed >= weekAgo)
+        .length,
+    );
+  }
+
+  // Streak sa player strip: ilang sunod-sunod na araw (hanggang ngayon o kahapon)
+  // na may natapos na quest. Parehong bilang ng "Day streak" sa Profile.
+  let lastStreak = null;
+  function paintStreak() {
+    const el = $("bStreak");
+    if (!el) return;
+    const days = new Set(
+      quests
+        .filter((q) => q.status === "done" && typeof q.completed === "number")
+        .map((q) => isoFor(new Date(q.completed))),
+    );
+    const d = new Date();
+    if (!days.has(isoFor(d))) d.setDate(d.getDate() - 1); // hindi pa putol kung kahapon ang huli
+    let n = 0;
+    while (days.has(isoFor(d))) {
+      n++;
+      d.setDate(d.getDate() - 1);
+    }
+    const text = n ? `${n}-day streak` : "No streak yet";
+    // "pop" lang kapag tumaas (hindi sa pagbukas ng page)
+    if (lastStreak !== null && n > lastStreak) restartAnimation(el, "pop");
+    lastStreak = n;
+    $("bStreakText").textContent = text;
+    el.classList.toggle("off", n === 0);
+    el.setAttribute(
+      "aria-label",
+      n ? `Day streak: ${n} day${n === 1 ? "" : "s"}` : "No day streak yet",
+    );
   }
 
   // I-scroll yung list ng column (hindi yung buong page) para kita yung card na kakalipat lang.
@@ -706,8 +721,21 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   window.addEventListener("resize", updateFades);
 
+  // First-quest guide: shown only when the whole board is empty (no search,
+  // no filter). The XP numbers come from the same constants as the game.
+  function firstStepsHtml() {
+    const xp = XP_BY_PRIORITY;
+    return `
+      <li><b>Add a quest</b><span>Name it, pick Work, Learning or Health, and set a priority.</span></li>
+      <li><b>Begin it</b><span>Move it to Doing when you start.</span></li>
+      <li><b>Mark it done</b><span>Low gives ${xp.low} XP, Medium ${xp.medium}, High ${xp.high}. Every ${XP_PER_LEVEL} XP is a new level.</span></li>`;
+  }
+
   function fillEmptyState() {
     emptyReset.hidden = false;
+    const brandNew = !state.query && state.filter === "all";
+    firstSteps.hidden = !brandNew;
+    if (brandNew) firstSteps.innerHTML = firstStepsHtml();
     if (state.query) {
       emptyTitle.textContent = `No quests match "${state.query}"`;
       emptyText.textContent =
@@ -719,7 +747,7 @@ document.addEventListener("DOMContentLoaded", function () {
       emptyReset.textContent = "Show all quests";
     } else {
       emptyTitle.textContent = "Your board is empty";
-      emptyText.textContent = "Add a quest to get started.";
+      emptyText.textContent = "Three steps to your first XP:";
       emptyReset.hidden = true;
     }
   }
@@ -813,12 +841,18 @@ document.addEventListener("DOMContentLoaded", function () {
     el.style.opacity = "0";
 
     const anim = copy.animate(keyframes, timing);
+    let cleaned = false;
     const done = () => {
+      if (cleaned) return;
+      cleaned = true;
       copy.remove();
       el.style.opacity = "";
     };
     anim.onfinish = done;
     anim.oncancel = done;
+    // Pananggalang: kapag naka-background ang tab, hindi dumarating ang "finish",
+    // kaya timer din ang nag-aalis ng kopya (walang naiiwan sa page)
+    setTimeout(done, timing.duration + 250);
   }
 
   function focusCard(id, target = "action") {
@@ -842,12 +876,15 @@ document.addEventListener("DOMContentLoaded", function () {
   let pillXp = 0; // what the pill's XP text says right now
 
   function setFill(pct, animate = true) {
-    if (!animate) levelFill.style.transition = "none";
-    levelFill.style.width = pct + "%";
-    if (!animate) {
-      void levelFill.offsetWidth;
-      levelFill.style.transition = "";
-    }
+    [levelFill, bFill].forEach((fill) => {
+      if (!fill) return;
+      if (!animate) fill.style.transition = "none";
+      fill.style.width = pct + "%";
+      if (!animate) {
+        void fill.offsetWidth;
+        fill.style.transition = "";
+      }
+    });
   }
 
   // Pinapatakbo yung numero ng XP (hal. 1,450 → 1,470), gaya ng demo sa Home.
@@ -859,6 +896,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const p = Math.min(1, (now - start) / 450);
       pillXp = Math.round(from + (to - from) * p);
       levelXp.textContent = xpLabel(pillXp);
+      if (bXp) bXp.textContent = xpLabel(pillXp);
       if (p < 1) countFrame = requestAnimationFrame(step);
     })(start);
   }
@@ -873,6 +911,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     levelNum.textContent = "Level " + level;
     levelPill.dataset.level = level;
+    if (bLevel) {
+      bLevel.textContent = "Level " + level;
+      bRank.textContent = rankFor(total);
+      const chip = $("bRankChip");
+      if (chip) chip.dataset.rank = rankFor(total).toLowerCase();
+      const badge = $("bBadge");
+      if (badge) badge.textContent = level;
+      bNext.textContent = `${XP_PER_LEVEL - (total % XP_PER_LEVEL)} XP to Level ${level + 1}`;
+      if (!change || reduceMotion.matches) bXp.textContent = xpLabel(total);
+    }
     // Sabihan ang header (nav.js) para ma-update ang rank at "XP to Level"
     document.dispatchEvent(
       new CustomEvent("questify:xp", { detail: { total, level, change } }),
@@ -897,6 +945,8 @@ document.addEventListener("DOMContentLoaded", function () {
         setFill(pct);
       }, 600);
       restartAnimation(levelNum, "pop");
+      if (bLevel) restartAnimation(bLevel, "pop");
+      if ($("bBadge")) restartAnimation($("bBadge"), "pop");
     } else if (level < prevLevel) {
       // Undo na nagpababa ng level: ubusin yung bar, tapos ipakita ulit yung laman ng dating level.
       setFill(0);
@@ -905,6 +955,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setFill(pct);
       }, 600);
       restartAnimation(levelNum, "pop");
+      if (bLevel) restartAnimation(bLevel, "pop");
     } else {
       setFill(pct);
     }
@@ -924,11 +975,10 @@ document.addEventListener("DOMContentLoaded", function () {
     announce(`Started "${q.title}". It moved to Doing.`);
   }
 
-  // "Mark done": lipat sa Done + dagdag XP sa ledger + toast na may Undo.
-  // `rankBefore` = tinatandaan yung dating pwesto para maibalik kung mag-Undo.
+  // "Mark done" (pagkatapos i-confirm sa popup): lipat sa Done + dagdag XP sa ledger.
+  // Wala nang Undo sa toast: nasa 3-dot menu na ng card ("Undo done").
   function completeQuest(q) {
     const levelBefore = Number(levelPill.dataset.level);
-    const rankBefore = q.rank;
     q.status = "done";
     q.completed = Date.now();
     q.earned = XP_BY_PRIORITY[q.priority];
@@ -939,15 +989,23 @@ document.addEventListener("DOMContentLoaded", function () {
     focusCard(q.id, "kebab");
 
     const levelNow = Number(levelPill.dataset.level);
-    const levelUp = levelNow > levelBefore ? ` Level ${levelNow}!` : "";
-    showToast(`Marked "${q.title}" done. +${q.earned} XP.${levelUp}`, {
-      tone: "success",
-      action: { label: "Undo", run: () => undoComplete(q, rankBefore) },
-    });
+    const leveledUp = levelNow > levelBefore;
+    const toNext = XP_PER_LEVEL - (totalXp() % XP_PER_LEVEL);
+    const rankedUp = rankFor(totalXp()) !== rankFor(totalXp() - q.earned);
+
+    // Level up / rank up = may popup na (Level Up dito, Rank Up sa nav.js), kaya walang toast.
+    // Toast lang para sa karaniwang quest.
+    if (!leveledUp && !rankedUp) {
+      showToast({
+        tone: "ok",
+        title: `+${q.earned} XP — Level up in ${toNext} XP!`,
+        text: q.title,
+      });
+    }
     announce(
-      `Completed "${q.title}". Plus ${q.earned} XP.${levelUp} Undo is available for a few seconds, or press Control Z.`,
+      `Completed "${q.title}". Plus ${q.earned} XP.${leveledUp ? ` Level ${levelNow}!` : ""} You can undo it from the quest's menu.`,
     );
-    // Para sa notifications (nav.js): "Quest done" at, kung umakyat, "Level up"
+    if (leveledUp) showRankup(levelNow, totalXp());
     document.dispatchEvent(
       new CustomEvent("questify:quest-done", {
         detail: {
@@ -960,24 +1018,53 @@ document.addEventListener("DOMContentLoaded", function () {
       }),
     );
   }
-
-  // Undo: ibabalik sa Doing (sa dating pwesto) at babawiin yung XP.
-  function undoComplete(q, rankBefore) {
+  // "Undo done" (3-dot menu ng Done, may confirm): babalik sa taas ng Doing
+  // at babawiin yung XP na nakuha dito.
+  function undoDone(q) {
     if (q.status !== "done" || !quests.includes(q)) return;
     const i = bankedXp.findLastIndex((entry) => entry.id === q.id);
-    const lost = i > -1 ? bankedXp.splice(i, 1)[0].xp : 0;
-    q.status = "doing";
+    let lost;
+    if (i > -1) {
+      lost = bankedXp.splice(i, 1)[0].xp;
+    } else {
+      // Sample quests: kasama na ang XP nila sa panimulang 1,450 (walang sariling
+      // linya sa ledger), kaya magbabawas tayo ng hiwalay na linya.
+      lost = q.earned || 0;
+      bankedXp.push({ id: null, xp: -lost });
+    }
+    moveToColumnTop(q, "doing");
     q.earned = null;
     q.completed = null;
-    q.rank = rankBefore;
+    // Kung late na 'to dati, huwag nang ulitin yung "overdue" na toast
+    if (isOverdue(q)) knownOverdue.add(q.id);
     render({ highlight: q.id });
     paintLevel(-lost);
     focusCard(q.id);
-    announce(`Undone. "${q.title}" is back in Doing.`);
+    showToast({
+      tone: "info",
+      icon: "undo",
+      title: "Moved back to Doing",
+      text: `${q.title} · −${lost} XP`,
+    });
+    announce(`"${q.title}" is back in Doing. Minus ${lost} XP.`);
     // Binawi: tanggalin din yung notifications ng quest na 'to
     document.dispatchEvent(
       new CustomEvent("questify:quest-undo", { detail: { id: q.id } }),
     );
+  }
+
+  // "Move back to To do" (3-dot menu ng Doing): walang XP na gumagalaw, kaya walang confirm
+  function moveBackToTodo(q) {
+    moveToColumnTop(q, "todo");
+    render({ highlight: q.id });
+    focusCard(q.id);
+    showToast({
+      tone: "info",
+      icon: "back",
+      title: "Moved back to To do",
+      text: q.title,
+    });
+    announce(`"${q.title}" moved back to To do.`);
   }
 
   // ---------- overdue nudge (paalala pag late na yung quest) ----------
@@ -988,8 +1075,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!list.length) return;
     showToast(
       list.length === 1
-        ? `"${list[0].title}" is overdue.`
-        : `${list.length} quests are overdue. They're marked in red.`,
+        ? {
+          tone: "err",
+          title: "Quest Overdue",
+          text: `${list[0].title} was due ${shortDate(list[0].due)}.`,
+          announce: true, // walang announce() dito, kaya ang toast ang magsasabi
+        }
+        : {
+          tone: "err",
+          title: `${list.length} quests are overdue`,
+          text: "They're marked in red on your board.",
+          announce: true,
+        },
     );
   }
 
@@ -1036,14 +1133,37 @@ document.addEventListener("DOMContentLoaded", function () {
     menu.hidden = false;
     kebab.setAttribute("aria-expanded", "true");
     kebab.closest(".qcard").classList.add("menu-open");
-    openMenu = { kebab, menu };
-    menu.querySelector('[role="menuitem"]').focus();
+    const list = menu.closest(".col-scroll");
+    openMenu = { kebab, menu, list };
+    fitMenu(menu, list);
+    menu.querySelector('[role="menuitem"]').focus({ preventScroll: true });
+  }
+
+  // Hindi mapuputol ang menu kahit iisa lang ang card (o nasa dulo ng listahan):
+  // dinadagdagan saglit ang puwang sa baba ng column, tapos sini-scroll para kita.
+  function fitMenu(menu, list) {
+    if (!list) return;
+    // Tapusin muna ang galaw ng card (hal. kaka-filter lang) para tama ang sukat
+    menu
+      .closest(".qcard")
+      .getAnimations()
+      .forEach((a) => a.finish());
+    const over =
+      menu.getBoundingClientRect().bottom -
+      list.getBoundingClientRect().bottom +
+      12;
+    if (over > 0) {
+      const base = parseFloat(getComputedStyle(list).paddingBottom) || 0;
+      list.style.paddingBottom = base + over + "px";
+    }
+    menu.scrollIntoView({ block: "nearest" });
   }
 
   function closeMenu({ returnFocus = false } = {}) {
     if (!openMenu) return;
-    const { kebab, menu } = openMenu;
+    const { kebab, menu, list } = openMenu;
     openMenu = null;
+    if (list) list.style.paddingBottom = "";
     menu.hidden = true;
     kebab.setAttribute("aria-expanded", "false");
     const card = kebab.closest(".qcard");
@@ -1070,7 +1190,7 @@ document.addEventListener("DOMContentLoaded", function () {
         startQuest(q);
         break;
       case "done":
-        completeQuest(q);
+        openConfirm("done", q, btn);
         break;
       case "menu":
         toggleMenu(btn);
@@ -1079,9 +1199,17 @@ document.addEventListener("DOMContentLoaded", function () {
         closeMenu();
         openQuestModal(q, kebab);
         break;
+      case "back":
+        closeMenu();
+        moveBackToTodo(q);
+        break;
+      case "undo":
+        closeMenu();
+        openConfirm("undo", q, kebab);
+        break;
       case "delete":
         closeMenu();
-        openDeleteModal(q, kebab);
+        openConfirm("delete", q, kebab);
         break;
     }
   });
@@ -1457,6 +1585,30 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   });
 
+  const rankupModal = $("rankupModal");
+  const rankupName = rankupModal ? $("rankupName") : null;
+  const rankupSub = rankupModal ? $("rankupSub") : null;
+  let rankupTimer = null;
+
+  function showRankup(level, total) {
+    if (!rankupModal) return; // safety: does nothing if the modal HTML is missing
+    rankupName.textContent = "Level " + level;
+    rankupSub.textContent = xpLabel(total) + " total";
+    rankupModal.classList.add("show");
+    rankupModal.setAttribute("aria-hidden", "false");
+    clearTimeout(rankupTimer);
+    rankupTimer = setTimeout(hideRankup, 2200);
+  }
+
+  function hideRankup() {
+    if (!rankupModal) return;
+    rankupModal.classList.remove("show");
+    rankupModal.setAttribute("aria-hidden", "true");
+    clearTimeout(rankupTimer);
+  }
+
+  if (rankupModal) rankupModal.addEventListener("click", hideRankup);
+
   // ---------- dialogs (popups: Add/Edit, Details, Delete) ----------
 
   let activeModal = null;
@@ -1484,7 +1636,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  [questModal, detailModal, deleteModal].forEach((modal) => {
+  [questModal, detailModal, confirmModal].forEach((modal) => {
     let pressedBackdrop = false;
     modal.addEventListener("mousedown", (e) => {
       pressedBackdrop = e.target === modal;
@@ -1507,7 +1659,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (e.key !== "Tab") return;
     const focusables = [
-      ...activeModal.querySelectorAll("button, input, select"),
+      ...activeModal.querySelectorAll("button, input, select, textarea"),
     ].filter((el) => !el.disabled && el.offsetParent !== null);
     const firstEl = focusables[0];
     const lastEl = focusables[focusables.length - 1];
@@ -1525,7 +1677,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function openDetail(q, returnEl) {
     const overdue = isOverdue(q);
     const status = $("dStatus");
-    status.textContent = STATUS_LABEL[q.status] + (overdue ? " · Overdue" : "");
+    status.textContent =
+      STATUS_LABEL[q.status] + (overdue ? " · Quest Overdue" : "");
     status.className = `detail-status status-${q.status}${overdue ? " is-overdue" : ""}`;
     $("dTitle").textContent = q.title;
 
@@ -1563,8 +1716,28 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateXpReadout(bump) {
-    qXp.textContent = "+" + XP_BY_PRIORITY[qPriority.value] + " XP";
+    qXp.textContent =
+      "+" + XP_BY_PRIORITY[getChoice("qPriority") || "medium"] + " XP";
     if (bump && !reduceMotion.matches) restartAnimation(qXp, "bump");
+  }
+
+  // Bilang ng letra (hal. "13 / 60") at paglaki ng description box habang nagta-type
+  function updateCounts() {
+    qTitleCount.textContent = `${qTitle.value.length} / ${qTitle.maxLength}`;
+    qDescCount.textContent = `${qDesc.value.length} / ${qDesc.maxLength}`;
+  }
+  function growDesc() {
+    qDesc.style.height = "auto";
+    qDesc.style.height = Math.min(qDesc.scrollHeight + 2, 200) + "px";
+  }
+  // Naka-highlight yung "Today / Tomorrow / Next week" kung yun ang petsa
+  function syncQuickDue() {
+    syncDueButton();
+    quickDue.forEach((b) => {
+      const on = qDue.value === isoOffset(Number(b.dataset.due));
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
   }
 
   function openQuestModal(q, returnEl) {
@@ -1573,33 +1746,336 @@ document.addEventListener("DOMContentLoaded", function () {
     qSubmit.textContent = q ? "Save changes" : "Add quest";
     qTitle.value = q ? q.title : "";
     qDesc.value = q ? q.desc : "";
-    qCat.value = q ? q.cat : state.filter !== "all" ? state.filter : "work";
-    qPriority.value = q ? q.priority : "medium";
+    setChoice(
+      "qCat",
+      q ? q.cat : state.filter !== "all" ? state.filter : "work",
+    );
+    setChoice("qPriority", q ? q.priority : "medium");
     qDue.value = q ? q.due : todayIso();
+    // Bawal pumili ng lumang petsa. Pero kung luma na ang due date ng ine-edit,
+    // puwede pa rin itong iwan (yun lang, hindi ibang lumang petsa).
+    qDue.min = q && q.due && q.due < todayIso() ? q.due : todayIso();
+    // Kung lampas na sa 1 taon ang due date ng ine-edit (lumang data), puwede pa ring iwan
+    qDue.max = q && q.due && q.due > maxDue() ? q.due : maxDue();
+    showDueError(null);
     showTitleError(false);
     updateXpReadout(false);
+    updateCounts();
+    syncQuickDue();
+    closeCal(false);
     openModal(questModal, qTitle, returnEl);
+    growDesc(); // pagkatapos lumabas, para tama ang sukat
   }
 
-  qPriority.addEventListener("change", () => updateXpReadout(true));
+  function showDueError(msg) {
+    qDueErr.textContent = msg || "";
+    qDueErr.classList.toggle("show", !!msg);
+    qDue.setAttribute("aria-invalid", msg ? "true" : "false");
+    dueBtn.setAttribute("aria-invalid", msg ? "true" : "false");
+  }
+
+  // null = okay ang petsa; kung hindi, yung error message
+  function dueProblem(due) {
+    if (!due) return "Pick a due date."; // kailangan ng petsa ang bawat quest
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) return "Pick a valid date.";
+    const keepingOld = editing && due === editing.due;
+    if (due < todayIso() && !keepingOld) return "Pick today or a later date.";
+    if (due > maxDue() && !keepingOld)
+      return "Pick a date within the next year.";
+    return null;
+  }
+
+  questForm
+    .querySelectorAll('input[name="qPriority"]')
+    .forEach((r) => r.addEventListener("change", () => updateXpReadout(true)));
   qTitle.addEventListener("input", () => {
     if (qTitle.value.trim()) showTitleError(false);
+    updateCounts();
+  });
+  qDesc.addEventListener("input", () => {
+    updateCounts();
+    growDesc();
+  });
+  // Enter / Shift + Enter = bagong linya (normal sa textarea). Ctrl/Cmd + Enter = save.
+  questForm.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      questForm.requestSubmit();
+    }
+  });
+  qDue.addEventListener("input", () => {
+    showDueError(null);
+    syncQuickDue();
+  });
+  quickDue.forEach((b) =>
+    b.addEventListener("click", () => {
+      qDue.value = isoOffset(Number(b.dataset.due));
+      showDueError(null);
+      syncQuickDue();
+    }),
+  );
+
+  // ---------- calendar (sariling date picker, parang Asana / planner) ----------
+  // Button na may petsa → calendar na may ‹ › na arrows at mga araw. Pindutin ang
+  // "September 2026" = grid ng mga buwan (sariling gawa, hindi <select>, para
+  // gumana ang custom cursor at pareho ang itsura). Bawal ang lumang araw at
+  // lampas 1 taon. Keyboard: arrows = lipat, Enter = pili, Esc = balik / sara.
+  const dueBtn = $("qDueBtn");
+  const dueBtnText = $("qDueText");
+  const duePop = $("qDuePop");
+  const MONTHS_LONG = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  let viewY = 0;
+  let viewM = 0;
+  let pickMonth = false; // true = grid ng buwan ang nakikita
+  let pickYear = 0; // taon na pinapakita sa grid ng buwan
+  const CHEVRON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+
+  function dueLabel(iso) {
+    if (!iso) return "Pick a date";
+    const d = parseIso(iso);
+    return `${WEEKDAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+  function syncDueButton() {
+    dueBtnText.textContent = dueLabel(qDue.value);
+    dueBtn.classList.toggle("empty", !qDue.value);
+  }
+  function dueAllowed(iso) {
+    if (editing && iso === editing.due) return true; // lumang petsa ng ine-edit
+    return iso >= todayIso() && iso <= maxDue();
+  }
+  function setDue(iso) {
+    qDue.value = iso;
+    qDue.dispatchEvent(new Event("input"));
+    syncDueButton();
+  }
+
+  // Pinakauna at pinakahuling puwedeng buwan (bilang: taon * 12 + buwan)
+  const monthIndex = (y, m) => y * 12 + m;
+  function monthRange() {
+    const minD = parseIso(todayIso());
+    const maxD = parseIso(maxDue());
+    return {
+      lo: monthIndex(minD.getFullYear(), minD.getMonth()),
+      hi: monthIndex(maxD.getFullYear(), maxD.getMonth()),
+    };
+  }
+
+  function calHead(label, prevOff, nextOff) {
+    const unit = pickMonth ? "year" : "month";
+    return `
+      <div class="dp-head">
+        <button type="button" class="dp-nav" data-nav="-1" aria-label="Previous ${unit}"${prevOff ? " disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button type="button" class="dp-title" aria-expanded="${pickMonth}" aria-label="${pickMonth ? "Back to days" : "Choose month"}, ${label}">${label}${CHEVRON}</button>
+        <button type="button" class="dp-nav" data-nav="1" aria-label="Next ${unit}"${nextOff ? " disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>`;
+  }
+
+  function renderCal(focusIso) {
+    const { lo, hi } = monthRange();
+    const cur = monthIndex(viewY, viewM);
+
+    if (pickMonth) {
+      // Grid ng 12 buwan ng pickYear (abo ang hindi puwede)
+      let months = "";
+      for (let m = 0; m < 12; m++) {
+        const i = monthIndex(pickYear, m);
+        const cls = [i === lo ? "now" : "", i === cur ? "sel" : ""]
+          .join(" ")
+          .trim();
+        const ok = i >= lo && i <= hi;
+        months += `<button type="button" class="dp-mon ${cls}" data-month="${i}"${ok ? "" : " disabled"} tabindex="${i === focusIso ? 0 : -1}" aria-label="${MONTHS_LONG[m]} ${pickYear}"${i === cur ? ' aria-pressed="true"' : ""}>${MONTHS[m]}</button>`;
+      }
+      duePop.innerHTML =
+        calHead(
+          String(pickYear),
+          pickYear <= Math.floor(lo / 12),
+          pickYear >= Math.floor(hi / 12),
+        ) + `<div class="dp-months">${months}</div>`;
+      return;
+    }
+
+    const first = new Date(viewY, viewM, 1);
+    const today = todayIso();
+    let days = "";
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(viewY, viewM, 1 - first.getDay() + i);
+      const iso = isoFor(d);
+      const cls = [
+        d.getMonth() !== viewM ? "out" : "",
+        iso === today ? "today" : "",
+        iso === qDue.value ? "sel" : "",
+      ]
+        .join(" ")
+        .trim();
+      days += `<button type="button" class="dp-day ${cls}" data-day="${iso}"${dueAllowed(iso) ? "" : " disabled"} tabindex="${iso === focusIso ? 0 : -1}" aria-label="${dueLabel(iso)}"${iso === qDue.value ? ' aria-pressed="true"' : ""}>${d.getDate()}</button>`;
+    }
+    duePop.innerHTML =
+      calHead(`${MONTHS_LONG[viewM]} ${viewY}`, cur <= lo, cur >= hi) +
+      `<div class="dp-week" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="dp-grid">${days}</div>`;
+  }
+
+  // Lipat sa grid ng buwan (o pabalik sa mga araw)
+  function showMonths(on) {
+    pickMonth = on;
+    if (on) {
+      pickYear = viewY;
+      const i = monthIndex(viewY, viewM);
+      renderCal(i);
+      duePop.querySelector(`[data-month="${i}"]`).focus();
+    } else {
+      renderCal("");
+      duePop.querySelector(".dp-title").focus();
+    }
+  }
+
+  function focusDay(iso) {
+    const btn = duePop.querySelector(`[data-day="${iso}"]`);
+    if (btn && !btn.disabled) btn.focus();
+    else {
+      const any = duePop.querySelector(".dp-day:not(:disabled)");
+      if (any) any.focus();
+    }
+  }
+  function openCal() {
+    const base = qDue.value && dueAllowed(qDue.value) ? qDue.value : todayIso();
+    const d = parseIso(base);
+    viewY = d.getFullYear();
+    viewM = d.getMonth();
+    pickMonth = false;
+    duePop.hidden = false;
+    dueBtn.setAttribute("aria-expanded", "true");
+    renderCal(base);
+    // Buksan pataas kung kulang ang espasyo sa baba
+    duePop.classList.remove("up");
+    if (duePop.getBoundingClientRect().bottom > window.innerHeight - 8)
+      duePop.classList.add("up");
+    focusDay(base);
+  }
+  function closeCal(returnFocus) {
+    if (duePop.hidden) return;
+    duePop.hidden = true;
+    dueBtn.setAttribute("aria-expanded", "false");
+    if (returnFocus) dueBtn.focus();
+  }
+  function showMonth(y, m, focusIso) {
+    viewY = y;
+    viewM = m;
+    renderCal(focusIso);
+    focusDay(focusIso);
+  }
+
+  dueBtn.addEventListener("click", () =>
+    duePop.hidden ? openCal() : closeCal(true),
+  );
+  duePop.addEventListener("click", (e) => {
+    const day = e.target.closest("[data-day]");
+    const nav = e.target.closest("[data-nav]");
+    const mon = e.target.closest("[data-month]");
+    if (e.target.closest(".dp-title")) {
+      showMonths(!pickMonth);
+    } else if (mon && !mon.disabled) {
+      // Napili ang buwan: balik sa mga araw ng buwang iyon
+      const i = Number(mon.dataset.month);
+      viewY = Math.floor(i / 12);
+      viewM = i % 12;
+      pickMonth = false;
+      renderCal(qDue.value);
+      focusDay(qDue.value);
+    } else if (day && !day.disabled) {
+      setDue(day.dataset.day);
+      closeCal(true);
+    } else if (nav && !nav.disabled && pickMonth) {
+      pickYear += Number(nav.dataset.nav);
+      renderCal("");
+      duePop.querySelector(`[data-nav="${nav.dataset.nav}"]`).focus();
+    } else if (nav && !nav.disabled) {
+      const d = new Date(viewY, viewM + Number(nav.dataset.nav), 1);
+      viewY = d.getFullYear();
+      viewM = d.getMonth();
+      renderCal("");
+      duePop.querySelector(`[data-nav="${nav.dataset.nav}"]`).focus();
+    }
+  });
+  duePop.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.stopPropagation(); // isara lang ang calendar, hindi ang buong popup
+      e.preventDefault();
+      if (pickMonth)
+        showMonths(false); // galing sa grid ng buwan: balik sa mga araw
+      else closeCal(true);
+      return;
+    }
+    // Grid ng buwan: ← → = 1 buwan, ↑ ↓ = 3 buwan (isang row)
+    const mon = e.target.closest("[data-month]");
+    const monStep = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[
+      e.key
+    ];
+    if (mon && monStep) {
+      e.preventDefault();
+      const { lo, hi } = monthRange();
+      const i = Number(mon.dataset.month) + monStep;
+      if (i < lo || i > hi) return;
+      if (Math.floor(i / 12) !== pickYear) {
+        pickYear = Math.floor(i / 12);
+        renderCal(i);
+      }
+      duePop.querySelector(`[data-month="${i}"]`).focus();
+      return;
+    }
+    const day = e.target.closest("[data-day]");
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[
+      e.key
+    ];
+    if (!day || !step) return;
+    e.preventDefault();
+    const d = parseIso(day.dataset.day);
+    d.setDate(d.getDate() + step);
+    const iso = isoFor(d);
+    if (!dueAllowed(iso)) return;
+    if (d.getMonth() !== viewM || d.getFullYear() !== viewY)
+      showMonth(d.getFullYear(), d.getMonth(), iso);
+    else focusDay(iso);
+  });
+  // Click sa labas = sara. composedPath: tama pa rin kahit na-redraw na ang calendar
+  // (hal. pinindot ang "September 2026" o ‹ ›, wala na sa page ang lumang button).
+  const dueWrap = dueBtn.closest(".dp-wrap");
+  document.addEventListener("click", (e) => {
+    if (!duePop.hidden && !e.composedPath().includes(dueWrap)) closeCal(false);
   });
 
   questForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const title = qTitle.value.trim();
-    if (!title) {
-      showTitleError(true);
-      qTitle.focus();
+    const dueMsg = dueProblem(qDue.value);
+    showTitleError(!title);
+    showDueError(dueMsg);
+    if (!title || dueMsg) {
+      (!title ? qTitle : dueBtn).focus();
       return;
     }
 
     const data = {
       title,
       desc: qDesc.value.trim(),
-      cat: CATEGORY_LABEL[qCat.value] ? qCat.value : "work",
-      priority: XP_BY_PRIORITY[qPriority.value] ? qPriority.value : "medium",
+      cat: CATEGORY_LABEL[getChoice("qCat")] ? getChoice("qCat") : "work",
+      priority: XP_BY_PRIORITY[getChoice("qPriority")]
+        ? getChoice("qPriority")
+        : "medium",
       due: qDue.value,
     };
 
@@ -1637,30 +2113,88 @@ document.addEventListener("DOMContentLoaded", function () {
     checkOverdue({ rerender: false });
   });
 
-  // Delete
+  // ---------- confirm popup (Mark done, Undo done, Delete) ----------
+  // Isang popup, iba-iba lang ang laman. Pinapakita yung quest mismo at yung XP,
+  // para malinaw kung ano ang mangyayari (hindi generic na "Are you sure?").
 
-  let deleting = null;
+  const CONFIRM_ICON = {
+    done: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    undo: MENU_ICON.undo,
+    delete: MENU_ICON.delete,
+  };
+  let confirming = null;
 
-  function openDeleteModal(q, returnEl) {
-    deleting = q;
-    delText.textContent =
-      `"${q.title}" will be removed from your board. ` +
-      (q.status === "done"
-        ? "This can't be undone, and its XP stays earned."
-        : "This can't be undone.");
-    openModal(deleteModal, delCancel, returnEl);
+  function openConfirm(kind, q, returnEl) {
+    confirming = { kind, q };
+    const xp = shownXp(q);
+    const c = {
+      done: {
+        tone: "lime",
+        title: "Mark this quest as done?",
+        text: "It moves to Done and the XP is added to your total. You can undo it later from the quest's menu.",
+        ok: "Mark done",
+        okClass: "btn-lime",
+        xp: `+${xp} XP`,
+        xpClass: "",
+      },
+      undo: {
+        tone: "teal",
+        title: "Move this quest back to Doing?",
+        text: "The XP you earned from it will be taken off your total.",
+        ok: "Undo done",
+        okClass: "btn-teal",
+        xp: `−${xp} XP`,
+        xpClass: "lost",
+      },
+      delete: {
+        tone: "rose",
+        title: "Delete this quest?",
+        text:
+          q.status === "done"
+            ? "It will be removed from your board. This can't be undone, and its XP stays earned."
+            : "It will be removed from your board. This can't be undone.",
+        ok: "Delete quest",
+        okClass: "btn-rose",
+        xp: q.status === "done" ? `+${xp} XP earned` : `+${xp} XP`,
+        xpClass: "muted",
+      },
+    }[kind];
+
+    cmIco.className = "cm-ico " + c.tone;
+    cmIco.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${CONFIRM_ICON[kind]}</svg>`;
+    cmTitle.textContent = c.title;
+    cmText.textContent = c.text;
+    cmQuest.textContent = q.title;
+    cmMeta.innerHTML =
+      `<span class="chip chip-${q.cat}">${CATEGORY_LABEL[q.cat]}</span>` +
+      esc(
+        q.status === "done"
+          ? doneLabel(q.completed)
+          : PRIORITY_LABEL[q.priority] + " priority",
+      );
+    cmXp.textContent = c.xp;
+    cmXp.className = "cm-xp " + c.xpClass;
+    cmOk.textContent = c.ok;
+    cmOk.className = c.okClass + " fx";
+    // Delete = hindi na maibabalik, kaya sa Cancel ang focus. Yung iba, sa main button.
+    openModal(confirmModal, kind === "delete" ? cmCancel : cmOk, returnEl);
   }
 
-  delConfirm.addEventListener("click", () => {
-    if (!deleting) return;
-    const title = deleting.title;
-    quests.splice(quests.indexOf(deleting), 1);
-    knownOverdue.delete(deleting.id);
-    deleting = null;
+  cmOk.addEventListener("click", () => {
+    if (!confirming) return;
+    const { kind, q } = confirming;
+    confirming = null;
     closeModal({ restoreFocus: false });
-    render();
-    addBtn.focus();
-    announce(`Deleted "${title}".`);
+    if (!quests.includes(q)) return;
+    if (kind === "done") completeQuest(q);
+    else if (kind === "undo") undoDone(q);
+    else {
+      quests.splice(quests.indexOf(q), 1);
+      knownOverdue.delete(q.id);
+      render();
+      addBtn.focus();
+      announce(`Deleted "${q.title}".`);
+    }
   });
 
   // ---------- toolbar (search, filter chips, Add quest) ----------
@@ -1710,10 +2244,63 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ---------- start (unang takbo pagbukas ng page) ----------
 
+  // Galing sa notification (bell): buksan ang details ng quest na 'yon
+  function openFromNotification(id) {
+    const q = findQuest(id);
+    if (!q) {
+      showToast({
+        tone: "info",
+        title: "This quest was deleted",
+        text: "It's no longer on your board.",
+        announce: true,
+      });
+      return;
+    }
+    openDetail(q, $("notifBtn") || addBtn);
+  }
+  document.addEventListener("questify:open-quest", (e) =>
+    openFromNotification(e.detail.id),
+  );
+
+  // Binago ang board sa ibang device (o tab): ipakita ang bago, dito mismo.
+  // Habang may bukas na popup o nagda-drag, maghihintay muna (busy).
+  if (window.questifyBoard)
+    window.questifyBoard.onChange({
+      busy: () => !!activeModal || !!drag,
+      apply(b) {
+        if (activeModal) closeModal({ restoreFocus: false });
+        editing = null;
+        quests = b.quests;
+        bankedXp = b.xp;
+        const highest = Math.max(
+          0,
+          ...quests.map((q) => parseInt(q.id.slice(1), 10) || 0),
+        );
+        nextId = Math.max(Number(b.nextId) || 0, highest + 1);
+        if (SORTS[b.sort]) {
+          state.sort = b.sort;
+          if (b.dir === "asc" || b.dir === "desc") state.dir = b.dir;
+        }
+        knownOverdue = new Set(quests.filter(isOverdue).map((q) => q.id));
+        syncSort();
+        paintLevel();
+        render({ animate: false });
+        announce("Your board was updated from another device.");
+      },
+    });
+
   paintLevel();
   syncControls();
   syncSort();
   render({ animate: false });
-  nudge(quests.filter(isOverdue));
+
+  // tasks.html?quest=q9 (click sa notification mula sa ibang page)
+  const fromNotif = new URLSearchParams(location.search).get("quest");
+  if (fromNotif) {
+    history.replaceState(null, "", location.pathname + location.hash);
+    openFromNotification(fromNotif);
+  } else {
+    nudge(quests.filter(isOverdue));
+  }
   notifyOverdue(quests.filter(isOverdue));
-});
+}

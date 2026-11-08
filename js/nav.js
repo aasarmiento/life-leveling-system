@@ -19,8 +19,12 @@
 (function () {
   const SIGNED_IN_KEY = "questify.signedIn";
   const PLAYER_KEY = "questify.player";
-  const BOARD_KEY = "questify.board.v1"; // dito nagsa-save ang Tasks page (tasks.js)
-  const STARTING_XP = 1450; // dapat pareho sa tasks.js
+  // Server mode (npm start): session token mula sa server, pinapadala sa bawat request
+  const TOKEN_KEY = "questify.token";
+  // Demo account: may sample quests at Level 12 (1,450 XP) para sa mentor at testers.
+  // Bagong account: walang laman ang board, Level 1 (0 XP).
+  const DEMO_EMAIL = "alex@gmail.com";
+  const DEMO_XP = 1450; // dapat pareho sa tasks.js
   const XP_PER_LEVEL = 125; // dapat pareho sa tasks.js
   // Kapareho ng "Climb the ranks" sa Home (at ng demo sa app.js)
   const RANKS = [
@@ -31,7 +35,11 @@
     { name: "Master", xp: 1500 },
   ];
   // Yung pages na kailangan naka-sign in. Ang <html> nila ay may data-guard="...".
-  const GUARDED = { tasks: "tasks.html", profile: "profile.html" };
+  const GUARDED = {
+    tasks: "tasks.html",
+    profile: "profile.html",
+    settings: "settings.html",
+  };
 
   // Saan naka-lagay yung site (para gumana ang links sa index.html at sa pages/)
   const BASE = document.currentScript.src.replace(/js\/nav\.js.*$/, "");
@@ -54,6 +62,141 @@
     }
   }
 
+  // ---------- SERVER (Milestone 2) ----------
+  // Kausap ang Express server natin. Ibinabalik: { status, ok, data }.
+  // null = walang server (GitHub Pages, Live Server, file://) o hindi maabot:
+  // doon, gumagana pa rin ang lumang browser-only na paraan (demo mode).
+  async function api(path, { method = "GET", body, keepalive = false } = {}) {
+    const headers = {};
+    const token = read(TOKEN_KEY);
+    if (token) headers.Authorization = "Bearer " + token;
+    if (body) headers["Content-Type"] = "application/json";
+    try {
+      const res = await fetch(BASE + "api/" + path, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+        keepalive,
+      });
+      // Kapag hindi JSON ang sagot (hal. 404 page ng Live Server), walang server
+      if (!(res.headers.get("content-type") || "").includes("application/json"))
+        return null;
+      return { status: res.status, ok: res.ok, data: await res.json() };
+    } catch (err) {
+      return null;
+    }
+  }
+  // Para magamit din ng ibang file (hal. ang feedback form sa js/app.js)
+  window.questifyApi = api;
+
+  // ---------- TOAST (maliit na message sa baba-kanan, para sa lahat ng page) ----------
+  // Tawagin: window.questifyToast({ tone, title, text }).
+  //   tone: "ok" (lime), "lv" (gold, level up), "info" (teal), "err" (red)
+  // Walang Undo at walang countdown bar. Mga 4 na segundo, humihinto habang
+  // naka-hover, at may X para isara. Isa lang sa isang pagkakataon.
+  const TOAST_ICON = {
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/>',
+    back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+    undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.5v.01"/>',
+  };
+  const TOAST_DEFAULT_ICON = {
+    ok: "check",
+    lv: "star",
+    info: "info",
+    err: "alert",
+  };
+  const svgIcon = (d) =>
+    `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+  let toastEl = null;
+  let toastTimer = null;
+
+  function hideToast() {
+    clearTimeout(toastTimer);
+    if (toastEl) toastEl.hidden = true;
+  }
+
+  window.questifyToast = function ({
+    tone = "info",
+    title = "",
+    text = "",
+    icon = "",
+    announce = true,
+  } = {}) {
+    if (!toastEl) {
+      toastEl = document.createElement("div");
+      toastEl.className = "qtoast";
+      toastEl.hidden = true;
+      toastEl.innerHTML = `
+        <span class="qtoast-ico"></span>
+        <div class="qtoast-body"><b></b><span></span></div>
+        <button type="button" class="qtoast-x" aria-label="Dismiss">${svgIcon('<path d="M6 6l12 12M18 6L6 18"/>')}</button>`;
+      toastEl.querySelector(".qtoast-x").addEventListener("click", hideToast);
+      // Habang nasa toast ang mouse, hindi muna mawawala
+      toastEl.addEventListener("mouseenter", () => clearTimeout(toastTimer));
+      toastEl.addEventListener("mouseleave", () => {
+        if (!toastEl.hidden) toastTimer = setTimeout(hideToast, 2500);
+      });
+      document.body.appendChild(toastEl);
+    }
+    // Ang Tasks page may sariling screen-reader announcer, kaya puwedeng patayin dito
+    toastEl.setAttribute("aria-live", announce ? "polite" : "off");
+    toastEl.setAttribute("role", tone === "err" ? "alert" : "status");
+    toastEl.dataset.tone = tone;
+    toastEl.querySelector(".qtoast-ico").innerHTML = svgIcon(
+      TOAST_ICON[icon] ||
+      TOAST_ICON[TOAST_DEFAULT_ICON[tone]] ||
+      TOAST_ICON.info,
+    );
+    toastEl.querySelector(".qtoast-body b").textContent = title;
+    const small = toastEl.querySelector(".qtoast-body span");
+    small.textContent = text;
+    small.hidden = !text;
+    // Restart ng animation kahit may nakabukas pang toast
+    toastEl.hidden = true;
+    void toastEl.offsetWidth;
+    toastEl.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 4000);
+  };
+
+  // ---------- RANK UP (buong-screen na celebration) ----------
+  let rankUpEl = null;
+  let rankUpTimer = null;
+
+  function hideRankUp() {
+    clearTimeout(rankUpTimer);
+    if (rankUpEl) rankUpEl.classList.remove("show");
+  }
+
+  function showRankUp(rank, total) {
+    if (!rankUpEl) {
+      rankUpEl = document.createElement("div");
+      rankUpEl.className = "rankup";
+      rankUpEl.setAttribute("role", "status");
+      rankUpEl.setAttribute("aria-live", "polite");
+      rankUpEl.innerHTML = `
+        <div class="rankup-card">
+          <span class="rankup-kicker">Rank up</span>
+          <div class="rankup-badge">${svgIcon(TOAST_ICON.star)}</div>
+          <h2 class="rankup-name"></h2>
+          <p class="rankup-sub"></p>
+        </div>`;
+      rankUpEl.addEventListener("click", hideRankUp);
+      document.body.appendChild(rankUpEl);
+    }
+    rankUpEl.querySelector(".rankup-name").textContent = rank;
+    rankUpEl.querySelector(".rankup-sub").textContent =
+      `${total.toLocaleString("en-US")} XP total`;
+    rankUpEl.classList.remove("show");
+    void rankUpEl.offsetWidth;
+    rankUpEl.classList.add("show");
+    clearTimeout(rankUpTimer);
+    rankUpTimer = setTimeout(hideRankUp, 3600);
+  }
+
   const signedIn = read(SIGNED_IN_KEY) === "1";
 
   // ---------- 1. GUARD ----------
@@ -64,6 +207,15 @@
     );
     return;
   }
+  // Sign in / Create account habang naka-sign in na: diretso sa Quest Board
+  // (gaya ng GitHub / Notion). May maliit na toast doon kung bakit (?already=1).
+  if (signedIn && /\/(signin|create-account)\.html$/.test(location.pathname)) {
+    const next = new URLSearchParams(location.search).get("next");
+    location.replace(
+      BASE + "pages/" + (GUARDED[next] || "tasks.html") + "?already=1",
+    );
+    return;
+  }
 
   // ---------- 2. HEADER STATE ----------
   if (signedIn) document.documentElement.classList.add("is-member");
@@ -71,7 +223,7 @@
   // ---------- player (ang "object" na pinupuno sa blueprint) ----------
   const DEFAULT_PLAYER = {
     name: "Alex Rivera",
-    email: "alex@email.com",
+    email: DEMO_EMAIL,
     avatar: "lime",
   };
   function loadPlayer() {
@@ -88,7 +240,190 @@
     write(PLAYER_KEY, JSON.stringify(p));
   }
 
-  // Total XP = sum ng XP ledger na sine-save ng Tasks page. Kung wala pa, 1,450.
+  // ---------- sariling data bawat account ----------
+  // Bawat account may sariling board, XP at notifications sa localStorage.
+  // Ang demo ang gumagamit ng dating pangalan (kaya hindi nawala ang naka-save na).
+  //   demo:  questify.board.v1           bago: questify.board.v1:email@site.com
+  const ME = loadPlayer();
+  const IS_DEMO = ME.email === DEMO_EMAIL;
+  const SUFFIX = IS_DEMO ? "" : ":" + ME.email;
+  const BOARD_KEY = "questify.board.v1" + SUFFIX; // dito nagsa-save ang Tasks page
+  const STARTING_XP = IS_DEMO ? DEMO_XP : 0;
+  // Para mabasa ng tasks.js (nauuna ang nav.js sa <head>)
+  window.questifyAccount = { boardKey: BOARD_KEY, isDemo: IS_DEMO };
+
+  // Demo board: 16 sample quests + 1,450 XP (Level 12). Dito na ginagawa (hindi sa
+  // tasks.js lang) para pareho ang Tasks at Profile kahit alin ang unang buksan.
+  // Relative sa araw ngayon ang due dates, kaya laging may overdue at paparating.
+  window.questifyDemoBoard = function () {
+    const XP_BY_PRIORITY = { low: 10, medium: 20, high: 30 };
+    const pad = (n) => String(n).padStart(2, "0");
+    const isoFor = (d) =>
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const isoOffset = (days) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return isoFor(d);
+    };
+    const parseIso = (iso) => {
+      const [y, m, d] = iso.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    };
+    let nextId = 1;
+    const seedStart = Date.now() - 12 * 86400000;
+    const seed = (title, desc, cat, priority, dueInDays, status) => {
+      const n = nextId++;
+      const due = isoOffset(dueInDays);
+      const done = status === "done";
+      return {
+        id: "q" + n,
+        title,
+        desc,
+        cat,
+        priority,
+        status,
+        due,
+        earned: done ? XP_BY_PRIORITY[priority] : null,
+        completed: done ? parseIso(due).getTime() + 18 * 3600000 : null,
+        added: seedStart + n * 3 * 3600000,
+        rank: n,
+      };
+    };
+    const quests = [
+      seed(
+        "Send client proposal",
+        "Attach the PDF and hit send before noon.",
+        "work",
+        "high",
+        2,
+        "todo",
+      ),
+      seed(
+        "Inbox zero",
+        "Leave the work inbox at zero before you log off.",
+        "work",
+        "low",
+        -1,
+        "todo",
+      ),
+      seed(
+        "Draft weekly report",
+        "One page. What moved. What is next.",
+        "work",
+        "medium",
+        3,
+        "todo",
+      ),
+      seed(
+        "Outline lecture notes",
+        "Headings only — the full write-up can wait.",
+        "growth",
+        "medium",
+        4,
+        "todo",
+      ),
+      seed(
+        "Pack gym bag",
+        "Shoes, bottle, headphones. Night-before so morning is easy.",
+        "health",
+        "low",
+        0,
+        "todo",
+      ),
+      seed(
+        "Call the supplier",
+        "Confirm the Friday delivery window.",
+        "work",
+        "high",
+        5,
+        "todo",
+      ),
+      seed(
+        "Read 20 pages",
+        "Stay in the same book. Twenty real pages.",
+        "growth",
+        "medium",
+        -2,
+        "doing",
+      ),
+      seed(
+        "Refactor login form",
+        "Labels, errors, and the gold / lime buttons.",
+        "work",
+        "high",
+        1,
+        "doing",
+      ),
+      seed(
+        "30-min walk",
+        "Outside. Phone stays in a pocket.",
+        "health",
+        "medium",
+        0,
+        "doing",
+      ),
+      seed(
+        "Watch one course module",
+        "One module, notes in the same sitting.",
+        "growth",
+        "medium",
+        2,
+        "doing",
+      ),
+      seed(
+        "45-min run",
+        "Easy pace. It counted.",
+        "health",
+        "medium",
+        -1,
+        "done",
+      ),
+      seed(
+        "Morning stretch",
+        "Ten minutes before the first meeting.",
+        "health",
+        "low",
+        -2,
+        "done",
+      ),
+      seed(
+        "Ship slide deck",
+        "Sent. Not perfect. Sent.",
+        "work",
+        "high",
+        -3,
+        "done",
+      ),
+      seed(
+        "Journal half a page",
+        "What actually happened today.",
+        "growth",
+        "low",
+        -3,
+        "done",
+      ),
+      seed(
+        "Water plants / walk",
+        "Two minutes. Then a loop around the block.",
+        "health",
+        "low",
+        -4,
+        "done",
+      ),
+      seed(
+        "Plan next week",
+        "Pick the top three quests.",
+        "work",
+        "medium",
+        -5,
+        "done",
+      ),
+    ];
+    return { quests, xp: [{ id: null, xp: DEMO_XP }], nextId };
+  };
+
+  // Total XP = sum ng XP ledger na sine-save ng Tasks page.
+  // Kung wala pa: 1,450 sa demo, 0 sa bagong account.
   function savedXp() {
     try {
       const total = JSON.parse(read(BOARD_KEY)).xp.reduce(
@@ -104,6 +439,324 @@
   const rankFor = (total) => RANKS.filter((r) => total >= r.xp).pop().name;
   const toNext = (total) => XP_PER_LEVEL - (total % XP_PER_LEVEL);
   const pctFor = (total) => ((total % XP_PER_LEVEL) / XP_PER_LEVEL) * 100;
+
+  const RANK_INDEX = (name) => RANKS.findIndex((r) => r.name === name);
+  // Natatandaan ang huling rank na nakita, para malaman kung "umakyat" talaga
+  // (hindi lang naka-refresh). Nase-set ulit tuwing bukas ng page.
+  let currentRank = rankFor(savedXp());
+
+  // ---------- BOARD SYNC (Checkpoint 3) ----------
+  // Server mode: nasa server ang Quest Board, kaya pareho ang quests at XP sa
+  // kahit anong device. May kopya pa rin sa browser (localStorage) para mabilis
+  // magbukas ang page at gumagana pa rin kahit hindi maabot ang server.
+  //   window.questifyBoard.ready      → tapos nang kunin ang board sa server
+  //   window.questifyBoard.save(b)    → tinatawag ng Tasks pagkatapos ng bawat pagbabago
+  //   window.questifyBoard.saveNow(b) → Profile import (papalitan ang buong board)
+  //   window.questifyBoard.onChange({ busy, apply }) → Tasks: ipakita ang bagong board
+  // Ang "version" = oras ng huling save sa server. Kapag may ibang device na
+  // nauna mag-save, tinatanggihan ng server (409) at ang pinakabago ang ipapakita.
+  const SYNC_KEY = "questify.sync" + SUFFIX; // { pending, base }: pagbabagong wala pa sa server
+  let boardVersion = null; // version ng board na hawak ng page na 'to
+  let syncedText = null; // canon() ng nasa server, para hindi mag-save kung walang nagbago
+  let pageStarted = false; // nabasa na ng page ang board (pagkatapos ng ready)
+  let changeHandler = null;
+  let saveTimer = null;
+  let saving = false;
+  let queued = null;
+  let offline = false;
+  let retryTimer = null;
+  const useServer = () => signedIn && !!read(TOKEN_KEY);
+
+  // Hintayin muna ang page bago magpakita ng toast (nasa <head> pa ang nav.js)
+  const whenReady = (fn) =>
+    document.readyState === "loading"
+      ? document.addEventListener("DOMContentLoaded", fn, { once: true })
+      : fn();
+  const syncToast = (opts) =>
+    whenReady(() => window.questifyToast && window.questifyToast(opts));
+
+  function readLocal() {
+    try {
+      const b = JSON.parse(read(BOARD_KEY));
+      return b && Array.isArray(b.quests) && Array.isArray(b.xp) ? b : null;
+    } catch (err) {
+      return null;
+    }
+  }
+  function readSync() {
+    try {
+      return JSON.parse(read(SYNC_KEY)) || {};
+    } catch (err) {
+      return {};
+    }
+  }
+  const markPending = () =>
+    write(SYNC_KEY, JSON.stringify({ pending: true, base: boardVersion }));
+
+  // Parehong board = parehong text, kahit iba ang pagkakasunod ng fields
+  function canon(b) {
+    if (!b) return "";
+    const highest = Math.max(
+      0,
+      ...b.quests.map((q) => parseInt(String(q.id).slice(1), 10) || 0),
+    );
+    return JSON.stringify([
+      b.quests
+        .map((q) => {
+          const done = q.status === "done";
+          return [
+            q.id,
+            q.title,
+            q.desc,
+            q.cat,
+            q.priority,
+            q.status,
+            q.due,
+            q.added,
+            q.rank,
+            done ? q.earned : null,
+            done ? q.completed : null,
+          ];
+        })
+        .sort((a, c) => (a[0] < c[0] ? -1 : a[0] > c[0] ? 1 : 0)),
+      b.xp.map((e) => [e.id || null, e.xp]),
+      Math.max(Number(b.nextId) || 0, highest + 1),
+      b.sort || "due",
+      b.dir || "asc",
+    ]);
+  }
+
+  // Header (Alex ▾): Level, rank at XP galing sa board na naka-save
+  function paintHeaderXp() {
+    const total = savedXp();
+    currentRank = rankFor(total); // para walang maling "Rank up" popup
+    const set = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    const pill = document.getElementById("levelPill");
+    if (pill) pill.dataset.level = levelFor(total);
+    set("levelNum", "Level " + levelFor(total));
+    set("levelRank", rankFor(total));
+    set("levelXp", total.toLocaleString("en-US") + " XP");
+    set("levelNext", `${toNext(total)} XP to Level ${levelFor(total) + 1}`);
+    const fill = document.getElementById("levelFill");
+    if (fill) fill.style.width = pctFor(total) + "%";
+  }
+
+  // Tanggapin ang board ng server: i-save sa browser at sabihan ang page.
+  // force = galing sa 409 (kailangang ipakita kahit may bukas na popup).
+  function adopt(board, version, force = false) {
+    if (pageStarted && changeHandler && !force && changeHandler.busy())
+      return false; // may bukas na popup o nagda-drag: sa susunod na lang
+    write(BOARD_KEY, JSON.stringify(board));
+    write(SYNC_KEY, null);
+    boardVersion = version;
+    syncedText = canon(board);
+    whenReady(paintHeaderXp);
+    if (pageStarted) {
+      if (changeHandler) changeHandler.apply(board);
+      else document.dispatchEvent(new CustomEvent("questify:board-changed"));
+    }
+    return true;
+  }
+
+  function goOffline() {
+    if (!retryTimer) retryTimer = setInterval(() => flush(), 10000);
+    if (offline) return;
+    offline = true;
+    syncToast({
+      tone: "info",
+      title: "Can't reach the server",
+      text: "Your changes are saved on this device and will sync when it's back.",
+    });
+  }
+  function backOnline() {
+    clearInterval(retryTimer);
+    retryTimer = null;
+    if (!offline) return;
+    offline = false;
+    syncToast({
+      tone: "ok",
+      title: "Synced",
+      text: "Your board is saved on the server again.",
+    });
+  }
+
+  // Ipadala ang board sa server. true = naka-save na.
+  async function push(board, force = false) {
+    const text = canon(board);
+    if (!force && text === syncedText) {
+      write(SYNC_KEY, null);
+      return true;
+    }
+    const res = await api("board", {
+      method: "PUT",
+      body: { board, base: boardVersion, force },
+    });
+    if (!res || res.status >= 500) {
+      markPending(); // hindi naabot: ipapadala ulit mamaya o sa susunod na bukas
+      goOffline();
+      return false;
+    }
+    if (res.status === 404) {
+      // Lumang server (Checkpoint 2, hindi pa na-restart): wala pang /api/board.
+      // Naka-save dito; ipapadala kapag na-restart na ang server.
+      markPending();
+      return false;
+    }
+    if (res.ok) {
+      boardVersion = res.data.version;
+      syncedText = text;
+      write(SYNC_KEY, null);
+      backOnline();
+      return true;
+    }
+    if (res.status === 409) {
+      // Naunang nag-save ang ibang device: ipakita ang pinakabago
+      backOnline();
+      const same = canon(res.data.board) === text;
+      adopt(res.data.board, res.data.version, true);
+      if (!same)
+        syncToast({
+          tone: "info",
+          title: "Updated from another device",
+          text: "Your board changed somewhere else, so the newest version is shown.",
+        });
+      return false;
+    }
+    if (res.status === 401) {
+      // Natapos ang sign in habang gamit ang page: naka-save dito, ipapadala
+      // pagkatapos mag-sign in ulit (parehong flow ng checkSession)
+      markPending();
+      write(TOKEN_KEY, null);
+      write(SIGNED_IN_KEY, null);
+      if (guard)
+        location.replace(
+          BASE +
+          "pages/signin.html?next=" +
+          encodeURIComponent(guard) +
+          "&session=ended",
+        );
+      else location.reload();
+      return false;
+    }
+    // 400: tinanggihan ng server (hindi dapat mangyari): naka-save pa rin dito
+    write(SYNC_KEY, null);
+    syncToast({
+      tone: "err",
+      title: "Couldn't save to the server",
+      text:
+        (res.data && res.data.error) ||
+        "Your board is still saved on this device.",
+    });
+    return false;
+  }
+
+  // Isa-isang save lang; kung may bago habang nagse-save, isusunod
+  async function flush() {
+    if (saving || !useServer()) return;
+    const board = queued || (readSync().pending ? readLocal() : null);
+    queued = null;
+    if (!board) return;
+    saving = true;
+    try {
+      await push(board);
+    } finally {
+      saving = false;
+    }
+    if (queued) flush();
+  }
+
+  function save(board) {
+    if (!useServer()) return;
+    queued = board;
+    // Tandaan agad: kung isara ang page bago ma-save, ipapadala sa susunod
+    if (canon(board) !== syncedText) markPending();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 400);
+  }
+
+  // Pagbukas ng page: kunin ang board sa server
+  async function loadBoardFromServer() {
+    const res = await api("board");
+    if (!res || !res.ok) return; // walang server o hindi naka-sign in: browser copy muna
+    const server = res.data;
+    const local = readLocal();
+    const sync = readSync();
+    if (!server.board) {
+      // Unang beses sa server: i-upload ang board ng browser na 'to (o ang sample ng demo)
+      const start = local || (IS_DEMO ? window.questifyDemoBoard() : null);
+      if (start) {
+        write(BOARD_KEY, JSON.stringify(start));
+        await push(start);
+      }
+      return;
+    }
+    if (sync.pending && local && sync.base === server.version) {
+      // May binago dito habang hindi maabot ang server, at walang ibang nag-save: ipadala
+      boardVersion = server.version;
+      syncedText = canon(server.board);
+      await push(local);
+      return;
+    }
+    if (sync.pending && local && canon(local) !== canon(server.board))
+      syncToast({
+        tone: "info",
+        title: "Updated from another device",
+        text: "Changes made here while offline were replaced by newer ones.",
+      });
+    adopt(server.board, server.version);
+  }
+
+  // Bumalik sa tab / window: baka may binago sa ibang device
+  async function refreshBoard() {
+    if (!useServer() || !pageStarted) return;
+    if (readSync().pending) return flush();
+    if (saving || queued) return;
+    const res = await api("board");
+    if (!res || !res.ok || !res.data.board || res.data.version === boardVersion)
+      return;
+    if (saving || queued || readSync().pending) return; // may bagong pagbabago habang naghihintay
+    adopt(res.data.board, res.data.version);
+  }
+
+  const boardReady = useServer()
+    ? Promise.race([
+      loadBoardFromServer().catch(() => { }),
+      new Promise((done) => setTimeout(done, 3000)), // mabagal ang server: browser copy muna
+    ]).then(() => {
+      pageStarted = true;
+    })
+    : Promise.resolve().then(() => {
+      pageStarted = true;
+    });
+
+  window.questifyBoard = {
+    ready: boardReady,
+    save,
+    saveNow: (board) =>
+      useServer() ? push(board, true) : Promise.resolve(false),
+    onChange: (handler) => {
+      changeHandler = handler;
+    },
+    // true = naka-sign in sa server (hindi sa browser lang)
+    onServer: () => useServer(),
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshBoard();
+  });
+  window.addEventListener("focus", refreshBoard);
+  window.addEventListener("online", () => flush());
+  // Paalis sa page na may hindi pa naipapadala: ipadala na ngayon
+  window.addEventListener("pagehide", () => {
+    if (!queued || !useServer()) return;
+    clearTimeout(saveTimer);
+    const body = { board: queued, base: boardVersion };
+    queued = null;
+    if (JSON.stringify(body).length < 60000)
+      api("board", { method: "PUT", body, keepalive: true });
+  });
 
   const esc = (s) =>
     String(s).replace(
@@ -142,7 +795,7 @@
           <div class="acct-bar"><span class="level-fill" id="levelFill" style="width:${pctFor(total)}%"></span></div>
           <small id="levelNext">${toNext(total)} XP to Level ${levelFor(total) + 1}</small>
         </div>
-        <button type="button" class="acct-item" role="menuitem" aria-disabled="true" title="Coming soon">${ICON.gear} Settings</button>
+        <a class="acct-item" role="menuitem" href="${BASE}pages/settings.html">${ICON.gear} Settings</a>
         <div class="acct-sep"></div>
         <button type="button" class="acct-item danger" role="menuitem" data-signout>${ICON.out} Sign out</button>
         <div class="pc-foot"><span>Privacy Policy</span><span>Terms of Service</span></div>
@@ -156,9 +809,9 @@
   //   type 'overdue' = lumampas na sa due date (isa lang bawat quest)
   // Para magdagdag ng bagong klase: bagong type + icon sa NOTIF_STYLE, tapos
   // tawagin ang addNotif({...}) kung saan nangyari yung event.
-  const NOTIF_KEY = "questify.notifs";
+  const NOTIF_KEY = "questify.notifs" + SUFFIX; // bawat account may sarili
   const NOTIF_MAX = 20;
-  const OVERDUE_SEEN_KEY = "questify.notifs.overdueSeen";
+  const OVERDUE_SEEN_KEY = "questify.notifs.overdueSeen" + SUFFIX;
   const NOTIF_STYLE = {
     done: {
       tone: "lime",
@@ -167,6 +820,11 @@
     levelup: {
       tone: "gold",
       icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+    },
+    // Bagong rank (Novice → Apprentice → Adventurer → Veteran → Master)
+    rankup: {
+      tone: "teal",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l3 6 6 .9-4.5 4.3 1 6.3L12 17.5 6.5 20.5l1-6.3L3 9.9 9 9z"/><path d="M12 8v5"/></svg>',
     },
     overdue: {
       tone: "red",
@@ -178,63 +836,143 @@
     try {
       const list = JSON.parse(read(NOTIF_KEY));
       return Array.isArray(list)
-        ? list.filter((n) => n && NOTIF_STYLE[n.type])
+        ? list.filter((n) => n && NOTIF_STYLE[n.type]).map(modernize)
         : [];
     } catch (err) {
       return [];
     }
   }
+
+  // Lumang notifications (bago ang Sep 27): gawing bagong wording para pare-pareho
+  function modernize(n) {
+    let m;
+    if (n.type === "done" && (m = /^Quest done: (.*)$/.exec(n.title))) {
+      const xp = (/\+\d+ XP/.exec(n.text) || ["XP"])[0];
+      return Object.assign({}, n, {
+        title: "Quest completed",
+        text: `${m[1]} · ${xp} added to your total.`,
+      });
+    }
+    if (n.type === "overdue" && (m = /^Overdue: (.*)$/.exec(n.title))) {
+      return Object.assign({}, n, {
+        title: "Quest overdue",
+        text: `${m[1]} ${n.text.replace(/^Was/, "was")}.`,
+      });
+    }
+    if (
+      n.type === "levelup" &&
+      (m = /Level (\d+)/.exec(n.title)) &&
+      /^Level up!/.test(n.title)
+    ) {
+      const rank = n.text.replace(/^New rank: /, "");
+      return Object.assign({}, n, {
+        title: `Level ${m[1]} reached`,
+        text: `You're now ${/^[aeiou]/i.test(rank) ? "an" : "a"} ${rank}.`,
+      });
+    }
+    return n;
+  }
   function saveNotifs(list) {
     write(NOTIF_KEY, JSON.stringify(list.slice(0, NOTIF_MAX)));
   }
 
+  // Label sa maliit na chip ng bawat notification
+  const NOTIF_CHIP = {
+    done: "Quest",
+    levelup: "Level up",
+    rankup: "Rank up",
+    overdue: "Overdue",
+  };
+
   function timeAgo(ms) {
     const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
-    if (s < 60) return "now";
-    if (s < 3600) return Math.floor(s / 60) + "m";
-    if (s < 86400) return Math.floor(s / 3600) + "h";
-    return Math.floor(s / 86400) + "d";
+    if (s < 60) return "Just now";
+    if (s < 3600) return Math.floor(s / 60) + " min ago";
+    if (s < 86400) return Math.floor(s / 3600) + " h ago";
+    if (s < 172800) return "Yesterday";
+    return Math.floor(s / 86400) + " days ago";
   }
 
-  // Blueprint ng ISANG notification
+  // Blueprint ng ISANG notification.
+  // "Quest completed" at "Quest overdue" = puwedeng i-click (bubukas ang details ng quest).
   function notifItemHtml(n) {
     const style = NOTIF_STYLE[n.type];
+    const opens = (n.type === "done" || n.type === "overdue") && n.quest;
+    const tag = opens ? "button" : "div";
+    const attrs = opens
+      ? ` type="button" data-open-quest="${esc(n.quest)}" data-notif-id="${esc(n.id)}" title="View quest"`
+      : "";
     return `
-        <div class="notif-item${n.read ? "" : " unread"}">
-          <span class="notif-ico ${style.tone}">${style.icon}</span>
-          <span class="notif-text"><b>${esc(n.title)}</b><small>${esc(n.text)}</small></span>
-          <time>${timeAgo(n.at)}</time>
-        </div>`;
+        <${tag} class="np-item${n.read ? "" : " unread"}${opens ? " opens" : ""}"${attrs}>
+          ${n.read ? "" : '<span class="np-dot" aria-hidden="true"></span>'}
+          <span class="np-ico ${style.tone}">${style.icon}</span>
+          <span class="np-main">
+            <span class="np-title">${esc(n.title)}${n.read ? "" : '<span class="sr-only"> (unread)</span>'}</span>
+            <span class="np-text">${esc(n.text)}</span>
+            <span class="np-meta"><span class="np-chip ${style.tone}">${NOTIF_CHIP[n.type]}</span><time class="np-time">${timeAgo(n.at)}</time></span>
+          </span>
+        </${tag}>`;
   }
 
-  // Laman ng panel: listahan, o "No notifications yet" kung wala pa
-  function notifBodyHtml(list) {
-    if (!list.length) {
-      return `<div class="notif-empty"><span class="notif-ico">${ICON.bell}</span><b>No notifications yet</b><small>Finish a quest and it will show up here.</small></div>`;
-    }
-    return `<div class="notif-list">${list.map(notifItemHtml).join("")}</div>
-        <button type="button" class="notif-foot" data-notif-clear>Clear all</button>`;
-  }
+  // Aling tab ang bukas: "all", "unread" o "overdue"
+  let notifTab = "all";
+  const NOTIF_EMPTY = {
+    all: [
+      "No notifications yet",
+      "Finished quests, level ups and late quests will show up here.",
+    ],
+    unread: ["You're all caught up", "There are no unread notifications."],
+    overdue: ["No overdue quests", "Late quests will show up here."],
+  };
 
   function notifPanelHtml() {
     return `
       <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifications" hidden>
-        <div class="notif-head"><b>Notifications</b></div>
-        <div id="notifBody">${notifBodyHtml(loadNotifs())}</div>
+        <div class="np-head"><h3>Notifications</h3><button type="button" class="np-link" data-notif-readall hidden>Mark all as read</button><button type="button" class="icon-btn np-close" data-np-close aria-label="Close notifications">${svgIcon('<path d="M6 6l12 12M18 6L6 18"/>')}</button></div>
+        <div class="np-tabs" id="notifTabs"></div>
+        <div id="notifBody"></div>
+        <div class="np-foot" id="notifFoot"></div>
       </div>`;
   }
 
   // I-drawing ulit ang panel + yung dot sa bell (kung may hindi pa nababasa)
   function paintNotifs() {
     const list = loadNotifs();
-    const body = document.getElementById("notifBody");
+    const unread = list.filter((n) => !n.read).length;
     const btn = document.getElementById("notifBtn");
-    if (body) body.innerHTML = notifBodyHtml(list);
-    if (btn)
-      btn.classList.toggle(
-        "has-unread",
-        list.some((n) => !n.read),
+    if (btn) {
+      btn.classList.toggle("has-unread", unread > 0);
+      btn.setAttribute(
+        "aria-label",
+        unread ? `Notifications, ${unread} unread` : "Notifications",
       );
+    }
+    const panel = document.getElementById("notifPanel");
+    if (!panel) return;
+
+    const tab = (key, label, count) =>
+      `<button type="button" class="np-tab${notifTab === key ? " on" : ""}" data-np-tab="${key}" aria-pressed="${notifTab === key}">${label}${count ? ` <span class="np-count">${count}</span>` : ""}</button>`;
+    document.getElementById("notifTabs").innerHTML =
+      tab("all", "All") +
+      tab("unread", "Unread", unread) +
+      tab("overdue", "Overdue", 0);
+
+    const shown =
+      notifTab === "unread"
+        ? list.filter((n) => !n.read)
+        : notifTab === "overdue"
+          ? list.filter((n) => n.type === "overdue")
+          : list;
+    const [emptyTitle, emptyText] = NOTIF_EMPTY[notifTab];
+    document.getElementById("notifBody").innerHTML = shown.length
+      ? `<div class="np-list">${shown.map(notifItemHtml).join("")}</div>`
+      : `<div class="np-empty"><span class="np-ico">${ICON.bell}</span><b>${emptyTitle}</b><small>${emptyText}</small></div>`;
+
+    panel.querySelector("[data-notif-readall]").hidden = unread === 0;
+    const foot = document.getElementById("notifFoot");
+    foot.hidden = list.length === 0;
+    // Sa phone, nasa baba ang "Mark all as read" (parang Sign out sa ☰ menu)
+    foot.innerHTML = `<span>${list.length} notification${list.length === 1 ? "" : "s"}</span>${unread ? '<button type="button" class="np-link np-readall-foot" data-notif-readall>Mark all as read</button>' : ""}<button type="button" class="np-link" data-notif-clear>Clear all</button>`;
   }
 
   function addNotif(n) {
@@ -282,6 +1020,7 @@
         panel.hidden = true;
         btn.setAttribute("aria-expanded", "false");
       });
+      phoneSync();
     }
 
     pairs.forEach(([btn, panel]) => {
@@ -292,35 +1031,145 @@
         closeAll(panel);
         panel.hidden = !open;
         btn.setAttribute("aria-expanded", String(open));
+        phoneSync();
       });
     });
 
     // Click sa labas o Esc = sarado
+    // composedPath: dinaanan ng click (gumagana kahit na-redraw na yung pinindot, hal. tab sa bell)
     document.addEventListener("click", (e) => {
-      if (!e.target.closest(".acct-wrap, .notif-wrap")) closeAll();
+      const inside = e
+        .composedPath()
+        .some(
+          (el) =>
+            el.classList &&
+            (el.classList.contains("acct-wrap") ||
+              el.classList.contains("notif-wrap")),
+        );
+      if (!inside) closeAll();
     });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
+      hideRankUp();
       const open = pairs.find(([, panel]) => !panel.hidden);
       closeAll();
       if (open) open[0].focus();
     });
 
-    // ---------- 5. SIGN OUT ----------
+    // ---------- 5. SIGN OUT (may confirm popup muna, bug ni Abigail) ----------
+    // Parehong itsura ng confirm popup ng Mark done (.modal.cm), pero ginagawa
+    // dito sa nav.js para gumana sa lahat ng page na may player card.
+    let signOutModal = null;
+    let signOutReturn = null;
+
+    function doSignOut() {
+      // Server mode: sabihan ang server para hindi na magamit ang token.
+      // keepalive = matatapos ang request kahit lumipat na ng page.
+      if (read(TOKEN_KEY)) api("signout", { method: "POST", keepalive: true });
+      write(TOKEN_KEY, null);
+      write(SIGNED_IN_KEY, null); // flag lang ang binubura, naiiwan ang quests at XP
+      location.href = BASE + "index.html?signedout=1";
+    }
+
+    function closeSignOut() {
+      if (!signOutModal || signOutModal.hidden) return;
+      signOutModal.hidden = true;
+      document.body.classList.remove("modal-open");
+      if (signOutReturn && signOutReturn.isConnected) signOutReturn.focus();
+    }
+
+    // Pangalan at email = textContent (hindi innerHTML), para ligtas.
+    // Tuwing bubuksan ulit ito, para laging bago (puwedeng palitan sa Settings).
+    function paintSignOut(back) {
+      const p = loadPlayer();
+      back.querySelector(".so-player img").src =
+        `${BASE}assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+      back.querySelector(".so-player b").textContent = p.name;
+      back.querySelector(".so-player small").textContent = p.email || "";
+    }
+
+    function buildSignOut() {
+      const back = document.createElement("div");
+      back.className = "modal-back so-back";
+      back.hidden = true;
+      back.innerHTML = `
+        <div class="modal cm so-modal" role="alertdialog" aria-modal="true" aria-labelledby="soTitle" aria-describedby="soText">
+          <button type="button" class="cm-x" data-so-close aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+          <h2 id="soTitle">Sign out?</h2>
+          <p id="soText">Your quests and XP stay saved. Sign back in anytime to continue.</p>
+          <div class="cm-quest so-player">
+            <img alt="" width="40" height="40">
+            <div><b></b><small></small></div>
+          </div>
+          <div class="modal-actions cm-actions">
+            <button type="button" class="btn-outline fx" data-so-close>Cancel</button>
+            <button type="button" class="btn-rose fx" data-so-ok>Sign out</button>
+          </div>
+        </div>`;
+      paintSignOut(back);
+
+      let pressedBackdrop = false;
+      back.addEventListener("mousedown", (e) => {
+        pressedBackdrop = e.target === back;
+      });
+      back.addEventListener("click", (e) => {
+        if (e.target.closest("[data-so-ok]")) doSignOut();
+        else if (
+          e.target.closest("[data-so-close]") ||
+          (pressedBackdrop && e.target === back)
+        )
+          closeSignOut();
+      });
+      // Esc = sara; Tab = paikot lang sa loob ng popup
+      back.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSignOut();
+          return;
+        }
+        if (e.key !== "Tab") return;
+        const items = [...back.querySelectorAll("button")];
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+      document.body.appendChild(back);
+      return back;
+    }
+
+    function openSignOut() {
+      if (!signOutModal) signOutModal = buildSignOut();
+      else paintSignOut(signOutModal);
+      signOutReturn = document.getElementById("acctBtn");
+      closeAll();
+      signOutModal.hidden = false;
+      document.body.classList.add("modal-open");
+      // Sa Cancel ang focus, para hindi aksidenteng ma-sign out sa Enter
+      signOutModal.querySelector("[data-so-close].btn-outline").focus();
+    }
+
     document.querySelectorAll("[data-signout]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        write(SIGNED_IN_KEY, null); // flag lang ang binubura, naiiwan ang quests at XP
-        location.href = BASE + "index.html?signedout=1";
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        openSignOut();
       });
     });
 
-    // Tasks page: tuwing nagbabago ang XP, i-update din ang rank at "XP to Level",
-    // at pa-"bump" ang Alex button para makita na may nagbago sa level mo.
     document.addEventListener("questify:xp", (e) => {
       const t = e.detail.total;
-      const rank = document.getElementById("levelRank");
+      const rankName = rankFor(t);
+      const rankEl = document.getElementById("levelRank");
       const next = document.getElementById("levelNext");
-      if (rank) rank.textContent = rankFor(t);
+      if (rankEl) rankEl.textContent = rankName;
       if (next)
         next.textContent = `${toNext(t)} XP to Level ${levelFor(t) + 1}`;
       const acctBtn = document.getElementById("acctBtn");
@@ -329,6 +1178,16 @@
         void acctBtn.offsetWidth; // para mag-restart ang animation
         acctBtn.classList.add("xp-bump");
       }
+
+      // Rank up lang (hindi rank down, hal. galing sa Undo done).
+      // Popup lang dito; ang "Rank up" notification ay nasa questify:quest-done sa baba.
+      if (
+        rankName !== currentRank &&
+        RANK_INDEX(rankName) > RANK_INDEX(currentRank)
+      ) {
+        showRankUp(rankName, t);
+      }
+      currentRank = rankName;
     });
 
     // ---------- notifications ----------
@@ -336,43 +1195,115 @@
     const notifBtn = document.getElementById("notifBtn");
     const notifPanel = document.getElementById("notifPanel");
     if (notifBtn && notifPanel) {
-      // Pagbukas: kita pa yung "unread" na kulay ngayon, pero bilang nabasa na (wala nang dot)
+      // Pagbukas: i-refresh lang ang oras ("2 min ago"). Hindi na awtomatikong
+      // "read" lahat — may sariling "Mark all as read" na button.
       notifBtn.addEventListener("click", () => {
-        if (notifPanel.hidden) return;
-        const list = loadNotifs();
-        if (!list.some((n) => !n.read)) return;
-        saveNotifs(list.map((n) => Object.assign(n, { read: true })));
-        notifBtn.classList.remove("has-unread");
+        if (!notifPanel.hidden) paintNotifs();
       });
       notifPanel.addEventListener("click", (e) => {
-        if (!e.target.closest("[data-notif-clear]")) return;
-        saveNotifs([]);
-        paintNotifs();
+        // Click sa "Quest completed" / "Quest overdue" = buksan ang quest sa Tasks
+        const item = e.target.closest("[data-open-quest]");
+        if (item) {
+          const id = item.dataset.openQuest;
+          saveNotifs(
+            loadNotifs().map((n) =>
+              n.id === item.dataset.notifId
+                ? Object.assign(n, { read: true })
+                : n,
+            ),
+          );
+          paintNotifs();
+          closeAll();
+          if (document.getElementById("board")) {
+            // Nasa Tasks na: sabihan ang tasks.js
+            document.dispatchEvent(
+              new CustomEvent("questify:open-quest", { detail: { id } }),
+            );
+          } else {
+            location.href =
+              BASE + "pages/tasks.html?quest=" + encodeURIComponent(id);
+          }
+          return;
+        }
+        const tab = e.target.closest("[data-np-tab]");
+        if (tab) {
+          notifTab = tab.dataset.npTab;
+          paintNotifs();
+          notifPanel.querySelector(`[data-np-tab="${notifTab}"]`).focus();
+          return;
+        }
+        if (e.target.closest("[data-notif-readall]")) {
+          saveNotifs(loadNotifs().map((n) => Object.assign(n, { read: true })));
+          paintNotifs();
+          notifPanel.querySelector(".np-tab.on").focus();
+          return;
+        }
+        if (e.target.closest("[data-notif-clear]")) {
+          notifTab = "all";
+          saveNotifs([]);
+          paintNotifs();
+          notifBtn.focus();
+        }
       });
     }
+
+    // "a Master" / "an Adventurer"
+    const withArticle = (word) =>
+      (/^[aeiou]/i.test(word) ? "an " : "a ") + word;
 
     document.addEventListener("questify:quest-done", (e) => {
       const d = e.detail;
       addNotif({
         type: "done",
         quest: d.id,
-        title: "Quest done: " + d.title,
-        text: `+${d.xp} XP earned`,
+        title: "Quest completed",
+        text: `${d.title} · +${d.xp} XP added to your total.`,
       });
+      const total = savedXp();
       if (d.leveledUp) {
         addNotif({
           type: "levelup",
           quest: d.id,
-          title: `Level up! You reached Level ${d.level}`,
-          text: "New rank: " + rankFor(savedXp()),
+          title: `Level ${d.level} reached`,
+          text: `Keep going: ${toNext(total)} XP to Level ${d.level + 1}.`,
+        });
+      }
+      // Umakyat din ba ng rank? (hal. 300 XP = Adventurer)
+      const rankNow = rankFor(total);
+      if (rankFor(total - d.xp) !== rankNow) {
+        const next = RANKS.find((r) => r.xp > total);
+        addNotif({
+          type: "rankup",
+          quest: d.id,
+          title: `New rank: ${rankNow}`,
+          text: next
+            ? `You're now ${withArticle(rankNow)}. Next: ${next.name} at ${next.xp.toLocaleString("en-US")} XP.`
+            : "You reached the top rank. Well played.",
         });
       }
     });
     // Undo: tanggalin ang "Quest done" / "Level up" ng quest na binawi (hindi ang "Overdue")
     document.addEventListener("questify:quest-undo", (e) => {
+      // Pagkatapos ng Undo, bumaba ang XP: tanggalin din ang "Level N reached" at
+      // "New rank" na hindi na totoo (hal. Master pa sa bell pero Veteran na ngayon)
+      const total = savedXp();
+      const levelNow = levelFor(total);
+      const rankNow = RANKS.findIndex((r) => r.name === rankFor(total));
+      const stillTrue = (n) => {
+        if (n.type === "levelup") {
+          const m = /Level (\d+)/.exec(n.title || "");
+          return !m || Number(m[1]) <= levelNow;
+        }
+        if (n.type === "rankup") {
+          const i = RANKS.findIndex((r) => (n.title || "").endsWith(r.name));
+          return i === -1 || i <= rankNow;
+        }
+        return true;
+      };
       saveNotifs(
         loadNotifs().filter(
-          (n) => n.quest !== e.detail.id || n.type === "overdue",
+          (n) =>
+            (n.quest !== e.detail.id || n.type === "overdue") && stillTrue(n),
         ),
       );
       paintNotifs();
@@ -392,8 +1323,8 @@
         addNotif({
           type: "overdue",
           quest: q.id,
-          title: "Overdue: " + q.title,
-          text: "Was due " + q.due,
+          title: "Quest overdue",
+          text: `${q.title} was due ${q.due}.`,
         });
       });
       if (fresh.length)
@@ -402,6 +1333,212 @@
           JSON.stringify(seen.concat(fresh.map((q) => q.id))),
         );
     });
+
+    // ---------- 6. PHONE MENU ☰ (Checkpoint 5) ----------
+    // Sa phone (720px pababa) nakatago ang page links at ang Alex ▾: nasa ☰ menu na
+    // sila (panel mula sa kanan). Ang bell ay nagbubukas ng parehong klase ng panel.
+    // Sa desktop, nakatago ang ☰ (CSS) at walang nagbabago.
+    const isPhone = () => window.matchMedia("(max-width: 720px)").matches;
+    const navLinks = document.querySelector(".nav-links");
+    const MENU_ICON = {
+      menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+      close: '<path d="M6 6l12 12M18 6L6 18"/>',
+      home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+      tasks:
+        '<rect x="3" y="4" width="7" height="16" rx="2"/><rect x="14" y="4" width="7" height="10" rx="2"/>',
+      profile:
+        '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+      about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>',
+    };
+    const menuBtn = document.createElement("button");
+    menuBtn.type = "button";
+    menuBtn.className = "icon-btn m-menu-btn";
+    menuBtn.setAttribute("aria-label", "Menu");
+    menuBtn.setAttribute("aria-haspopup", "dialog");
+    menuBtn.setAttribute("aria-expanded", "false");
+    menuBtn.innerHTML = svgIcon(MENU_ICON.menu);
+    if (navLinks) navLinks.appendChild(menuBtn);
+
+    const back = document.createElement("div");
+    back.className = "m-back";
+    back.hidden = true;
+    const menu = document.createElement("aside");
+    menu.className = "m-menu";
+    menu.id = "mMenu";
+    menu.hidden = true;
+    menu.setAttribute("role", "dialog");
+    menu.setAttribute("aria-modal", "true");
+    menu.setAttribute("aria-label", "Menu");
+    menu.innerHTML = `
+      <div class="m-head"><span class="m-title pixel">Menu</span><button type="button" class="icon-btn m-close" data-m-close aria-label="Close menu">${svgIcon(MENU_ICON.close)}</button></div>
+      <div class="m-body"></div>
+      <div class="m-foot"><span>Privacy Policy</span><span>Terms of Service</span></div>`;
+    document.body.append(back, menu);
+
+    // Kasalukuyang page (para sa lime na guhit sa menu)
+    const here = location.pathname.split("/").pop() || "index.html";
+    const row = (href, icon, label, extra = "") =>
+      `<a class="m-item${here === href.split("/").pop() ? " on" : ""}" href="${BASE}${href}"${here === href.split("/").pop() ? ' aria-current="page"' : ""}>${svgIcon(MENU_ICON[icon])}<span>${label}</span>${extra}</a>`;
+
+    // Binubuo tuwing bubuksan, para laging bago ang XP (walang Notifications dito: nasa bell na)
+    function menuBody() {
+      if (!signedIn)
+        return `
+          <div class="m-list" role="navigation" aria-label="Pages">${row("index.html", "home", "Home")}${row("pages/about.html", "about", "About")}</div>
+          <div class="m-sep"></div>
+          <div class="m-cta">
+            <a class="nav-signup m-signin" href="${BASE}pages/signin.html">Sign In</a>
+            <a class="m-create" href="${BASE}pages/create-account.html">Create free account</a>
+          </div>`;
+      const p = loadPlayer();
+      const t = savedXp();
+      return `
+        <div class="m-card">
+          <div class="m-who">
+            <span class="m-ava"><img src="${BASE}assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png" alt=""><b class="pixel">${levelFor(t)}</b></span>
+            <span class="m-id"><b>${esc(p.name)}</b><small>${esc(p.email || "")}</small></span>
+          </div>
+          <div class="m-chips"><span class="rank-chip" data-rank="${rankFor(t).toLowerCase()}"><i aria-hidden="true"></i><span>${rankFor(t)}</span></span><b class="m-level">Level ${levelFor(t)}</b></div>
+          <div class="acct-bar"><span class="level-fill" style="width:${pctFor(t)}%"></span></div>
+          <div class="m-xp"><span>${t.toLocaleString("en-US")} XP</span><span>${toNext(t)} XP to Level ${levelFor(t) + 1}</span></div>
+        </div>
+        <div class="m-list" role="navigation" aria-label="Pages">
+          ${row("pages/tasks.html", "tasks", "Tasks")}${row("pages/profile.html", "profile", "Profile")}${row("pages/about.html", "about", "About")}
+        </div>
+        <div class="m-sep"></div>
+        <div class="m-list">
+          <a class="m-item${here === "settings.html" ? " on" : ""}" href="${BASE}pages/settings.html"${here === "settings.html" ? ' aria-current="page"' : ""}>${ICON.gear}<span>Settings</span></a>
+          <button type="button" class="m-item out" data-m-signout>${ICON.out}<span>Sign out</span></button>
+        </div>`;
+    }
+
+    let menuOpen = false;
+    function phoneSync() {
+      const notifOpen =
+        isPhone() && notifWrap && !document.getElementById("notifPanel").hidden;
+      back.hidden = !(menuOpen || notifOpen);
+      back.classList.toggle("under-nav", notifOpen && !menuOpen);
+      document.body.classList.toggle("m-open", menuOpen || notifOpen);
+    }
+    function openMenu() {
+      closeAll();
+      menu.querySelector(".m-body").innerHTML = menuBody();
+      menu.hidden = false;
+      menuOpen = true;
+      menuBtn.setAttribute("aria-expanded", "true");
+      phoneSync();
+      menu.querySelector("[data-m-close]").focus();
+    }
+    function closeMenu(returnFocus = true) {
+      if (!menuOpen) return;
+      menu.hidden = true;
+      menuOpen = false;
+      menuBtn.setAttribute("aria-expanded", "false");
+      phoneSync();
+      if (returnFocus) menuBtn.focus();
+    }
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (menuOpen) closeMenu();
+      else openMenu();
+    });
+    back.addEventListener("click", () => {
+      closeMenu(false);
+      closeAll();
+    });
+    menu.addEventListener("click", (e) => {
+      // Huwag ipasa sa document (doon nagsasara ang bell panel)
+      e.stopPropagation();
+      if (e.target.closest("[data-m-close]")) return closeMenu();
+      if (e.target.closest("[data-m-signout]")) {
+        closeMenu(false);
+        openSignOut();
+      }
+    });
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMenu();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = [
+        ...menu.querySelectorAll("a, button:not([aria-disabled])"),
+      ];
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+    // Bell panel sa phone: may ✕ sa taas
+    const panelEl = document.getElementById("notifPanel");
+    if (panelEl)
+      panelEl.addEventListener("click", (e) => {
+        if (!e.target.closest("[data-np-close]")) return;
+        closeAll();
+        document.getElementById("notifBtn").focus();
+      });
+    // Lumaki ang window (phone → desktop): isara ang ☰ menu
+    window.addEventListener("resize", () => {
+      if (!isPhone()) closeMenu(false);
+      phoneSync();
+    });
+  }
+
+  // Pangalan at avatar agad (bago pa makuha ang board sa server), para hindi
+  // lumabas sandali ang "Player" sa Profile at sa Quest Board
+  function paintPlayerName() {
+    if (!signedIn) return;
+    const p = loadPlayer();
+    const img = `${BASE}assets/avatars/avatar-${p.avatar === "gold" ? "gold" : "lime"}-slime-256.png`;
+    ["pName", "saveName", "bName"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = p.name;
+    });
+    ["pAvatar", "bAvatar"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.src = img;
+    });
+  }
+
+  // Tasks: galing sa Sign in / Create account pero naka-sign in na (tingnan ang GUARD)
+  function alreadySignedInToast() {
+    const url = new URL(location.href);
+    if (!url.searchParams.has("already")) return;
+    url.searchParams.delete("already");
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+    // setTimeout: pagkatapos ng ibang toast sa pagbukas (hal. "overdue" ng Tasks),
+    // kasi ito ang paliwanag kung bakit sila napunta rito
+    setTimeout(() =>
+      window.questifyToast({
+        tone: "info",
+        title: `You're already signed in as ${ME.name}`,
+        text: "To use another account, sign out from the menu at the top right first.",
+      }),
+    );
+  }
+
+  // Home: kapag naka-sign in, ang "Create free account" sa baba ay nagiging
+  // "Open your Quest Board" (JS lang, hindi ginalaw ang HTML ng Home)
+  function memberFinalCta() {
+    const cta = document.querySelector(".final-cta");
+    if (!cta || !signedIn) return;
+    const title = cta.querySelector("h2");
+    const btn = cta.querySelector(".btn-primary");
+    const note = cta.querySelector(".cta-note");
+    if (title) title.innerHTML = "Ready for today’s<br>quests?";
+    if (btn) {
+      btn.href = BASE + "pages/tasks.html";
+      btn.textContent = "Open your Quest Board";
+    }
+    if (note)
+      note.textContent = `Pick up where you left off, ${ME.name.split(" ")[0]}.`;
   }
 
   // Home: maliit na toast pagkatapos mag-Sign out
@@ -410,16 +1547,53 @@
     if (!url.searchParams.has("signedout")) return;
     url.searchParams.delete("signedout");
     history.replaceState(null, "", url.pathname + url.search + url.hash);
-    const toast = document.createElement("div");
-    toast.className = "toast";
-    toast.dataset.tone = "info";
-    toast.setAttribute("role", "status");
-    toast.textContent =
-      "You signed out. Your quests stay saved in this browser.";
-    document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.hidden = true;
-    }, 5000);
+    window.questifyToast({
+      tone: "info",
+      title: "Signed out",
+      text: "Your quests and XP are saved. Sign back in anytime.",
+    });
+  }
+
+  // ---------- SESSION CHECK (server mode) ----------
+  // Naka-sign in ka, pero valid pa ba sa server? (Natatapos ang sign in after
+  // 1 araw, o kapag nag-sign out ka sa ibang tab.) Kung hindi na, sign in ulit.
+  // Walang server (demo mode) = walang gagawin, gaya ng dati.
+  async function checkSession() {
+    if (!signedIn) return;
+    // Laging /api/me ang tinatanong (kahit walang token): 401 = hindi na valid.
+    // Lumang server na wala pang /api/me = hindi JSON = null, kaya walang gagawin
+    // (dati: nag-loop pabalik sa Sign in kapag hindi pa na-restart ang server).
+    const res = await api("me");
+    if (!res) return; // walang server, o luma pa ang server
+    if (res.ok) {
+      // Kunin ang pinakabagong pangalan/avatar mula sa server
+      const p = res.data.player;
+      if (p.name !== ME.name || p.avatar !== ME.avatar || p.email !== ME.email)
+        savePlayer({ name: p.name, email: p.email, avatar: p.avatar });
+      return;
+    }
+    if (res.status !== 401) return; // ibang error: huwag i-sign out
+    write(TOKEN_KEY, null);
+    write(SIGNED_IN_KEY, null);
+    if (guard)
+      location.replace(
+        BASE +
+        "pages/signin.html?next=" +
+        encodeURIComponent(guard) +
+        "&session=ended",
+      );
+    else location.reload();
+  }
+
+  // Sign in / Create account: kapag may server, sa server na naka-save ang account
+  async function serverModeNote() {
+    const note = document.querySelector(".auth-privacy");
+    if (!note) return;
+    // /api/me: kahit 401 ang sagot, JSON = may account routes ang server
+    const res = await api("me");
+    if (res)
+      note.textContent =
+        "Your account is saved on the Questify server. Your password is never stored.";
   }
 
   // ---------- 4. FORMS (Sign in / Create account) ----------
@@ -431,13 +1605,19 @@
     const next = new URLSearchParams(location.search).get("next");
     const target = BASE + "pages/" + (GUARDED[next] || "tasks.html");
 
-    // Notice kung galing sila sa Tasks / Profile na naka-sign out
+    // Notice kung galing sila sa Tasks / Profile na naka-sign out,
+    // o kung natapos na yung sign in nila sa server (?session=ended)
     const notice = document.getElementById("authNotice");
-    if (notice && GUARDED[next]) {
-      document.getElementById("authNoticeText").textContent =
-        next === "profile"
+    const ended =
+      new URLSearchParams(location.search).get("session") === "ended";
+    if (notice && (GUARDED[next] || ended)) {
+      document.getElementById("authNoticeText").textContent = ended
+        ? "Your session ended. Please sign in again."
+        : next === "profile"
           ? "Sign in to see your profile."
-          : "Sign in to open your Quest Board.";
+          : next === "settings"
+            ? "Sign in to change your settings."
+            : "Sign in to open your Quest Board.";
       notice.hidden = false;
     }
     // Dalhin din yung ?next= kapag lumipat sa kabilang tab
@@ -458,43 +1638,502 @@
       });
     });
 
-    form.addEventListener("submit", (e) => {
+    // Kami na ang nagche-check (hindi yung maliit na popup ng browser),
+    // para pare-pareho ang itsura ng errors: pulang text sa ilalim ng field.
+    form.noValidate = true;
+    const isSignup = form.id === "signupForm";
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const name = document.getElementById("name");
+    const confirm = document.getElementById("confirm");
+    const submitBtn = form.querySelector(".auth-submit");
+
+    // Bawat field na nagbago, tanggal ang sarili niyang error (at yung "incorrect" na alert)
+    [email, password, name, confirm].forEach((input) => {
+      if (!input) return;
+      input.addEventListener("input", () => {
+        fieldError(input, null);
+        formAlert(form, null);
+      });
+    });
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault(); // walang server: dito na lang natin hinahawakan
-      const confirm = document.getElementById("confirm");
-      const password = document.getElementById("password");
-      const confirmErr = document.getElementById("confirmErr");
-      if (confirm && confirm.value !== password.value) {
-        confirmErr.hidden = false;
-        confirm.focus();
+      formAlert(form, null);
+      const mail = email.value.trim().toLowerCase();
+      const errors = [];
+      const check = (input, msg) => {
+        fieldError(input, msg);
+        if (msg) errors.push(input);
+      };
+
+      if (isSignup) {
+        check(name, name.value.trim() ? null : "Enter a display name.");
+      }
+      check(
+        email,
+        !mail
+          ? "Enter your email address."
+          : !EMAIL_RE.test(mail)
+            ? "Enter a full email address, like name@example.com."
+            : null,
+      );
+      if (isSignup) {
+        check(
+          password,
+          password.value.length < 8 ? "Use at least 8 characters." : null,
+        );
+        check(
+          confirm,
+          !confirm.value
+            ? "Type your password again."
+            : confirm.value !== password.value
+              ? "Passwords don't match."
+              : null,
+        );
+      } else {
+        check(password, password.value ? null : "Enter your password.");
+      }
+      if (errors.length) {
+        errors[0].focus();
         return;
       }
 
-      const player = loadPlayer();
-      const email = document.getElementById("email");
-      const name = document.getElementById("name");
+      // "An account with this email already exists" + link papuntang Sign in
+      const emailTaken = () => {
+        const signinHref = form.querySelector('.tabs a[href*="signin"]').href;
+        fieldError(
+          email,
+          `An account with this email already exists. <a href="${signinHref}">Sign in instead</a>`,
+          true,
+        );
+        email.focus();
+      };
+      const wrongLogin = () => {
+        formAlert(form, "Email or password is incorrect.");
+        password.value = "";
+        password.focus();
+      };
       // Yung avatar radios ay nasa kaliwa (labas ng <form>), kaya form.elements ang gamit
-      const avatar = form.elements.namedItem("avatar");
-      if (email && email.value.trim()) player.email = email.value.trim();
-      if (name && name.value.trim()) player.name = name.value.trim();
-      if (avatar && avatar.value) player.avatar = avatar.value;
-      savePlayer(player);
+      const avatarInput = form.elements.namedItem("avatar");
+      const avatar =
+        avatarInput && avatarInput.value === "gold" ? "gold" : "lime";
 
-      write(SIGNED_IN_KEY, "1");
-      location.href = target;
+      submitBtn.disabled = true;
+      try {
+        let player;
+        // 1) Server mode: ang server ang nagche-check at nagse-save ng account
+        const res = await api(isSignup ? "signup" : "signin", {
+          method: "POST",
+          body: isSignup
+            ? {
+              name: name.value.trim(),
+              email: mail,
+              password: password.value,
+              avatar,
+            }
+            : { email: mail, password: password.value },
+        });
+        if (res) {
+          if (!res.ok) {
+            const field = res.data && res.data.field;
+            const input = { name, email, password }[field];
+            if (res.status === 409) emailTaken();
+            else if (res.status === 401) wrongLogin();
+            else if (input) {
+              fieldError(input, res.data.error);
+              input.focus();
+            } else
+              formAlert(
+                form,
+                (res.data && res.data.error) ||
+                "Something went wrong. Please try again.",
+              );
+            return;
+          }
+          write(TOKEN_KEY, res.data.token);
+          player = res.data.player;
+        } else if (isSignup) {
+          // 2) Walang server (demo mode): sa browser lang naka-save, gaya ng Milestone 1
+          if (findAccount(mail)) {
+            emailTaken();
+            return;
+          }
+          const salt = randomHex(16);
+          const account = {
+            email: mail,
+            name: name.value.trim(),
+            avatar,
+            salt,
+            hash: await hashPassword(password.value, salt),
+            created: Date.now(),
+          };
+          saveAccounts(loadAccounts().concat(account));
+          player = account;
+        } else {
+          player = await checkLogin(mail, password.value);
+          if (!player) {
+            wrongLogin();
+            return;
+          }
+        }
+        savePlayer({
+          name: player.name,
+          email: player.email,
+          avatar: player.avatar,
+        });
+        write(SIGNED_IN_KEY, "1");
+        location.href = target;
+      } finally {
+        submitBtn.disabled = false;
+      }
     });
+  }
 
-    const confirm = document.getElementById("confirm");
-    if (confirm)
-      confirm.addEventListener("input", () => {
-        document.getElementById("confirmErr").hidden = true;
-      });
+  // ---------- accounts (naka-save lang sa browser na 'to) ----------
+  // Demo account para sa mentor at testers. Ang ibang account ay galing sa
+  // Create account. HINDI sine-save ang totoong password: "hash" lang
+  // (scrambled na bersyon) + salt, gaya ng ginagawa ng totoong websites.
+  // Paalala: demo pa rin 'to — walang server, kaya hindi totoong security.
+  const ACCOUNTS_KEY = "questify.accounts";
+  const DEMO = {
+    email: DEMO_EMAIL,
+    password: "12345678",
+    name: "Alex Rivera",
+    avatar: "lime",
+  };
+  // name@site.com: may @, may tuldok sa domain, at 2+ letra sa dulo (.com, .ph)
+  const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[a-z]{2,}$/i;
+
+  function loadAccounts() {
+    try {
+      const list = JSON.parse(read(ACCOUNTS_KEY));
+      return Array.isArray(list)
+        ? list.filter((a) => a && a.email && a.hash && a.salt)
+        : [];
+    } catch (err) {
+      return [];
+    }
+  }
+  function saveAccounts(list) {
+    write(ACCOUNTS_KEY, JSON.stringify(list));
+  }
+  function findAccount(mail) {
+    if (mail === DEMO.email) return DEMO;
+    return loadAccounts().find((a) => a.email === mail) || null;
+  }
+
+  function randomHex(bytes) {
+    const arr = new Uint8Array(bytes);
+    crypto.getRandomValues(arr);
+    return [...arr].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // SHA-256 (Web Crypto). Kung wala (hal. binuksan bilang file://), simpleng
+  // fallback hash para hindi pa rin naka-save ang totoong password.
+  async function hashPassword(pw, salt) {
+    const text = salt + ":" + pw;
+    if (window.crypto && crypto.subtle) {
+      const buf = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(text),
+      );
+      return [...new Uint8Array(buf)]
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    }
+    let h = 0x811c9dc5;
+    for (let r = 0; r < 1000; r++) {
+      for (let i = 0; i < text.length; i++) {
+        h ^= text.charCodeAt(i);
+        h = Math.imul(h, 0x01000193) >>> 0;
+      }
+    }
+    return "fnv-" + h.toString(16);
+  }
+
+  async function checkLogin(mail, pw) {
+    const acc = findAccount(mail);
+    if (!acc) return null;
+    if (acc === DEMO) return pw === DEMO.password ? DEMO : null;
+    return (await hashPassword(pw, acc.salt)) === acc.hash ? acc : null;
+  }
+
+  // Pulang text sa ilalim ng isang field (null = tanggalin)
+  function fieldError(input, msg, allowLink = false) {
+    const field = input.closest(".field");
+    let p = field.querySelector(".field-err");
+    field.classList.toggle("has-err", !!msg);
+    input.setAttribute("aria-invalid", msg ? "true" : "false");
+    if (!msg) {
+      if (p) p.remove();
+      input.removeAttribute("aria-describedby");
+      return;
+    }
+    if (!p) {
+      p = document.createElement("p");
+      p.className = "field-err";
+      p.id = input.id + "Err";
+      // Diretso sa ilalim ng box (bago yung hint, kung meron)
+      (input.closest(".in-wrap") || input).after(p);
+    }
+    p.innerHTML =
+      svgIcon(TOAST_ICON.alert) + `<span>${allowLink ? msg : esc(msg)}</span>`;
+    input.setAttribute("aria-describedby", p.id);
+  }
+
+  // Isang message sa taas ng button (hal. mali ang email o password)
+  function formAlert(form, msg) {
+    let box = form.querySelector(".auth-alert");
+    if (!msg) {
+      if (box) box.remove();
+      return;
+    }
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "auth-alert";
+      box.setAttribute("role", "alert");
+      form.querySelector(".auth-submit").before(box);
+    }
+    box.innerHTML = svgIcon(TOAST_ICON.alert) + `<span>${esc(msg)}</span>`;
   }
 
   // Hintayin munang ma-load yung HTML bago galawin ang header at forms.
   // (Nauuna 'to sa tasks.js, kaya andyan na ang player card pag nag-start ang Tasks.)
+  // =====================================================================
+  // BACKGROUND MUSIC (lahat ng page, kasama Sign in at Create account)
+  // - Tumutugtog pagka-click o pindot mo sa page (bawal sa browser ang tunog
+  //   bago ka mag-interact).
+  // - Pinatay mo = patay sa buong pagbisita sa tab na ito (lahat ng page).
+  //   Bagong bisita / bagong tab = tutugtog ulit sa unang click (gusto ni
+  //   Abigail, para ma-engage ang bisita). Kaya sessionStorage, hindi localStorage.
+  // - Tuloy-tuloy paglipat ng page: tinatandaan kung nasaan na yung kanta.
+  // - Hover (o keyboard focus) sa button = volume slider sa kaliwa.
+  // - Walang music HTML sa ibang page, kaya dito ginagawa yung audio at button.
+  // =====================================================================
+  const MUSIC_KEY = "questify.music"; // localStorage: { volume }
+  const MUSIC_TIME_KEY = "questify.music.time"; // sessionStorage: nasaan na yung kanta
+  const MUSIC_OFF_KEY = "questify.music.off"; // sessionStorage: pinatay sa tab na ito
+
+  function setupMusic() {
+    let prefs = {};
+    try {
+      prefs = JSON.parse(read(MUSIC_KEY)) || {};
+    } catch (err) {
+      prefs = {};
+    }
+    delete prefs.off; // lumang setting ("naka-mute dati"), hindi na ginagamit
+    const savePrefs = () => write(MUSIC_KEY, JSON.stringify(prefs));
+
+    let audio = document.getElementById("bg-music");
+    let btn = document.getElementById("music-toggle");
+    if (!audio) {
+      audio = document.createElement("audio");
+      audio.id = "bg-music";
+      audio.loop = true;
+      audio.preload = "auto";
+      audio.src = BASE + "assets/audio/bg-music.mp3";
+      document.body.appendChild(audio);
+    }
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "music-toggle";
+      btn.className = "music-btn";
+      btn.innerHTML =
+        '<svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>' +
+        '<svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+      document.body.appendChild(btn);
+    }
+    btn.setAttribute("aria-label", "Background music");
+
+    // Button + volume slider sa iisang lalagyan (para hindi mawala ang hover sa pagitan)
+    const ctl = document.createElement("div");
+    ctl.className = "music-ctl";
+    btn.before(ctl);
+    ctl.appendChild(btn);
+    ctl.insertAdjacentHTML(
+      "afterbegin",
+      `<div class="music-pop"><div class="music-pop-in">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+        <input type="range" id="musicVolume" min="0" max="100" step="5" aria-label="Music volume">
+        <span class="music-pct" aria-hidden="true"></span>
+      </div></div>`,
+    );
+    const slider = ctl.querySelector("#musicVolume");
+    const pct = ctl.querySelector(".music-pct");
+
+    const vol = Number(prefs.volume);
+    audio.volume = Number.isFinite(vol) && vol >= 0 && vol <= 1 ? vol : 0.6;
+
+    function showVolume() {
+      const p = Math.round(audio.volume * 100);
+      slider.value = p;
+      slider.style.setProperty("--v", p + "%");
+      slider.setAttribute("aria-valuetext", p + " percent");
+      pct.textContent = p + "%";
+    }
+    function showOn(on) {
+      btn.setAttribute("aria-pressed", String(on));
+      btn.title = on ? "Pause music" : "Play music";
+    }
+    function saveTime() {
+      try {
+        sessionStorage.setItem(MUSIC_TIME_KEY, String(audio.currentTime || 0));
+      } catch (err) {
+        /* okay lang */
+      }
+    }
+    async function play() {
+      if (audio.volume === 0) {
+        audio.volume = 0.6;
+        showVolume();
+      }
+      try {
+        await audio.play();
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+    // Pinatay mo = tatandaan habang bukas ang tab (sessionStorage).
+    // Bagong tab o bagong bisita = malinis ulit, tutugtog sa unang click.
+    function isOff() {
+      try {
+        return sessionStorage.getItem(MUSIC_OFF_KEY) === "1";
+      } catch (err) {
+        return false;
+      }
+    }
+    function setOff(off) {
+      try {
+        if (off) sessionStorage.setItem(MUSIC_OFF_KEY, "1");
+        else sessionStorage.removeItem(MUSIC_OFF_KEY);
+      } catch (err) {
+        /* okay lang */
+      }
+    }
+    function turnOff() {
+      setOff(true);
+      audio.pause();
+    }
+    function turnOn() {
+      setOff(false);
+      play();
+    }
+
+    audio.addEventListener("play", () => showOn(true));
+    audio.addEventListener("pause", () => showOn(false));
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (audio.paused) turnOn();
+      else turnOff();
+    });
+
+    slider.addEventListener("input", () => {
+      audio.volume = slider.value / 100;
+      prefs.volume = audio.volume;
+      savePrefs();
+      showVolume();
+      // Tinaas ang volume habang naka-off = gusto nang marinig. Sa 0 = patay.
+      if (audio.volume > 0 && audio.paused) turnOn();
+      if (audio.volume === 0 && !audio.paused) turnOff();
+    });
+
+    window.addEventListener("pagehide", saveTime);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") saveTime();
+    });
+
+    showVolume();
+    showOn(false);
+    savePrefs(); // tanggalin ang lumang "off" sa naka-save
+    if (isOff()) return; // pinatay sa tab na ito: hintayin na lang na i-on ulit sa button
+
+    // Bawal ng browser ang tunog bago mag-interact, kaya tutugtog sa unang
+    // click o pindot sa page (hindi sa music button mismo, siya na ang bahala doon).
+    const onFirst = (e) => {
+      if (ctl.contains(e.target)) return;
+      stopWaiting();
+      if (!isOff() && audio.paused) play();
+    };
+    const stopWaiting = () => {
+      document.removeEventListener("pointerdown", onFirst, true);
+      document.removeEventListener("keydown", onFirst, true);
+    };
+    document.addEventListener("pointerdown", onFirst, true);
+    document.addEventListener("keydown", onFirst, true);
+    audio.addEventListener("play", stopWaiting, { once: true });
+
+    // Ituloy kung saan huminto sa kabilang page (kung papayagan ng browser, agad)
+    const start = () => {
+      let t = 0;
+      try {
+        t = Number(sessionStorage.getItem(MUSIC_TIME_KEY)) || 0;
+      } catch (err) {
+        t = 0;
+      }
+      if (t > 0) audio.currentTime = t;
+      if (t > 0) play();
+    };
+    if (audio.readyState >= 1) start();
+    else audio.addEventListener("loadedmetadata", start, { once: true });
+  }
+
+  // ---------- CUSTOM CURSOR (Cursorly, galing kay Abigail) ----------
+  // Nandito (hindi sa app.js) para gumana sa lahat ng page, kasama Tasks at Profile.
+  // Kailangan ng <script src=".../cursorly.min.js"> sa <head> ng page
+  // (naka-lock sa version 1.0.5, para hindi masira pag may bagong labas).
+  // Normal na cursor lang (at tuloy ang site) kapag:
+  //  - hindi nag-load ang Cursorly (hal. offline)
+  //  - touch screen ang gamit (phone/tablet: walang mouse, sayang sa battery)
+  //  - naka-"reduce motion" ang device (ayaw ng gumagalaw na trail)
+  function setupCursor() {
+    if (!window.Cursorly) return;
+    const mq = (q) => window.matchMedia && window.matchMedia(q).matches;
+    if (mq("(pointer: coarse)") || mq("(prefers-reduced-motion: reduce)"))
+      return;
+    try {
+      const cur = window.Cursorly.init({
+        cursor: 23, // index ng cursor icon
+        effect: { name: "trail", color: "rainbow" },
+      });
+      // 1) Tama ang turo: naka-GITNA sa mouse ang drawing ng Cursorly (24px), pero ang
+      //    dulo ng daliri ay nasa ~(8, 3) ng image. Kaya inuusog ang drawing para ang
+      //    dulo ng daliri mismo ang nasa totoong puwesto ng mouse (click, highlight).
+      const SIZE = 24;
+      const TIP = { x: 8, y: 3 };
+      if (cur && cur.mouse) {
+        window.addEventListener("mousemove", (e) => {
+          cur.mouse.x = e.clientX + SIZE / 2 - TIP.x;
+          cur.mouse.y = e.clientY + SIZE / 2 - TIP.y;
+        });
+      }
+      // 2) Walang stretch: kasing-laki ng window ang canvas (kasama ang scrollbar),
+      //    pareho ng sukat na ginagamit ng Cursorly sa pag-drawing
+      if (cur && cur.canvas) {
+        cur.canvas.style.width = "100vw";
+        cur.canvas.style.height = "100vh";
+      }
+      // Para sa CSS: itago ang cursor ng Windows sa lahat (pati buttons at links),
+      // kung hindi may dalawang cursor sa ibabaw ng mga pinipindot
+      document.documentElement.classList.add("has-custom-cursor");
+    } catch (err) {
+      /* okay lang: normal na cursor */
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
+    setupMusic();
+    setupCursor();
     setupHeader();
+    paintPlayerName();
     setupAuthForm();
+    serverModeNote();
+    checkSession();
     signedOutToast();
+    alreadySignedInToast();
+    memberFinalCta();
   });
 })();
