@@ -6940,6 +6940,14 @@ body.profile-page {
   color: #0a0e1a;
   font-size: 8px;
 }
+/* Text contrast 4.5:1 or more (TC-A11Y-02): the Novice "You" badge and the
+   caption on the current rank's tinted card are a little lighter */
+.profile-page .rank-road .rank-novice .you {
+  background: #777b99;
+}
+.profile-page .rank-road .rank.current > span:not(.you) {
+  color: #9298aa;
+}
 .rank-next {
   display: flex;
   align-items: center;
@@ -9426,22 +9434,37 @@ body.m-open .music-ctl {
   }
 
   /* ---------- Bigger tap targets on phones (36px and up) ---------- */
+  /* Header and Quest Board controls: 44 x 44 px (TC-RSP-02) */
   .nav-logo a {
     display: inline-block;
-    padding: 14px 0;
+    padding: 16px 0;
+  }
+  nav .icon-btn,
+  .m-menu-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .toolbar .chip.fx,
+  .toolbar .sort-btn,
+  .col-tab {
+    min-height: 44px;
+  }
+  .toolbar .sort-dir {
+    width: 44px;
+    min-height: 44px;
   }
   .qactions .btn-gold,
   .qactions .btn-lime {
-    min-height: 36px;
+    min-height: 44px;
     padding: 8px 16px;
     font-size: 13px;
   }
   .kebab {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
   .qcard-tools {
-    margin: -9px -10px 0 0;
+    margin: -13px -14px 0 0;
   }
   .qcard-open {
     padding: 6px 0;

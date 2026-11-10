@@ -605,6 +605,14 @@ function startProfile() {
       const file = picker.files[0];
       picker.value = "";
       if (!file) return;
+      // Bigger than the server accepts (1 MB): refuse it before reading it
+      if (file.size > 1024 * 1024) {
+        say(
+          "That file is too big to be a Questify backup (over 1 MB). Nothing was changed.",
+          true,
+        );
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         let data = null;

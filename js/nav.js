@@ -201,6 +201,16 @@
 
   // ---------- 1. GUARD ----------
   const guard = document.documentElement.dataset.guard;
+  // Back/Forward button: the browser can show a saved copy of this page
+  // without running this file again (back-forward cache). If the player
+  // signed in or out since the copy was made, reload so the checks below
+  // run again (e.g. Back after Sign out goes to Sign in, not the board).
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted && (read(SIGNED_IN_KEY) === "1") !== signedIn) {
+      document.documentElement.style.visibility = "hidden";
+      location.reload();
+    }
+  });
   if (guard && !signedIn) {
     location.replace(
       BASE + "pages/signin.html?next=" + encodeURIComponent(guard),
